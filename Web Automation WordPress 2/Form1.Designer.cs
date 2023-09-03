@@ -172,7 +172,7 @@
             // 
             // tagBox1
             // 
-            tagBox1.BackColor = Color.DimGray;
+            tagBox1.BackColor = Color.Silver;
             tagBox1.Cursor = Cursors.IBeam;
             tagBox1.Font = new Font("굴림", 9F, FontStyle.Bold, GraphicsUnit.Point);
             tagBox1.ForeColor = Color.White;
