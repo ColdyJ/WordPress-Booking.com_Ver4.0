@@ -68,51 +68,56 @@ namespace Web_Automation_WordPress_2
 
         private async void WP_API_Auto()
         {
-            // if (dalleBox1 != null && !string.IsNullOrWhiteSpace(dalleBox1.Text)) //비어있지 않을 시 실행
-            // {
-            //DALL-E로부터 IMG 출력
-            string content = ""; // \n을 <br>로 변경 , result를 content에 할당
-            int result_1 = 0;
-            string prompt2 = dalleBox1.Text;
-            translation = Papago(prompt2);
-            content = await RequestDALLE(translation, selectedFolder); // 로컬 저장 + 이미지 파일 업로드 후 API 전송요청 // 이방식은 첫줄에 사진 경로가 뜸
-            LogBox1.AppendText($"이미지 출력 완료");
-            LogBox1.AppendText(Environment.NewLine);
-            //}
-
-            //GPT로부터 Content 출력
-            string result_2 = "";
-            string prompt1 = gptBox1.Text.Trim(); // 질문
-            var task1 = Task.Run(() => RequestGPT(prompt1)); // ChatCPT에 요청
-            result_2 = await task1; // GPT로부터 나온 답변
-            string content_2 = result_2.Replace("\n", "<br>") + "<br>"; // \n을 <br>로 변경 , result를 content에 할당
-            LogBox1.AppendText($"GPT 출력 완료");
-            LogBox1.AppendText(Environment.NewLine);
-
-            // GPT+DALL-E 
-            content += "\r" + content_2;
-
-            //WP 업로드 
-            var client = new WordPressClient(Define.WP_URL);
-            client.Auth.UseBasicAuth(Define.WP_ID, Define.WP_PW); // 아이디 비번칸은 따로 만들어도 좋을듯
-
-            var post = new Post()
+            try
             {
-                Title = new Title(titleBox1.Text),
-                Content = new Content(content),
-                //FeaturedMedia = result_1,
-                Categories = new List<int> { comboBox1_SelectedItem() }, // ComboBox에서 선택한 카테고리 ID 설정
-                CommentStatus = OpenStatus.Open, // 댓글 상태
-                Status = Status.Publish, // 포스팅 상태 공개,임시
+                //DALL-E로부터 IMG 출력
+                string content = ""; // \n을 <br>로 변경 , result를 content에 할당
+                int result_1 = 0;
+                string prompt2 = dalleBox1.Text;
+                translation = Papago(prompt2);
+                content = await RequestDALLE(translation, selectedFolder); // 로컬 저장 + 이미지 파일 업로드 후 API 전송요청 // 이방식은 첫줄에 사진 경로가 뜸
+                LogBox1.AppendText($"이미지 출력 완료");
+                LogBox1.AppendText(Environment.NewLine);
 
-                //Meta = new Description(dataObj.Description), // 메타 데이터
-                //Tags = tagBox1.Text.Split(',').Select(tag => tag.Trim()).ToList(), // 쉼표로 구분된 태그 목록 추가,
-                //Excerpt = new Excerpt(dataObj.Excerpt), // 발췌
-            };
-            await client.Posts.CreateAsync(post); // 포스팅 요청 보내기
+                //GPT로부터 Content 출력
+                string result_2 = "";
+                string prompt1 = gptBox1.Text.Trim(); // 질문
+                var task1 = Task.Run(() => RequestGPT(prompt1)); // ChatCPT에 요청
+                result_2 = await task1; // GPT로부터 나온 답변
+                string content_2 = result_2.Replace("\n", "<br>") + "<br>"; // \n을 <br>로 변경 , result를 content에 할당
+                LogBox1.AppendText($"GPT 출력 완료");
+                LogBox1.AppendText(Environment.NewLine);
 
-            LogBox1.AppendText($"포스팅 완료");
-            LogBox1.AppendText(Environment.NewLine);
+                // GPT+DALL-E 
+                content += "\r" + content_2;
+
+                //WP 업로드 
+                var client = new WordPressClient(Define.WP_URL);
+                client.Auth.UseBasicAuth(Define.WP_ID, Define.WP_PW); // 아이디 비번칸은 따로 만들어도 좋을듯
+
+                var post = new Post()
+                {
+                    Title = new Title(titleBox1.Text),
+                    Content = new Content(content),
+                    //FeaturedMedia = result_1,
+                    Categories = new List<int> { comboBox1_SelectedItem() }, // ComboBox에서 선택한 카테고리 ID 설정
+                    CommentStatus = OpenStatus.Open, // 댓글 상태
+                    Status = Status.Publish, // 포스팅 상태 공개,임시
+
+                    //Meta = new Description(dataObj.Description), // 메타 데이터
+                    //Tags = tagBox1.Text.Split(',').Select(tag => tag.Trim()).ToList(), // 쉼표로 구분된 태그 목록 추가,
+                    //Excerpt = new Excerpt(dataObj.Excerpt), // 발췌
+                };
+                await client.Posts.CreateAsync(post); // 포스팅 요청 보내기
+
+                LogBox1.AppendText($"포스팅 완료");
+                LogBox1.AppendText(Environment.NewLine);
+            }
+            catch
+            {
+                LogBox1.AppendText($"Line:117 빈칸 확인");
+                LogBox1.AppendText(Environment.NewLine);
+            }
         }
 
         private int comboBox1_SelectedItem()
