@@ -40,9 +40,6 @@ namespace Web_Automation_WordPress_2
                 // 대화 상자의 제목 설정 (선택 사항)
                 folderBrowserDialog.Description = "폴더 선택";
 
-                // 초기 디렉토리 설정 (선택 사항)
-                folderBrowserDialog.SelectedPath = "C:\\"; // 시작 디렉토리를 원하는 폴더로 설정
-
                 // 폴더 선택 대화 상자를 표시하고 사용자의 선택을 확인
                 DialogResult result = folderBrowserDialog.ShowDialog();
 
