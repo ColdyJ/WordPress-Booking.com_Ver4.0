@@ -107,9 +107,9 @@ namespace Web_Automation_WordPress_2
                 };
                 var createdtag = await client.Tags.CreateAsync(tag);
                 LogBox1.AppendText(result_1 + Environment.NewLine + Environment.NewLine); // 태그 출력
-
                 LogBox1.AppendText($"태그 생성 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
+
 
                 // 지난 포스팅 링크 추출 매서드
                 LogBox1.AppendText($"지난 포스팅 링크 추출..." + Environment.NewLine);
@@ -134,6 +134,7 @@ namespace Web_Automation_WordPress_2
                 string oldposts = string.Join("\r", selectedLinks);
                 LogBox1.AppendText($"지난 포스팅 링크 추출 완료" + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
+
 
                 //WP 업로드 
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
