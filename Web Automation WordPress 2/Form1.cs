@@ -103,13 +103,37 @@ namespace Web_Automation_WordPress_2
                 }
                 var tag = new Tag()
                 {
-                    Name = result_1,
+                    Name = result_1 // 글의 TAG로 들어가버림
                 };
                 var createdtag = await client.Tags.CreateAsync(tag);
+                LogBox1.AppendText(result_1 + Environment.NewLine + Environment.NewLine); // 태그 출력
+
                 LogBox1.AppendText($"태그 생성 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
+                // 지난 포스팅 링크 추출 매서드
+                LogBox1.AppendText($"지난 포스팅 링크 추출..." + Environment.NewLine);
+                var posts = await client.Posts.GetAllAsync();
+                List<string> postLinks = new List<string>(); // 포스트의 Link 값을 저장할 리스트를 만듭니다.
+                foreach (var postli in posts)
+                {
+                    string postLink = postli.Link; // 포스트의 Link 값을 추출
+                    postLinks.Add(postLink);
+                }
+                Random random = new Random(); // 랜덤하게 3개의 Link 값을 선택합니다.
+                List<string> selectedLinks = new List<string>();
 
+                for (int i = 0; i < 3; i++)
+                {
+                    int index = random.Next(postLinks.Count); // 랜덤한 인덱스 선택
+                    string selectedLink = postLinks[index]; // 선택된 Link 값
+                    selectedLinks.Add(selectedLink);
+                    postLinks.RemoveAt(index); // 중복 선택 방지를 위해 선택한 Link 값을 리스트에서 제거합니다.
+                }
+                // 선택된 Link 값을 oldposts 문자열에 추가합니다.
+                string oldposts = string.Join("\r", selectedLinks);
+                LogBox1.AppendText($"지난 포스팅 링크 추출 완료" + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
 
                 //WP 업로드 
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
@@ -121,10 +145,12 @@ namespace Web_Automation_WordPress_2
                     FeaturedMedia = createdMedia.Id, // DALL-E
                     Categories = new List<int> { comboBox1_SelectedItem() }, // ComboBox에서 선택한 카테고리 ID 설정
                     CommentStatus = OpenStatus.Open, // 댓글 상태
-                    Meta = createdtag.Name, // 쉼표로 구분된 태그 목록 추가,
+                    Tags = new List<int> { createdtag.Id },
+                    Link = oldposts,
                     Status = Status.Publish, // 포스팅 상태 공개,임시
 
-                    //Meta = new Description(dataObj.Description), // 메타 데이터
+
+                    Meta = new Description("테스트입니다"), // 메타 데이터
                     //Excerpt = new Excerpt(dataObj.Excerpt), // 발췌
                 };
                 await client.Posts.CreateAsync(post); // 포스팅 요청 보내기
@@ -132,9 +158,7 @@ namespace Web_Automation_WordPress_2
 
                 LogBox1.AppendText($"워드프레스 업로드 완료" + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
-
-
-
+                createdtag = null;
             }
             catch
             {
