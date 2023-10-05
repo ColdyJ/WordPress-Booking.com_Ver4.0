@@ -67,27 +67,28 @@ namespace Web_Automation_WordPress_2
         {
             var client = new WordPressClient(WP_URL);
             client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번칸은 따로 만들어도 좋을듯
+            string prompt = "";
+            string result_1 = "";
 
             try
             {
                 LogBox1.AppendText($"이미지 생성 시작..." + Environment.NewLine);
                 //DALL-E로부터 IMG 출력
-                string content_2 = ""; // \n을 <br>로 변경 , result를 content에 할당
-                string prompt_2 = dalleBox1.Text;
-                translation = Papago(prompt_2);
-                content_2 = await RequestDALLE(translation, selectedFolder); // 로컬 저장 + 이미지 파일 업로드 후 API 전송요청 // 이방식은 첫줄에 사진 경로가 뜸
-                var createdMedia = await client.Media.CreateAsync(content_2, $"{translation}.jpg"); // filepath로 media 생성
-                content_2 = $"<img src=\"{createdMedia.SourceUrl}\">"; // content_2는 createdMedia에서 변환 시켰으니 img src로 변경
+                string content_Dalle = "";
+                prompt = dalleBox1.Text;
+                translation = Papago(prompt);
+                content_Dalle = await RequestDALLE(translation, selectedFolder); // 로컬 저장 + 이미지 파일 업로드 후 API 전송요청 // 이방식은 첫줄에 사진 경로가 뜸
+                var createdMedia = await client.Media.CreateAsync(content_Dalle, $"{translation}.jpg"); // filepath로 media 생성
+                content_Dalle = $"<img src=\"{createdMedia.SourceUrl}\">"; // content_2는 createdMedia에서 변환 시켰으니 img src로 변경
                 LogBox1.AppendText($"이미지 출력 완료" + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
                 //GPT로부터 Content 출력
                 LogBox1.AppendText($"GPT 출력 시작..." + Environment.NewLine);
-                string result_1 = "";
-                string prompt_1 = gptBox1.Text.Trim(); // 질문
-                var task1 = Task.Run(() => RequestGPT(prompt_1)); // ChatCPT에 요청
+                prompt = gptBox1.Text.Trim(); // 질문
+                var task1 = Task.Run(() => RequestGPT(prompt)); // ChatCPT에 요청
                 result_1 = await task1; // GPT로부터 나온 답변
-                string content_1 = result_1.Replace("\n", "<br>") + "<br>"; // \n을 <br>로 변경 , result를 content에 할당
+                string content_GPT = result_1.Replace("\n", "<br>") + "<br>"; // \n을 <br>로 변경 , result를 content에 할당
                 LogBox1.AppendText($"GPT 출력 완료" + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
@@ -95,7 +96,6 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"태그 생성중..." + Environment.NewLine + Environment.NewLine);
                 string tags = titleBox1.Text + "라는 블로그 제목에 어울리는 태그 " + 10 + "개를 무조건 ','를 써서 알려줘";
                 task1 = Task.Run(() => RequestGPT(tags)); // ChatCPT에 요청
-                result_1 = "";
                 result_1 = await task1; // GPT로부터 나온 태그
                 if (result_1.Contains("#"))
                 {
@@ -111,6 +111,15 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
 
+                LogBox1.AppendText($"요약중..." + Environment.NewLine);
+                prompt = content_GPT + "을 요약해줘";
+                task1 = Task.Run(() => RequestGPT(prompt)); // ChatCPT에 요청
+                result_1 = await task1; // GPT로부터 나온 답변
+                string content_Excerpt = result_1; // \n을 <br>로 변경 , result를 content에 할당
+                LogBox1.AppendText($"요약 완료..." + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
                 // 지난 포스팅 링크 추출 매서드
                 LogBox1.AppendText($"지난 포스팅 링크 추출..." + Environment.NewLine);
                 var posts = await client.Posts.GetAllAsync();
@@ -118,11 +127,12 @@ namespace Web_Automation_WordPress_2
                 foreach (var postli in posts)
                 {
                     string postLink = postli.Link; // 포스트의 Link 값을 추출
-                    postLinks.Add(postLink);
+                    string postTitle = postli.Title.Rendered; // 게시물의 제목을 가져옵니다.
+                    string linkHtml = $"<a title=\"{postTitle}\" href=\"{postLink}\">&nbsp;▶{postTitle}</a>";
+                    postLinks.Add(linkHtml);
                 }
                 Random random = new Random(); // 랜덤하게 3개의 Link 값을 선택합니다.
                 List<string> selectedLinks = new List<string>();
-
                 for (int i = 0; i < 3; i++)
                 {
                     int index = random.Next(postLinks.Count); // 랜덤한 인덱스 선택
@@ -131,8 +141,42 @@ namespace Web_Automation_WordPress_2
                     postLinks.RemoveAt(index); // 중복 선택 방지를 위해 선택한 Link 값을 리스트에서 제거합니다.
                 }
                 // 선택된 Link 값을 oldposts 문자열에 추가합니다.
-                string oldposts = string.Join("\r", selectedLinks);
+                string oldPostsLinks = string.Join("\r\n", selectedLinks); // 각 링크를 개행 문자로 구분
                 LogBox1.AppendText($"지난 포스팅 링크 추출 완료" + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+                LogBox1.AppendText($"외부 링크 추출..." + Environment.NewLine);
+                List<string> urls = new List<string> // 30개의 URL을 리스트에 추가
+                {
+                    "https://m.blog.naver.com/jhkim6281/223020766231?referrerCode=1","https://m.blog.naver.com/jhkim6281/223020776708?referrerCode=1","https://m.blog.naver.com/jhkim6281/223025461120?referrerCode=1",
+                    "https://m.blog.naver.com/jhkim6281/223033987549?referrerCode=1","https://m.blog.naver.com/jhkim6281/223035429797?referrerCode=1","https://m.blog.naver.com/jhkim6281/223035853701?referrerCode=1",
+                    "https://m.blog.naver.com/jhkim6281/223036889995?referrerCode=1","https://m.blog.naver.com/jhkim6281/223037039200?referrerCode=1","https://m.blog.naver.com/jhkim6281/223037877338?referrerCode=1",
+                    "https://m.blog.naver.com/jhkim6281/223037985973?referrerCode=1","https://m.blog.naver.com/jhkim6281/223038143608?referrerCode=1","https://m.blog.naver.com/jhkim6281/223038241526?referrerCode=1",
+                    "https://m.blog.naver.com/jhkim6281/223038253154?referrerCode=1","https://m.blog.naver.com/jhkim6281/223038384369?referrerCode=1","https://m.blog.naver.com/jhkim6281/223039198024?referrerCode=1",
+                    "https://m.blog.naver.com/jhkim6281/223039206222?referrerCode=1","https://m.blog.naver.com/jhkim6281/223039240687?referrerCode=1","https://m.blog.naver.com/jhkim6281/223039265755?referrerCode=1",
+                    "https://m.blog.naver.com/jhkim6281/223039593229?referrerCode=1","https://m.blog.naver.com/jhkim6281/223039613837?referrerCode=1","https://m.blog.naver.com/jhkim6281/223039637726?referrerCode=1",
+                    "https://m.blog.naver.com/jhkim6281/223039657911?referrerCode=1","https://m.blog.naver.com/jhkim6281/223039689956?referrerCode=1","https://m.blog.naver.com/jhkim6281/223040233776?referrerCode=1",
+                    "https://m.blog.naver.com/jhkim6281/223040254238?referrerCode=1","https://m.blog.naver.com/jhkim6281/223040409460?referrerCode=1","https://m.blog.naver.com/jhkim6281/223040432520?referrerCode=1",
+                    "https://m.blog.naver.com/jhkim6281/223040473469?referrerCode=1","https://m.blog.naver.com/jhkim6281/223040519864?referrerCode=1","https://m.blog.naver.com/jhkim6281/223040598554?referrerCode=1",
+                    "https://m.blog.naver.com/jhkim6281/223044247527?referrerCode=1","https://m.blog.naver.com/jhkim6281/223047532120?referrerCode=1","https://m.blog.naver.com/jhkim6281/223047685223?referrerCode=1",
+                    "https://m.blog.naver.com/jhkim6281/223090692705?referrerCode=1","https://m.blog.naver.com/jhkim6281/223092826518?referrerCode=1","https://m.blog.naver.com/jhkim6281/223105279622?referrerCode=1",
+                    "https://m.blog.naver.com/jhkim6281/223106542250?referrerCode=1"
+                };
+                List<string> selectedOutLinks = new List<string>();
+                for (int i = 0; i < 2; i++)// 랜덤하게 2개의 URL 선택
+                {
+                    int index = random.Next(urls.Count);
+                    string selectedLink = urls[index];
+                    urls.RemoveAt(index); // 중복 선택 방지를 위해 선택한 URL을 리스트에서 제거합니다.
+                    
+                    // 선택된 URL을 linkHtml 형식으로 만듭니다.
+                    string postTitle = $"▶{titleBox1.Text} 에서 참고한 글◀"; // 원하는 제목을 지정하세요
+                    string linkHtml = $"<a title=\"{postTitle}\" href=\"{selectedLink}\">&nbsp;{postTitle}</a>";
+                    selectedOutLinks.Add(linkHtml);
+                }
+                // 선택된 URL을 outlinks 문자열에 추가
+                string outLinks = string.Join("\r\n", selectedOutLinks); // 각 링크를 개행 문자로 구분
+                LogBox1.AppendText($"외부 링크 추출 완료" + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
 
@@ -142,20 +186,28 @@ namespace Web_Automation_WordPress_2
                 var post = new Post()
                 {
                     Title = new Title(titleBox1.Text),
-                    Content = new Content(content_2 + "\r" + content_1), // GPT
+                    Content = new Content(outLinks + "\r"+content_Dalle + "\r" + content_GPT + oldPostsLinks), // GPT
                     FeaturedMedia = createdMedia.Id, // DALL-E
                     Categories = new List<int> { comboBox1_SelectedItem() }, // ComboBox에서 선택한 카테고리 ID 설정
                     CommentStatus = OpenStatus.Open, // 댓글 상태
                     Tags = new List<int> { createdtag.Id },
-                    Link = oldposts,
                     Status = Status.Publish, // 포스팅 상태 공개,임시
+                    Excerpt = new Excerpt(content_Excerpt) // 발췌
+                    
+                    //Meta = new Description("테스트입니다"), // 메타 데이터
 
-
-                    Meta = new Description("테스트입니다"), // 메타 데이터
-                    //Excerpt = new Excerpt(dataObj.Excerpt), // 발췌
                 };
-                await client.Posts.CreateAsync(post); // 포스팅 요청 보내기
+                var createdPost = await client.Posts.CreateAsync(post); // 포스팅 요청 보내기
                 LogBox1.AppendText($"글 본문 출력 완료" + Environment.NewLine);
+
+                /*
+                // 게시물의 Link와 Meta 정보 수정
+                int postId = createdPost.Id;
+                var postToUpdate = await client.Posts.GetByIDAsync(postId);
+                string newMetaDescription = "새로운 Meta Description 내용을 여기에 추가합니다."; // 새로운 Meta Description 설정
+                postToUpdate.Meta.Add("footnotes", newMetaDescription);
+                var updatedPost = await client.Posts.UpdateAsync(postToUpdate); // 게시물 업데이트
+                */
 
                 LogBox1.AppendText($"워드프레스 업로드 완료" + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
@@ -163,7 +215,7 @@ namespace Web_Automation_WordPress_2
             }
             catch
             {
-                LogBox1.AppendText($"Line:117 빈칸 확인");
+                LogBox1.AppendText($"Line:184 빈칸 확인");
                 LogBox1.AppendText(Environment.NewLine);
             }
         }
@@ -304,47 +356,6 @@ namespace Web_Automation_WordPress_2
             translatedText = jObject["message"]["result"]["translatedText"].ToString();
             return translatedText;
         }
-
-        private void TextBtn1_Click(object sender, EventArgs e)
-        {
-            Test_API();
-        }
-
-
-
-        private async void Test_API()
-        {
-            //WP 업로드 
-            var client = new WordPressClient("https://oheeliving.com/wp-json/");
-
-            client.Auth.UseBasicAuth("kwon92088@gmail.com", "SV9H TFv0 pMC6 sptk 8s7q 7BsV"); // 아이디 비번칸은 따로 만들어도 좋을듯
-
-            var post = new Post()
-            {
-                Title = new Title("테스트 제목입니다"),
-                Content = new Content("테스트 내용 입니다"),
-                Categories = new List<int> { comboBox1_SelectedItem() }, // ComboBox에서 선택한 카테고리 ID 설정
-                CommentStatus = OpenStatus.Open, // 댓글 상태
-                Status = Status.Draft // 포스팅 상태 공개,임시
-
-                //Meta = new Description(dataObj.Description), // 메타 데이터
-                //Excerpt = new Excerpt(dataObj.Excerpt), // 발췌
-            };
-
-            await client.Posts.CreateAsync(post); // 포스팅 요청 보내기
-            LogBox1.AppendText($"포스팅 완료");
-            LogBox1.AppendText(Environment.NewLine);
-
-        }
-
-
-
-
-
-
-
-
-
 
 
 
