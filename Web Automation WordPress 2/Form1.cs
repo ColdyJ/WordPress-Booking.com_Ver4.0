@@ -397,7 +397,7 @@ namespace Web_Automation_WordPress_2
         private void SaveConfig()
         {
             string myDocumentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            string configFile = Path.Combine(myDocumentsPath, "T_Post_config.xml");
+            string configFile = Path.Combine(myDocumentsPath, "WP_Post_config.xml");
 
             XDocument doc = new XDocument(new XElement("Settings",
                 new XElement("InputValue1", IdBox1.Text),
@@ -410,7 +410,7 @@ namespace Web_Automation_WordPress_2
         private void LoadConfig()
         {
             string myDocumentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            string configFile = Path.Combine(myDocumentsPath, "T_Post_config.xml");
+            string configFile = Path.Combine(myDocumentsPath, "WP_Post_config.xml");
 
             if (File.Exists(configFile))
             {
