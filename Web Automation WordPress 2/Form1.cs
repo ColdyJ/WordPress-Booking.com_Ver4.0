@@ -94,12 +94,13 @@ namespace Web_Automation_WordPress_2
 
 
                 LogBox1.AppendText($"태그 생성중..." + Environment.NewLine + Environment.NewLine);
-                string tags = TagBox1.Text + "에 어울리는 검색량 많은 태그들을 무조건 ','를 써서 알려줘";
+                //if (TagBox1.Text.Contains(" ")) TagBox1.Text = TagBox1.Text.Replace(" ","");
+                string tags = "'" + TagBox1.Text.Trim() + "'" + "을 포함한 인기 검색어 10개를 ','로 구분해서 알려줘";
                 task1 = Task.Run(() => RequestGPT(tags)); // ChatCPT에 요청
                 result_1 = await task1; // GPT로부터 나온 태그
-                if (result_1.Contains("#"))
+                if (result_1.Contains(", #"))
                 {
-                    result_1 = result_1.Replace("#", ",");
+                    result_1 = result_1.Replace(", #", ",");
                 }
                 var tag = new Tag()
                 {
@@ -260,7 +261,7 @@ namespace Web_Automation_WordPress_2
                     ChatMessage.FromUser(prompt1),
                 },
                 Model = Models.Gpt_3_5_Turbo_16k, //모델명.
-                Temperature = 0.6F,      //대답의 자유도(다양성 - Diversity)). 자유도가 낮으면 같은 대답, 높으면 좀 아무말?
+                Temperature = 0.7F,      //대답의 자유도(다양성 - Diversity)). 자유도가 낮으면 같은 대답, 높으면 좀 아무말?
                 MaxTokens = 4000,      //이게 길수록 글자가 많아짐. 이 토큰 단위를 기준으로 트래픽이 매겨지고, (유료인경우) 과금 책정이 됨)
                 N = 1   //경우의 수(대답의 수). N=3으로 하면 3번 다른 회신을 배열에 담아줌
             });
