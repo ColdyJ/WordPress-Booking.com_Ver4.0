@@ -54,6 +54,8 @@
             label5 = new Label();
             groupBox12 = new GroupBox();
             groupBox10 = new GroupBox();
+            label1 = new Label();
+            TagBox1 = new TextBox();
             label6 = new Label();
             label7 = new Label();
             groupBox1.SuspendLayout();
@@ -75,7 +77,7 @@
             StartBtn1.Location = new Point(181, 235);
             StartBtn1.Name = "StartBtn1";
             StartBtn1.Size = new Size(196, 43);
-            StartBtn1.TabIndex = 990;
+            StartBtn1.TabIndex = 9;
             StartBtn1.Text = "실행";
             StartBtn1.UseVisualStyleBackColor = false;
             StartBtn1.Click += StartBtn1_Click;
@@ -87,7 +89,7 @@
             groupBox1.Location = new Point(11, 304);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new Size(649, 151);
-            groupBox1.TabIndex = 2;
+            groupBox1.TabIndex = 999;
             groupBox1.TabStop = false;
             groupBox1.Text = "작업로그";
             // 
@@ -101,7 +103,7 @@
             LogBox1.Name = "LogBox1";
             LogBox1.ReadOnly = true;
             LogBox1.Size = new Size(633, 119);
-            LogBox1.TabIndex = 995;
+            LogBox1.TabIndex = 0;
             // 
             // comboBox1
             // 
@@ -113,7 +115,7 @@
             comboBox1.Location = new Point(116, 116);
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(261, 20);
-            comboBox1.TabIndex = 997;
+            comboBox1.TabIndex = 5;
             // 
             // dalleBox1
             // 
@@ -125,7 +127,7 @@
             dalleBox1.Location = new Point(117, 87);
             dalleBox1.Name = "dalleBox1";
             dalleBox1.Size = new Size(260, 21);
-            dalleBox1.TabIndex = 3;
+            dalleBox1.TabIndex = 4;
             // 
             // titleBox1
             // 
@@ -150,7 +152,7 @@
             gptBox1.Multiline = true;
             gptBox1.Name = "gptBox1";
             gptBox1.Size = new Size(260, 77);
-            gptBox1.TabIndex = 4;
+            gptBox1.TabIndex = 6;
             // 
             // FolderPath1Btn1
             // 
@@ -159,7 +161,7 @@
             FolderPath1Btn1.Location = new Point(131, 20);
             FolderPath1Btn1.Name = "FolderPath1Btn1";
             FolderPath1Btn1.Size = new Size(33, 23);
-            FolderPath1Btn1.TabIndex = 991;
+            FolderPath1Btn1.TabIndex = 8;
             FolderPath1Btn1.Text = "...";
             FolderPath1Btn1.UseVisualStyleBackColor = false;
             FolderPath1Btn1.Click += FolderPath1Btn1_Click;
@@ -173,7 +175,7 @@
             FolderPath1.Name = "FolderPath1";
             FolderPath1.ReadOnly = true;
             FolderPath1.Size = new Size(120, 23);
-            FolderPath1.TabIndex = 996;
+            FolderPath1.TabIndex = 7;
             // 
             // groupBox7
             // 
@@ -202,7 +204,7 @@
             groupBox2.Name = "groupBox2";
             groupBox2.Padding = new Padding(2);
             groupBox2.Size = new Size(249, 48);
-            groupBox2.TabIndex = 1007;
+            groupBox2.TabIndex = 999;
             groupBox2.TabStop = false;
             groupBox2.Text = "WP_URL(필수)";
             // 
@@ -214,7 +216,7 @@
             UrlBox1.Margin = new Padding(2);
             UrlBox1.Name = "UrlBox1";
             UrlBox1.Size = new Size(240, 23);
-            UrlBox1.TabIndex = 4;
+            UrlBox1.TabIndex = 0;
             UrlBox1.TextChanged += UrlBox1_TextChanged;
             // 
             // LoadBtn1
@@ -236,7 +238,7 @@
             groupBox6.Name = "groupBox6";
             groupBox6.Padding = new Padding(2);
             groupBox6.Size = new Size(249, 48);
-            groupBox6.TabIndex = 997;
+            groupBox6.TabIndex = 999;
             groupBox6.TabStop = false;
             groupBox6.Text = "API Key(필수)";
             // 
@@ -260,7 +262,7 @@
             groupBox4.Name = "groupBox4";
             groupBox4.Padding = new Padding(2);
             groupBox4.Size = new Size(249, 48);
-            groupBox4.TabIndex = 995;
+            groupBox4.TabIndex = 999;
             groupBox4.TabStop = false;
             groupBox4.Text = "WP_ID(필수)";
             // 
@@ -272,7 +274,7 @@
             IdBox1.Margin = new Padding(2);
             IdBox1.Name = "IdBox1";
             IdBox1.Size = new Size(240, 23);
-            IdBox1.TabIndex = 3;
+            IdBox1.TabIndex = 0;
             IdBox1.TextChanged += IdBox1_TextChanged;
             // 
             // SaveBtn1
@@ -294,7 +296,7 @@
             groupBox5.Name = "groupBox5";
             groupBox5.Padding = new Padding(2);
             groupBox5.Size = new Size(249, 48);
-            groupBox5.TabIndex = 996;
+            groupBox5.TabIndex = 999;
             groupBox5.TabStop = false;
             groupBox5.Text = "WP_PW(필수)";
             // 
@@ -306,7 +308,7 @@
             PwBox1.Margin = new Padding(2);
             PwBox1.Name = "PwBox1";
             PwBox1.Size = new Size(240, 23);
-            PwBox1.TabIndex = 4;
+            PwBox1.TabIndex = 0;
             PwBox1.TextChanged += PwBox1_TextChanged;
             // 
             // label8
@@ -337,8 +339,8 @@
             SystemBox1.Location = new Point(116, 57);
             SystemBox1.Margin = new Padding(2);
             SystemBox1.Name = "SystemBox1";
-            SystemBox1.Size = new Size(260, 21);
-            SystemBox1.TabIndex = 1;
+            SystemBox1.Size = new Size(96, 21);
+            SystemBox1.TabIndex = 2;
             // 
             // label5
             // 
@@ -360,12 +362,14 @@
             groupBox12.Name = "groupBox12";
             groupBox12.Padding = new Padding(2);
             groupBox12.Size = new Size(169, 49);
-            groupBox12.TabIndex = 1001;
+            groupBox12.TabIndex = 7;
             groupBox12.TabStop = false;
             groupBox12.Text = "폴더 경로(필수)";
             // 
             // groupBox10
             // 
+            groupBox10.Controls.Add(label1);
+            groupBox10.Controls.Add(TagBox1);
             groupBox10.Controls.Add(label8);
             groupBox10.Controls.Add(comboBox1);
             groupBox10.Controls.Add(label6);
@@ -387,6 +391,27 @@
             groupBox10.TabIndex = 1000;
             groupBox10.TabStop = false;
             groupBox10.Text = "포스팅 옵션";
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            label1.Location = new Point(222, 61);
+            label1.Name = "label1";
+            label1.Size = new Size(39, 15);
+            label1.TabIndex = 1007;
+            label1.Text = "태그*:";
+            // 
+            // TagBox1
+            // 
+            TagBox1.BackColor = Color.FromArgb(224, 224, 224);
+            TagBox1.BorderStyle = BorderStyle.FixedSingle;
+            TagBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            TagBox1.Location = new Point(269, 57);
+            TagBox1.Margin = new Padding(2);
+            TagBox1.Name = "TagBox1";
+            TagBox1.Size = new Size(107, 21);
+            TagBox1.TabIndex = 3;
             // 
             // label6
             // 
@@ -467,5 +492,7 @@
         private Label label8;
         private GroupBox groupBox2;
         private TextBox UrlBox1;
+        private Label label1;
+        private TextBox TagBox1;
     }
 }

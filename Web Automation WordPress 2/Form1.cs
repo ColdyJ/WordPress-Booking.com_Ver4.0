@@ -94,7 +94,7 @@ namespace Web_Automation_WordPress_2
 
 
                 LogBox1.AppendText($"태그 생성중..." + Environment.NewLine + Environment.NewLine);
-                string tags = titleBox1.Text + "라는 블로그 제목에 어울리는 태그 " + 10 + "개를 무조건 ','를 써서 알려줘";
+                string tags = TagBox1.Text + "에 어울리는 검색량 많은 태그들을 무조건 ','를 써서 알려줘";
                 task1 = Task.Run(() => RequestGPT(tags)); // ChatCPT에 요청
                 result_1 = await task1; // GPT로부터 나온 태그
                 if (result_1.Contains("#"))
@@ -168,7 +168,7 @@ namespace Web_Automation_WordPress_2
                     int index = random.Next(urls.Count);
                     string selectedLink = urls[index];
                     urls.RemoveAt(index); // 중복 선택 방지를 위해 선택한 URL을 리스트에서 제거합니다.
-                    
+
                     // 선택된 URL을 linkHtml 형식으로 만듭니다.
                     string postTitle = $"▶{titleBox1.Text} 에서 참고한 글◀"; // 원하는 제목을 지정하세요
                     string linkHtml = $"<a title=\"{postTitle}\" href=\"{selectedLink}\">&nbsp;{postTitle}</a>";
@@ -186,14 +186,14 @@ namespace Web_Automation_WordPress_2
                 var post = new Post()
                 {
                     Title = new Title(titleBox1.Text),
-                    Content = new Content(outLinks + "\r"+content_Dalle + "\r" + content_GPT + oldPostsLinks), // GPT
+                    Content = new Content(outLinks + "\r" + content_Dalle + "\r" + content_GPT + oldPostsLinks), // GPT
                     FeaturedMedia = createdMedia.Id, // DALL-E
                     Categories = new List<int> { comboBox1_SelectedItem() }, // ComboBox에서 선택한 카테고리 ID 설정
                     CommentStatus = OpenStatus.Open, // 댓글 상태
                     Tags = new List<int> { createdtag.Id },
                     Status = Status.Publish, // 포스팅 상태 공개,임시
                     Excerpt = new Excerpt(content_Excerpt) // 발췌
-                    
+
                     //Meta = new Description("테스트입니다"), // 메타 데이터
 
                 };
