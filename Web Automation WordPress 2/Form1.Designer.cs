@@ -33,26 +33,28 @@
             LogBox1 = new TextBox();
             comboBox1 = new ComboBox();
             dalleBox1 = new TextBox();
-            titleBox1 = new TextBox();
+            TitleBox1 = new TextBox();
             gptBox1 = new TextBox();
             FolderPath1Btn1 = new Button();
             FolderPath1 = new TextBox();
             groupBox7 = new GroupBox();
+            RenameBtn1 = new Button();
+            CrollBtn1 = new Button();
             groupBox2 = new GroupBox();
             UrlBox1 = new TextBox();
-            LoadBtn1 = new Button();
             groupBox6 = new GroupBox();
             APIKeybox1 = new TextBox();
             groupBox4 = new GroupBox();
             IdBox1 = new TextBox();
-            SaveBtn1 = new Button();
             groupBox5 = new GroupBox();
             PwBox1 = new TextBox();
+            groupBox12 = new GroupBox();
+            LoadBtn1 = new Button();
+            SaveBtn1 = new Button();
             label8 = new Label();
             label2 = new Label();
             SystemBox1 = new TextBox();
             label5 = new Label();
-            groupBox12 = new GroupBox();
             groupBox10 = new GroupBox();
             label1 = new Label();
             TagBox1 = new TextBox();
@@ -74,7 +76,7 @@
             StartBtn1.Cursor = Cursors.Hand;
             StartBtn1.Font = new Font("맑은 고딕", 12F, FontStyle.Bold, GraphicsUnit.Point);
             StartBtn1.ForeColor = Color.Black;
-            StartBtn1.Location = new Point(181, 235);
+            StartBtn1.Location = new Point(185, 301);
             StartBtn1.Name = "StartBtn1";
             StartBtn1.Size = new Size(196, 43);
             StartBtn1.TabIndex = 9;
@@ -86,7 +88,7 @@
             // 
             groupBox1.Controls.Add(LogBox1);
             groupBox1.Font = new Font("맑은 고딕", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
-            groupBox1.Location = new Point(11, 304);
+            groupBox1.Location = new Point(11, 433);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new Size(649, 151);
             groupBox1.TabIndex = 999;
@@ -129,17 +131,17 @@
             dalleBox1.Size = new Size(260, 21);
             dalleBox1.TabIndex = 4;
             // 
-            // titleBox1
+            // TitleBox1
             // 
-            titleBox1.BackColor = Color.FromArgb(224, 224, 224);
-            titleBox1.BorderStyle = BorderStyle.FixedSingle;
-            titleBox1.Cursor = Cursors.IBeam;
-            titleBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            titleBox1.ForeColor = Color.Black;
-            titleBox1.Location = new Point(116, 28);
-            titleBox1.Name = "titleBox1";
-            titleBox1.Size = new Size(260, 21);
-            titleBox1.TabIndex = 1;
+            TitleBox1.BackColor = Color.FromArgb(224, 224, 224);
+            TitleBox1.BorderStyle = BorderStyle.FixedSingle;
+            TitleBox1.Cursor = Cursors.IBeam;
+            TitleBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            TitleBox1.ForeColor = Color.Black;
+            TitleBox1.Location = new Point(116, 28);
+            TitleBox1.Name = "TitleBox1";
+            TitleBox1.Size = new Size(260, 21);
+            TitleBox1.TabIndex = 1;
             // 
             // gptBox1
             // 
@@ -179,21 +181,42 @@
             // 
             // groupBox7
             // 
+            groupBox7.Controls.Add(RenameBtn1);
+            groupBox7.Controls.Add(CrollBtn1);
             groupBox7.Controls.Add(groupBox2);
-            groupBox7.Controls.Add(LoadBtn1);
             groupBox7.Controls.Add(groupBox6);
             groupBox7.Controls.Add(groupBox4);
-            groupBox7.Controls.Add(SaveBtn1);
             groupBox7.Controls.Add(groupBox5);
+            groupBox7.Controls.Add(groupBox12);
             groupBox7.Font = new Font("맑은 고딕", 9F, FontStyle.Bold, GraphicsUnit.Point);
             groupBox7.Location = new Point(11, 11);
             groupBox7.Margin = new Padding(2);
             groupBox7.Name = "groupBox7";
             groupBox7.Padding = new Padding(2);
-            groupBox7.Size = new Size(259, 288);
+            groupBox7.Size = new Size(259, 349);
             groupBox7.TabIndex = 999;
             groupBox7.TabStop = false;
             groupBox7.Text = "API 옵션";
+            // 
+            // RenameBtn1
+            // 
+            RenameBtn1.Location = new Point(178, 264);
+            RenameBtn1.Name = "RenameBtn1";
+            RenameBtn1.Size = new Size(75, 23);
+            RenameBtn1.TabIndex = 1008;
+            RenameBtn1.Text = "파일 정리";
+            RenameBtn1.UseVisualStyleBackColor = true;
+            RenameBtn1.Click += RenameBtn1_Click;
+            // 
+            // CrollBtn1
+            // 
+            CrollBtn1.Location = new Point(178, 238);
+            CrollBtn1.Name = "CrollBtn1";
+            CrollBtn1.Size = new Size(75, 23);
+            CrollBtn1.TabIndex = 1007;
+            CrollBtn1.Text = "크롤링";
+            CrollBtn1.UseVisualStyleBackColor = true;
+            CrollBtn1.Click += CrollBtn1_Click;
             // 
             // groupBox2
             // 
@@ -218,16 +241,6 @@
             UrlBox1.Size = new Size(240, 23);
             UrlBox1.TabIndex = 0;
             UrlBox1.TextChanged += UrlBox1_TextChanged;
-            // 
-            // LoadBtn1
-            // 
-            LoadBtn1.Location = new Point(174, 249);
-            LoadBtn1.Name = "LoadBtn1";
-            LoadBtn1.Size = new Size(75, 23);
-            LoadBtn1.TabIndex = 1006;
-            LoadBtn1.Text = "불러오기";
-            LoadBtn1.UseVisualStyleBackColor = true;
-            LoadBtn1.Click += LoadBtn1_Click;
             // 
             // groupBox6
             // 
@@ -277,16 +290,6 @@
             IdBox1.TabIndex = 0;
             IdBox1.TextChanged += IdBox1_TextChanged;
             // 
-            // SaveBtn1
-            // 
-            SaveBtn1.Location = new Point(93, 249);
-            SaveBtn1.Name = "SaveBtn1";
-            SaveBtn1.Size = new Size(75, 23);
-            SaveBtn1.TabIndex = 1005;
-            SaveBtn1.Text = "저장";
-            SaveBtn1.UseVisualStyleBackColor = true;
-            SaveBtn1.Click += SaveBtn1_Click;
-            // 
             // groupBox5
             // 
             groupBox5.Controls.Add(PwBox1);
@@ -310,6 +313,40 @@
             PwBox1.Size = new Size(240, 23);
             PwBox1.TabIndex = 0;
             PwBox1.TextChanged += PwBox1_TextChanged;
+            // 
+            // groupBox12
+            // 
+            groupBox12.Controls.Add(FolderPath1Btn1);
+            groupBox12.Controls.Add(FolderPath1);
+            groupBox12.Font = new Font("맑은 고딕", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            groupBox12.Location = new Point(4, 238);
+            groupBox12.Margin = new Padding(2);
+            groupBox12.Name = "groupBox12";
+            groupBox12.Padding = new Padding(2);
+            groupBox12.Size = new Size(169, 49);
+            groupBox12.TabIndex = 7;
+            groupBox12.TabStop = false;
+            groupBox12.Text = "폴더 경로(필수)";
+            // 
+            // LoadBtn1
+            // 
+            LoadBtn1.Location = new Point(306, 272);
+            LoadBtn1.Name = "LoadBtn1";
+            LoadBtn1.Size = new Size(75, 23);
+            LoadBtn1.TabIndex = 1006;
+            LoadBtn1.Text = "불러오기";
+            LoadBtn1.UseVisualStyleBackColor = true;
+            LoadBtn1.Click += LoadBtn1_Click;
+            // 
+            // SaveBtn1
+            // 
+            SaveBtn1.Location = new Point(225, 272);
+            SaveBtn1.Name = "SaveBtn1";
+            SaveBtn1.Size = new Size(75, 23);
+            SaveBtn1.TabIndex = 1005;
+            SaveBtn1.Text = "저장";
+            SaveBtn1.UseVisualStyleBackColor = true;
+            SaveBtn1.Click += SaveBtn1_Click;
             // 
             // label8
             // 
@@ -352,30 +389,17 @@
             label5.TabIndex = 1003;
             label5.Text = "글 주제*:";
             // 
-            // groupBox12
-            // 
-            groupBox12.Controls.Add(FolderPath1Btn1);
-            groupBox12.Controls.Add(FolderPath1);
-            groupBox12.Font = new Font("맑은 고딕", 9F, FontStyle.Bold, GraphicsUnit.Point);
-            groupBox12.Location = new Point(7, 229);
-            groupBox12.Margin = new Padding(2);
-            groupBox12.Name = "groupBox12";
-            groupBox12.Padding = new Padding(2);
-            groupBox12.Size = new Size(169, 49);
-            groupBox12.TabIndex = 7;
-            groupBox12.TabStop = false;
-            groupBox12.Text = "폴더 경로(필수)";
-            // 
             // groupBox10
             // 
             groupBox10.Controls.Add(label1);
+            groupBox10.Controls.Add(LoadBtn1);
             groupBox10.Controls.Add(TagBox1);
             groupBox10.Controls.Add(label8);
             groupBox10.Controls.Add(comboBox1);
+            groupBox10.Controls.Add(SaveBtn1);
             groupBox10.Controls.Add(label6);
             groupBox10.Controls.Add(StartBtn1);
-            groupBox10.Controls.Add(titleBox1);
-            groupBox10.Controls.Add(groupBox12);
+            groupBox10.Controls.Add(TitleBox1);
             groupBox10.Controls.Add(label5);
             groupBox10.Controls.Add(dalleBox1);
             groupBox10.Controls.Add(label7);
@@ -387,7 +411,7 @@
             groupBox10.Margin = new Padding(2);
             groupBox10.Name = "groupBox10";
             groupBox10.Padding = new Padding(2);
-            groupBox10.Size = new Size(386, 288);
+            groupBox10.Size = new Size(386, 349);
             groupBox10.TabIndex = 1000;
             groupBox10.TabStop = false;
             groupBox10.Text = "포스팅 옵션_Ver 2.0";
@@ -438,7 +462,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
-            ClientSize = new Size(672, 468);
+            ClientSize = new Size(674, 596);
             Controls.Add(groupBox10);
             Controls.Add(groupBox7);
             Controls.Add(groupBox1);
@@ -469,7 +493,7 @@
         private TextBox LogBox1;
         private ComboBox comboBox1;
         private TextBox dalleBox1;
-        private TextBox titleBox1;
+        private TextBox TitleBox1;
         private TextBox gptBox1;
         private Button FolderPath1Btn1;
         private TextBox FolderPath1;
@@ -494,5 +518,7 @@
         private TextBox UrlBox1;
         private Label label1;
         private TextBox TagBox1;
+        private Button RenameBtn1;
+        private Button CrollBtn1;
     }
 }

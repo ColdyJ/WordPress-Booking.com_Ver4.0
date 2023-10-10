@@ -15,10 +15,11 @@ using System.Text;
 using OpenAI.ObjectModels;
 using WordPressPCL.Models;
 using WordPressPCL;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using OpenAI.ObjectModels.ResponseModels;
 using System.Xml.Linq;
-using System.Xml;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using System.Text.RegularExpressions;
+using OpenAI.ObjectModels.ResponseModels;
 
 namespace Web_Automation_WordPress_2
 {
@@ -32,6 +33,8 @@ namespace Web_Automation_WordPress_2
             LoadConfig(); // Textbox 저장값 프로그램 시작 시 설정 로드
             LogBox1.ScrollBars = ScrollBars.Vertical;
         }
+        private IWebDriver driver;
+        ChromeOptions options = new ChromeOptions();
         private string selectedFolder; // 클래스 레벨 변수로 폴더 경로를 저장할 변수
         private string translation;
 
@@ -41,16 +44,13 @@ namespace Web_Automation_WordPress_2
             {
                 // 대화 상자의 제목 설정 (선택 사항)
                 folderBrowserDialog.Description = "폴더 선택";
-
                 // 폴더 선택 대화 상자를 표시하고 사용자의 선택을 확인
                 DialogResult result = folderBrowserDialog.ShowDialog();
-
                 // 사용자가 폴더를 선택하고 확인 버튼을 누른 경우
                 if (result == DialogResult.OK)
                 {
                     selectedFolder = folderBrowserDialog.SelectedPath;
                     FolderPath1.Text = selectedFolder; // 선택한 폴더 경로를 텍스트 상자에 표시
-
                 }
             }
         }
@@ -79,7 +79,6 @@ namespace Web_Automation_WordPress_2
             }
         }
 
-
         private void StartBtn1_Click(object sender, EventArgs e)
         {
             SaveConfig();
@@ -99,6 +98,210 @@ namespace Web_Automation_WordPress_2
             }
         }
 
+        // Delay 함수 3~5초
+        public void Delay()
+        {
+            int minMs = 3000;
+            int maxMs = 5000;
+            Random random = new Random();
+            int delayMs = random.Next(minMs, maxMs);
+            DateTime startTime = DateTime.Now;
+            DateTime endTime = startTime.AddMilliseconds(delayMs);
+            while (DateTime.Now < endTime)
+            {
+                Application.DoEvents();
+            }
+            return;
+        }
+
+        // 이미지 크롤링 - 완료
+        private void Crawling_Naver()
+        {
+            LogBox1.AppendText($"===========================" + Environment.NewLine);
+            LogBox1.AppendText($"Line:xxx 크롤링 시작" + Environment.NewLine);
+
+            // 크롬창 생성
+            var driverService = ChromeDriverService.CreateDefaultService();
+            driverService.HideCommandPromptWindow = true;
+            options.AddArguments("--headless"); // 브라우저를 숨김
+            driver = new ChromeDriver(driverService, options);
+            Delay();
+
+            //이미지 검색 : CCL 상업적 이용가능 
+            LogBox1.AppendText($"===========================" + Environment.NewLine);
+            LogBox1.AppendText($"Line:xxx 이미지 검색" + Environment.NewLine);
+            string baseUrl = $"https://search.naver.com/search.naver?where=image&section=image&query={TitleBox1.Text}";
+            string endUrl = "&res_fr=0&res_to=0&sm=tab_opt&color=&ccl=2&nso=so%3Ar%2Ca%3Aall%2Cp%3Aall&recent=0&datetype=0&startdate=0&enddate=0&gif=0&optStr=&nso_open=1&pq=";
+            driver.Navigate().GoToUrl(baseUrl + endUrl);
+            Delay();
+            ScrollToBottom(driver);
+
+            // 이미지 요소를 찾아서 처리
+            var imgElements = driver.FindElements(By.CssSelector("img._image._listImage"));
+            LogBox1.AppendText($"Line:xxx 총 사진 수: {imgElements.Count}장");
+            LogBox1.AppendText(Environment.NewLine);
+
+            foreach (var imgElement in imgElements) // 이미지 다운로드 루프
+            {
+                string imageUrl = imgElement.GetAttribute("src");
+                if (!string.IsNullOrEmpty(imageUrl) && (imageUrl.StartsWith("http://") || imageUrl.StartsWith("https://")))
+                {
+                    string basePath = selectedFolder; // 기본 저장 경로
+                    int fileCount = 1;
+                    string fileName = $"{fileCount}.jpg"; // 저장할 이미지 파일 이름
+                    while (File.Exists(Path.Combine(basePath, fileName)))
+                    {
+                        fileCount++;
+                        fileName = $"{fileCount}.jpg";
+                    }
+                    // 이미지 다운로드
+                    using (WebClient client = new WebClient())
+                    {
+                        // 로컬 폴더에 이미지 저장
+                        byte[] imageData = client.DownloadData(imageUrl);
+                        string filePath = Path.Combine(basePath, fileName);
+                        File.WriteAllBytes(filePath, imageData);
+                        Delay();
+                        LogBox1.AppendText($"Line:xxx 다운로드 중: ({fileCount}/{imgElements.Count})" + Environment.NewLine);
+                    }
+                }
+            }
+            LogBox1.AppendText($"이미지 크롤링 완료..." + Environment.NewLine);
+            LogBox1.AppendText($"===========================" + Environment.NewLine);
+        }
+        private void ScrollToBottom(IWebDriver driver)
+        {
+            for (int i = 0; i < 12; i++)
+            {
+                // JavaScript를 실행하여 스크롤을 아래로 이동합니다.
+                IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
+                js.ExecuteScript("window.scrollTo(50, document.body.scrollHeight);");
+                Delay();
+            }
+        }
+
+        /*===============================================*/
+        private string GPT_Prompt(string prompt)
+        {
+            /*
+             1. 공항에서 찾아가는 방법 / 2. 외관 / 3. 내부 방 설명 / 4. 부대시설 / 5.주위맛집 / 6.숙박경험
+             */
+            string prompt1 = $"'{prompt}'에 관련된 블로그 글을 작성할거야. 이 템플릿에 맞춰서 아주 길고 자세하게 써줄래? 1.공항에서 찾아가는 방법:, 2.외관: , 3.내부 스타일: , 4.부대시설: , 5.주위맛집:  , 6.숙박경험: ...... 그리고 말투는 '했어요' 이런식으로 써줘";
+            return prompt1;
+        }
+
+        // GPT 출력 내용 content로 가공
+        private async Task<string> AddGPTToContentAsync()
+        {
+            string result = "";
+            string prompt1 = GPT_Prompt(TitleBox1.Text); // GPT Prompt 전달
+            try
+            {
+                result = await RequestGPT(prompt1); // GPT에 요청하고 결과를 얻습니다.
+            }
+            catch (Exception ex)
+            {
+                // 오류 처리 - 예외가 발생한 경우 처리
+                LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+            }
+            string content = result.Replace("\n", "<br>") + "<br>"; // \n을 <br>로 변경 , HTML로 줄바꿈 
+            string pattern = @"\d+\.\s*[\p{L}\d\s]+(?::)?"; // 정규표현식 = 1. 2. 3. 등 숫자로 분류된 소제목 글꼴변경을 위한 패턴
+            Regex regex = new Regex(pattern);
+            // 찾은 소제목 패턴을 강조하고 크게 표시합니다.
+            string resultText = regex.Replace(content, match =>
+            {
+                return $"<span style='color: #FF8C00; font-size:130%; font-weight: bold;'>{match.Value}</span><br>";
+            });
+            return resultText;
+        }
+
+        // 이미지 업로드 결과저장
+        private async Task<List<string>> ImagesAsyncList()
+        {
+            // TODO : content_Dalle를 만드는것처럼 이미지의 src를 뽑으면됨 , api endpoint로 할 필요가 없음
+            int count = 0;
+            int i = 0;
+            List<string> responseImgList = new List<string>(); // 이미지 업로드 결과를 저장할 리스트
+
+            // API 엔드포인트 URL 설정
+            string apiUrl = $"https://www.tistory.com/apis/post/attach?access_token={AccessToken}&blogName={blogName}";
+
+            using (HttpClient client = new HttpClient())
+            {
+                while (count != 15) // 총 15장의 사진을 url로 리스트
+                {
+                    // 이미지 파일 경로 가져오기
+                    string localImagePath = Path.Combine(selectedFolder, $"{i}.jpg");
+                    if (File.Exists(localImagePath))
+                    {
+                        using (var formData = new MultipartFormDataContent())
+                        {
+                            byte[] fileBytes = File.ReadAllBytes(localImagePath); // 로컬 이미지 파일 읽어오기
+                            formData.Add(new ByteArrayContent(fileBytes), "uploadedfile", Path.GetFileName(localImagePath)); // 파일 업로드 파트 추가
+                            HttpResponseMessage response = await client.PostAsync(apiUrl, formData); // API 요청 전송
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                string responseBody = await response.Content.ReadAsStringAsync();
+                                // responseBody에서 <replacer></replacer> 사이의 값을 추출하여 리스트에 추가
+                                string responseImg = GetResponseImgValue(responseBody);
+                                responseImgList.Add(responseImg);
+                                count++;
+                                i++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                }
+            }
+            return responseImgList; // 이미지 업로드 결과를 리스트로 반환
+        }
+        // responseBody에서 <replacer></replacer> 사이의 값을 추출하는 메서드
+        private string GetResponseImgValue(string responseBody)
+        {
+            string startTag = "<replacer>";
+            string endTag = "</replacer>";
+            int startIndex = responseBody.IndexOf(startTag);
+            int endIndex = responseBody.IndexOf(endTag);
+
+            if (startIndex >= 0 && endIndex >= 0)
+            {
+                int length = endIndex - startIndex - startTag.Length;
+                return responseBody.Substring(startIndex + startTag.Length, length);
+            }
+            return string.Empty;
+        }
+        // GPT 출력 내용 사이에 이미지 추가
+        private string AddImagesToContent(string content, List<string> responseImgList)
+        {
+            string pattern = @"\d+\.\s*[\p{L}\d\s]+(?::)?";  // 이미지를 찾는 정규 표현식 패턴
+
+            // content 문자열에서 정규 표현식 패턴과 일치하는 이미지 부분을 추출
+            MatchCollection matches = Regex.Matches(content, pattern);
+
+            // responseImgList에 있는 값으로 이미지 삽입
+            foreach (Match match in matches)
+            {
+                string imageInfo = match.Value.Trim();
+
+                // 이미지 정보에서 소제목 추출
+                string[] parts = imageInfo.Split(new[] { ':' }, 2);
+                if (parts.Length == 2)
+                {
+                    // 이미지 정보를 <br> 태그와 함께 추가
+                    string imageUrl = responseImgList.FirstOrDefault(); // 이미지 URL을 가져옴
+                    if (!string.IsNullOrEmpty(imageUrl))
+                    {
+                        content = content.Replace(imageInfo, $"{imageUrl}<br>{imageInfo}");
+                        responseImgList.RemoveAt(0); // 사용한 이미지 URL을 리스트에서 제거
+                    }
+                }
+            }
+            return content;
+        }
 
         private async void WP_API_Auto()
         {
@@ -109,13 +312,82 @@ namespace Web_Automation_WordPress_2
 
             try
             {
+
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+                LogBox1.AppendText($"구글 지도 추가..." + Environment.NewLine);
+                // TODO : 구글 API 함수
+                LogBox1.AppendText($"구글 지도 추가 완료..." + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+                LogBox1.AppendText($"호텔 정보 추가..." + Environment.NewLine);
+                // TODO : 호텔 정보 API
+                LogBox1.AppendText($"호텔 정보 추가 완료..." + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+                LogBox1.AppendText($"GPT 출력 시작..." + Environment.NewLine);
+                string resultText = await AddGPTToContentAsync();
+                LogBox1.AppendText($"GPT 출력 완료..." + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+                LogBox1.AppendText($"이미지 & 내용 패턴 변경 시작..." + Environment.NewLine);
+                List<string> resultImgList = await ImagesAsyncList(); // selectedFolder 안의 이미지들을 http로 전송함 
+                string content = AddImagesToContent(resultText, resultImgList); //resultText 사이에 resultImgList의 string값을 잘 넣어주면됨
+                content = $"<html><body>{content}</body></html>"; // 결과를 HTML 형식으로 표시합니다.
+                LogBox1.AppendText($"이미지 & 내용 패턴 변경 완료..." + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+                LogBox1.AppendText($"태그 생성중..." + Environment.NewLine + Environment.NewLine);
+                string tagResult = await AddTagAsync(); // GPT로 태그 10개 생성
+                LogBox1.AppendText($"태그 생성 완료..." + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 //DALL-E로부터 IMG 출력
                 LogBox1.AppendText($"이미지 생성 시작..." + Environment.NewLine);
                 string content_Dalle = "";
                 prompt = dalleBox1.Text;
                 translation = Papago(prompt);
-                content_Dalle = await RequestDALLE(translation, selectedFolder); // 로컬 저장 + 이미지 파일 업로드 후 API 전송요청 // 이방식은 첫줄에 사진 경로가 뜸
-                var createdMedia = await client.Media.CreateAsync(content_Dalle, $"{translation}.jpg"); // filepath로 media 생성
+                content_Dalle = await RequestDALLE(translation, selectedFolder); // localImagePath 반환
+                var createdMedia = await client.Media.CreateAsync(content_Dalle, $"{translation}.jpg"); // localImagePath로 media({translation}.jpg) 생성
                 content_Dalle = $"<img src=\"{createdMedia.SourceUrl}\">"; // content_2는 createdMedia에서 변환 시켰으니 img src로 변경
                 LogBox1.AppendText($"이미지 출력 완료" + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
@@ -232,7 +504,7 @@ namespace Web_Automation_WordPress_2
                     urls.RemoveAt(index); // 중복 선택 방지를 위해 선택한 URL을 리스트에서 제거합니다.
 
                     // 선택된 URL을 linkHtml 형식으로 만듭니다.
-                    string postTitle = $"▶{titleBox1.Text} 에서 참고한 글◀"; // 원하는 제목을 지정하세요
+                    string postTitle = $"▶{TitleBox1.Text} 에서 참고한 글◀"; // 원하는 제목을 지정하세요
                     string linkHtml = $"<a title=\"{postTitle}\" href=\"{selectedLink}\">&nbsp;{postTitle}</a>";
                     selectedOutLinks.Add(linkHtml);
                 }
@@ -247,9 +519,9 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"워드프레스 업로드 시작" + Environment.NewLine);
                 var post = new Post()
                 {
-                    Title = new Title(titleBox1.Text),
+                    Title = new Title(TitleBox1.Text),
                     Content = new Content(outLinks + "\r" + content_Dalle + "\r" + content_GPT + oldPostsLinks), // GPT
-                    FeaturedMedia = createdMedia.Id, // DALL-E
+                    FeaturedMedia = createdMedia.Id, // DALL-E (썸네일)
                     Categories = new List<int> { comboBox1_SelectedItem() }, // ComboBox에서 선택한 카테고리 ID 설정
                     CommentStatus = OpenStatus.Open, // 댓글 상태
                     Tags = new List<int> { createdtag.Id },
@@ -275,10 +547,9 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
                 createdtag = null;
             }
-            catch
+            catch (Exception ex)
             {
-                LogBox1.AppendText($"Line:184 빈칸 확인");
-                LogBox1.AppendText(Environment.NewLine);
+                LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
             }
         }
 
@@ -343,7 +614,7 @@ namespace Web_Automation_WordPress_2
             new HttpClient()
             {
                 Timeout = TimeSpan.FromSeconds(600)
-            }); 
+            });
 
             var completionResult = await gpt.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest()
             {
@@ -556,6 +827,52 @@ namespace Web_Automation_WordPress_2
                     MessageBox.Show("Settings loaded.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
+        }
+
+        private void CrollBtn1_Click(object sender, EventArgs e)
+        {
+            Crawling_Naver();
+        }
+        // 파일명 변경 버튼 Rename
+        private int renameCounter = 1;
+        private void RenameBtn1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+                LogBox1.AppendText($"Line:xxx 파일명 변환 시작..." + Environment.NewLine);
+
+                if (!string.IsNullOrEmpty(selectedFolder) && Directory.Exists(selectedFolder))
+                {
+                    string[] files = Directory.GetFiles(selectedFolder);
+                    foreach (string filePath in files)
+                    {
+                        string extension = Path.GetExtension(filePath);
+                        // .xml 파일은 제외하고 처리
+                        if (!string.Equals(extension, ".xml", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string newFileName = $"{renameCounter}{extension}";
+                            string newFilePath = Path.Combine(selectedFolder, newFileName);
+                            // 이미 존재하는 파일일 경우 renameCounter를 증가시키고 새로운 파일 경로 생성
+                            while (File.Exists(newFilePath))
+                            {
+                                renameCounter++;
+                                newFileName = $"{renameCounter}{extension}";
+                                newFilePath = Path.Combine(selectedFolder, newFileName);
+                            }
+                            File.Move(filePath, newFilePath);
+                            renameCounter = 1;
+                        }
+                    }
+                    LogBox1.AppendText($"Line:xxx 파일명 변환 완료..." + Environment.NewLine);
+                    LogBox1.AppendText($"===========================" + Environment.NewLine);
+                }
+            }
+            catch
+            {
+                LogBox1.AppendText($"Line:xxx 폴더가 없습니다" + Environment.NewLine);
+            }
+
         }
     }
 
