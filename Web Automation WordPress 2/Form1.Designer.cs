@@ -390,7 +390,7 @@
             groupBox10.Size = new Size(386, 288);
             groupBox10.TabIndex = 1000;
             groupBox10.TabStop = false;
-            groupBox10.Text = "포스팅 옵션";
+            groupBox10.Text = "포스팅 옵션_Ver 2.0";
             // 
             // label1
             // 
