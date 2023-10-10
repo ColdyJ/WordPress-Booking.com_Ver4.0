@@ -18,11 +18,14 @@ using WordPressPCL;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenAI.ObjectModels.ResponseModels;
 using System.Xml.Linq;
+using System.Xml;
 
 namespace Web_Automation_WordPress_2
 {
     public partial class Form1 : Form
     {
+        private const string idlistUrl_1 = ("https://coldyj.github.io/joon.github.io/Tistory_idlist_1.txt"); // 서버에서 버전을 가져올 URL (티스토리 아이디 관리)
+
         public Form1()
         {
             InitializeComponent();
@@ -51,15 +54,49 @@ namespace Web_Automation_WordPress_2
                 }
             }
         }
+        // 서버 아이디 관리 (티스토리 아이디 관리)
+        private int CheckUserID_1(string userID)
+        {
+            try
+            {
+                using (WebClient client = new WebClient())
+                {
+                    string serverData = client.DownloadString(idlistUrl_1);
+                    string[] registeredIDs = serverData.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (Array.Exists(registeredIDs, id => id.Equals(userID)))
+                    {
+                        return 1; // User ID found in server file
+                    }
+                    else
+                    {
+                        return 0; // User ID not found in server file
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return -1; // Error occurred
+            }
+        }
 
 
         private void StartBtn1_Click(object sender, EventArgs e)
         {
-            LogBox1.AppendText($"===========================" + Environment.NewLine);
-            LogBox1.AppendText($"포스팅 시작" + Environment.NewLine);
-
             SaveConfig();
-            WP_API_Auto();
+
+            string userID = UrlBox1.Text;
+            int isRegistered = CheckUserID_1(userID); // 등록 아이디 체크
+            if (isRegistered == 1)
+            {
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+                LogBox1.AppendText($"포스팅 시작" + Environment.NewLine);
+
+                WP_API_Auto();
+            }
+            else
+            {
+                MessageBox.Show("등록된 아이디가 아닙니다. 고객센터로 연락주세요");
+            }
         }
 
 
@@ -72,8 +109,8 @@ namespace Web_Automation_WordPress_2
 
             try
             {
-                LogBox1.AppendText($"이미지 생성 시작..." + Environment.NewLine);
                 //DALL-E로부터 IMG 출력
+                LogBox1.AppendText($"이미지 생성 시작..." + Environment.NewLine);
                 string content_Dalle = "";
                 prompt = dalleBox1.Text;
                 translation = Papago(prompt);
@@ -83,23 +120,37 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"이미지 출력 완료" + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
+
                 //GPT로부터 Content 출력
                 LogBox1.AppendText($"GPT 출력 시작..." + Environment.NewLine);
+                string content_GPT = "";
                 prompt = gptBox1.Text.Trim(); // 질문
-                var task1 = RequestGPT(prompt); // ChatCPT에 요청
-                var completedTask = await Task.WhenAny(task1, Task.Delay(TimeSpan.FromSeconds(180))); // 180초 후에 작업이 완료되지 않으면 취소
-                if (completedTask == task1) result_1 = await task1; // GPT로부터 나온 답변(Content), 작업이 성공적으로 완료된 경우 결과를 얻습니다.
-                string content_GPT = result_1.Replace("\n", "<br>") + "<br>"; // \n을 <br>로 변경 , result를 content에 할당
+                try
+                {
+                    result_1 = await RequestGPT(prompt); // GPT에 요청하고 결과를 얻습니다.
+                }
+                catch (Exception ex)
+                {
+                    // 오류 처리 - 예외가 발생한 경우 처리
+                    LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+                }
+                content_GPT = result_1.Replace("\n", "<br>") + "<br>"; // \n을 <br>로 변경 , result를 content에 할당
                 LogBox1.AppendText($"GPT 출력 완료" + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
+
                 //GPT로부터 Tags 출력
                 LogBox1.AppendText($"태그 생성중..." + Environment.NewLine + Environment.NewLine);
-                completedTask = null;
                 string tags = "'" + TagBox1.Text.Trim() + "'" + "을 포함한 인기 검색어 10개를 ','로 구분해서 알려줘";
-                task1 = RequestGPT(tags); // ChatCPT에 요청
-                completedTask = await Task.WhenAny(task1, Task.Delay(TimeSpan.FromSeconds(60))); // 60초 후에 작업이 완료되지 않으면 취소
-                if (completedTask == task1) result_1 = await task1; // GPT로부터 나온 답변(Tags), 작업이 성공적으로 완료된 경우 결과를 얻습니다.
+                try
+                {
+                    result_1 = await RequestGPT(tags); // GPT에 요청하고 결과를 얻습니다.
+                }
+                catch (Exception ex)
+                {
+                    // 오류 처리 - 예외가 발생한 경우 처리
+                    LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+                }
                 if (result_1.Contains(", #"))
                 {
                     result_1 = result_1.Replace(", #", ",");
@@ -113,13 +164,19 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"태그 생성 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
+
                 //GPT로부터 Summary 출력
                 LogBox1.AppendText($"요약중..." + Environment.NewLine);
-                completedTask = null;
                 prompt = content_GPT + "을 요약해줘";
-                task1 = RequestGPT(prompt); // ChatCPT에 요청
-                completedTask = await Task.WhenAny(task1, Task.Delay(TimeSpan.FromSeconds(180))); // 180초 후에 작업이 완료되지 않으면 취소
-                if (completedTask == task1) result_1 = await task1; // GPT로부터 나온 답변(Summary), 작업이 성공적으로 완료된 경우 결과를 얻습니다.
+                try
+                {
+                    result_1 = await RequestGPT(prompt); // GPT에 요청하고 결과를 얻습니다.
+                }
+                catch (Exception ex)
+                {
+                    // 오류 처리 - 예외가 발생한 경우 처리
+                    LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+                }
                 string content_Excerpt = result_1; // \n을 <br>로 변경 , result를 content에 할당
                 LogBox1.AppendText($"요약 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
@@ -247,15 +304,46 @@ namespace Web_Automation_WordPress_2
             }
             return value;
         }
+        /*
+        public string GetIdFromName(string nameToFind)
+        {
+            TistoryAPI api = new TistoryAPI();
+            api.SetAccessToken(AccessToken);
+
+            // XML로 결과를 얻을 경우
+            string result = api.GetCategory(blogName);
+
+            // XmlDocument 인스턴스 생성
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(result);
+            // "id"와 "name" 값을 불러와서 출력
+            XmlNodeList categoryNodes = xmlDoc.SelectNodes("/tistory/item/categories/category");
+            foreach (XmlNode categoryNode in categoryNodes)
+            {
+                string id = categoryNode.SelectSingleNode("id").InnerText;
+                string name = categoryNode.SelectSingleNode("name").InnerText;
+                if (name.Equals(nameToFind, StringComparison.OrdinalIgnoreCase)) // 대소문자를 무시하고 일치 여부를 확인합니다.
+                {
+                    return id; // 일치하는 "name"을 찾으면 해당 "id" 값을 반환합니다.
+                }
+            }
+            // "nameToFind"에 해당하는 "name"을 찾지 못한 경우 null 또는 다른 적절한 값을 반환할 수 있습니다.
+            return "0";
+        }
+        */
+
 
         private async Task<string> RequestGPT(string prompt1)
         {
             string result = "";
-
             var gpt = new OpenAIService(new OpenAiOptions()
             {
-                ApiKey = OPENAI_API_KEY
-            });
+                ApiKey = OPENAI_API_KEY,
+            },
+            new HttpClient()
+            {
+                Timeout = TimeSpan.FromSeconds(600)
+            }); 
 
             var completionResult = await gpt.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest()
             {
@@ -265,7 +353,7 @@ namespace Web_Automation_WordPress_2
                     ChatMessage.FromUser(prompt1),
                 },
                 Model = Models.Gpt_3_5_Turbo_16k, //모델명.
-                Temperature = 0.7F,      //대답의 자유도(다양성 - Diversity)). 자유도가 낮으면 같은 대답, 높으면 좀 아무말?
+                Temperature = 0.6F,      //대답의 자유도(다양성 - Diversity)). 자유도가 낮으면 같은 대답, 높으면 좀 아무말?
                 MaxTokens = 4000,      //이게 길수록 글자가 많아짐. 이 토큰 단위를 기준으로 트래픽이 매겨지고, (유료인경우) 과금 책정이 됨)
                 N = 1   //경우의 수(대답의 수). N=3으로 하면 3번 다른 회신을 배열에 담아줌
             });
@@ -296,6 +384,10 @@ namespace Web_Automation_WordPress_2
             var dalle = new OpenAIService(new OpenAiOptions()
             {
                 ApiKey = OPENAI_API_KEY
+            },
+            new HttpClient()
+            {
+                Timeout = TimeSpan.FromSeconds(600)
             });
 
             // 이미지 생성 요청 데이터를 준비합니다.
