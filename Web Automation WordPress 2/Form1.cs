@@ -86,18 +86,20 @@ namespace Web_Automation_WordPress_2
                 //GPT로부터 Content 출력
                 LogBox1.AppendText($"GPT 출력 시작..." + Environment.NewLine);
                 prompt = gptBox1.Text.Trim(); // 질문
-                var task1 = Task.Run(() => RequestGPT(prompt)); // ChatCPT에 요청
-                result_1 = await task1; // GPT로부터 나온 답변
+                var task1 = RequestGPT(prompt); // ChatCPT에 요청
+                var completedTask = await Task.WhenAny(task1, Task.Delay(TimeSpan.FromSeconds(30))); // 30초 후에 작업이 완료되지 않으면 취소
+                if (completedTask == task1) result_1 = await task1; // GPT로부터 나온 답변(Content), 작업이 성공적으로 완료된 경우 결과를 얻습니다.
                 string content_GPT = result_1.Replace("\n", "<br>") + "<br>"; // \n을 <br>로 변경 , result를 content에 할당
                 LogBox1.AppendText($"GPT 출력 완료" + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
-
+                //GPT로부터 Tags 출력
                 LogBox1.AppendText($"태그 생성중..." + Environment.NewLine + Environment.NewLine);
-                //if (TagBox1.Text.Contains(" ")) TagBox1.Text = TagBox1.Text.Replace(" ","");
+                completedTask = null;
                 string tags = "'" + TagBox1.Text.Trim() + "'" + "을 포함한 인기 검색어 10개를 ','로 구분해서 알려줘";
-                task1 = Task.Run(() => RequestGPT(tags)); // ChatCPT에 요청
-                result_1 = await task1; // GPT로부터 나온 태그
+                task1 = RequestGPT(tags); // ChatCPT에 요청
+                completedTask = await Task.WhenAny(task1, Task.Delay(TimeSpan.FromSeconds(30))); // 30초 후에 작업이 완료되지 않으면 취소
+                if (completedTask == task1) result_1 = await task1; // GPT로부터 나온 답변(Tags), 작업이 성공적으로 완료된 경우 결과를 얻습니다.
                 if (result_1.Contains(", #"))
                 {
                     result_1 = result_1.Replace(", #", ",");
@@ -111,11 +113,13 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"태그 생성 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
-
+                //GPT로부터 Summary 출력
                 LogBox1.AppendText($"요약중..." + Environment.NewLine);
+                completedTask = null;
                 prompt = content_GPT + "을 요약해줘";
-                task1 = Task.Run(() => RequestGPT(prompt)); // ChatCPT에 요청
-                result_1 = await task1; // GPT로부터 나온 답변
+                task1 = RequestGPT(prompt); // ChatCPT에 요청
+                completedTask = await Task.WhenAny(task1, Task.Delay(TimeSpan.FromSeconds(30))); // 30초 후에 작업이 완료되지 않으면 취소
+                if (completedTask == task1) result_1 = await task1; // GPT로부터 나온 답변(Summary), 작업이 성공적으로 완료된 경우 결과를 얻습니다.
                 string content_Excerpt = result_1; // \n을 <br>로 변경 , result를 content에 할당
                 LogBox1.AppendText($"요약 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
@@ -265,6 +269,7 @@ namespace Web_Automation_WordPress_2
                 MaxTokens = 4000,      //이게 길수록 글자가 많아짐. 이 토큰 단위를 기준으로 트래픽이 매겨지고, (유료인경우) 과금 책정이 됨)
                 N = 1   //경우의 수(대답의 수). N=3으로 하면 3번 다른 회신을 배열에 담아줌
             });
+            LogBox1.AppendText($"GPT DEBUG #1" + Environment.NewLine);
 
             if (completionResult.Successful)
             {
