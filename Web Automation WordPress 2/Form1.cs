@@ -387,7 +387,7 @@ namespace Web_Automation_WordPress_2
             },
             new HttpClient()
             {
-                Timeout = TimeSpan.FromSeconds(600)
+                Timeout = TimeSpan.FromMinutes(20)
             });
 
             // 이미지 생성 요청 데이터를 준비합니다.
