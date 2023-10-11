@@ -39,6 +39,7 @@ namespace Web_Automation_WordPress_2
         private string selectedFolder; // 클래스 레벨 변수로 폴더 경로를 저장할 변수
         private string translation;
 
+
         private void FolderPath1Btn1_Click(object sender, EventArgs e)
         {
             using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
