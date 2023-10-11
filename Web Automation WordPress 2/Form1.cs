@@ -212,7 +212,7 @@ namespace Web_Automation_WordPress_2
             // 찾은 소제목 패턴을 강조하고 크게 표시합니다.
             string result_GPT = regex.Replace(content, match =>
             {
-                return $"<span style='color: #FF8C00; font-size:130%; font-weight: bold;'>{match.Value}</span><br>";
+                return $"<h3>{match.Value}</h3><br>";
             });
             return result_GPT;
         }
@@ -270,7 +270,7 @@ namespace Web_Automation_WordPress_2
                     string imageSrc = result_ImgList.FirstOrDefault(); // 이미지 URL을 가져옴
                     if (!string.IsNullOrEmpty(imageSrc))
                     {
-                        result_GPT = result_GPT.Replace(imageInfo, $"\r+{imageSrc}+\r+<br>{imageInfo}");
+                        result_GPT = result_GPT.Replace(imageInfo, $"\r{imageSrc}\r<br><span style='color: #FF8C00; font-size:150%; font-weight: bold;'>{imageInfo}</span>");
                         result_ImgList.RemoveAt(0); // 사용한 이미지 URL을 리스트에서 제거
                     }
                 }
@@ -373,8 +373,9 @@ namespace Web_Automation_WordPress_2
                 selectedOutLinks.Add(linkHtml);
             }
             // 선택된 URL을 outlinks 문자열에 추가
+            string addOutLinks = "다른 글이 궁금하시다면 아래 링크를 클릭해주세요 :)\r\n";
             string outLinks = string.Join("\r\n", selectedOutLinks); // 각 링크를 개행 문자로 구분
-            return outLinks;
+            return addOutLinks+outLinks;
         }
 
 
@@ -510,7 +511,7 @@ namespace Web_Automation_WordPress_2
 
 
 
-
+                /*
 
                 //DALL-E로부터 IMG 출력
                 LogBox1.AppendText($"이미지 생성 시작..." + Environment.NewLine);
@@ -666,7 +667,7 @@ namespace Web_Automation_WordPress_2
                 };
                 var createdPost = await client.Posts.CreateAsync(post); // 포스팅 요청 보내기
                 LogBox1.AppendText($"글 본문 출력 완료" + Environment.NewLine);
-
+                */
                 /*
                 // 게시물의 Link와 Meta 정보 수정
                 int postId = createdPost.Id;
@@ -675,10 +676,11 @@ namespace Web_Automation_WordPress_2
                 postToUpdate.Meta.Add("footnotes", newMetaDescription);
                 var updatedPost = await client.Posts.UpdateAsync(postToUpdate); // 게시물 업데이트
                 */
-
+                /*
                 LogBox1.AppendText($"워드프레스 업로드 완료" + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
                 createdtag = null;
+                */
             }
             catch (Exception ex)
             {
