@@ -372,7 +372,7 @@ namespace Web_Automation_WordPress_2
             // 선택된 URL을 outlinks 문자열에 추가
             string addOutLinks = "다른 글이 궁금하시다면 아래 링크를 클릭해주세요 :)\r\n";
             string outLinks = string.Join("\r\n", selectedOutLinks); // 각 링크를 개행 문자로 구분
-            return addOutLinks+outLinks;
+            return addOutLinks + outLinks;
         }
 
 
@@ -460,7 +460,7 @@ namespace Web_Automation_WordPress_2
                 var post = new Post()
                 {
                     Title = new Title(TitleBox1.Text),
-                    Content = new Content(head_2+"<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
+                    Content = new Content(head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
                     FeaturedMedia = result_thumbNail, // 썸네일
                     Categories = new List<int> { comboBox1_SelectedItem() }, // ComboBox에서 선택한 카테고리 ID 설정
                     CommentStatus = OpenStatus.Open, // 댓글 상태
@@ -574,42 +574,6 @@ namespace Web_Automation_WordPress_2
             return result;
         }
 
-        private async Task<string> RequestDALLE(string translation, string selectedFolder)
-        {
-            // return responseBody : 바로 content로 등록 가능. 단,이미지와 이미지url이 함께 출력
-            // return imageUrl : string content = $"<img src=\"{imageUrl}\">"; 로 사용가능. 단,대표이미지로 자동 등록 안됨(텍스트취급)
-            // return localImagePath : string content = $"<img src=\"{imageUrl}\">"; 로 사용가능. 단,대표이미지로만 나오고 본문에는 엑스박스뜸
-            var dalle = new OpenAIService(new OpenAiOptions()
-            {
-                ApiKey = OPENAI_API_KEY
-            },
-            new HttpClient()
-            {
-                Timeout = TimeSpan.FromMinutes(20)
-            });
-
-            // 이미지 생성 요청 데이터를 준비합니다.
-            var imageResult = await dalle.Image.CreateImage(new ImageCreateRequest
-            {
-                Prompt = translation, // 이미지 생성을 위한 프롬프트
-                N = 1, // 이미지 개수 (한 번에 하나의 이미지만 생성)
-                Size = "512x512", // 원하는 이미지 크기
-                ResponseFormat = "url", // 응답 형식: 이미지 URL로 받기
-                User = "TestUser"
-            });
-
-            string fileName = $"{translation}.jpg"; // 저장할 파일명
-            string imageUrl = imageResult.Results.FirstOrDefault()?.Url;  // 생성된 이미지의 URL을 가져옵니다.
-            string localImagePath = Path.Combine(selectedFolder, fileName); // 이미지를 로컬로 다운로드 경로 지정
-            using (WebClient client1 = new WebClient()) // 이미지 생성 후 로컬로 다운로드
-            {
-                client1.DownloadFile(imageUrl, localImagePath);
-            }
-
-            return localImagePath;
-        }
-
-
 
         private string Papago(string prompt2)
         {
@@ -684,10 +648,6 @@ namespace Web_Automation_WordPress_2
         {
             WP_URL = UrlBox1.Text;
         }
-
-
-
-
 
 
         private void SaveConfig()

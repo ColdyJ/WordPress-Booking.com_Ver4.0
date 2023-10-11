@@ -32,7 +32,6 @@
             groupBox1 = new GroupBox();
             LogBox1 = new TextBox();
             comboBox1 = new ComboBox();
-            dalleBox1 = new TextBox();
             TitleBox1 = new TextBox();
             gptBox1 = new TextBox();
             FolderPath1Btn1 = new Button();
@@ -52,7 +51,6 @@
             LoadBtn1 = new Button();
             SaveBtn1 = new Button();
             label8 = new Label();
-            label2 = new Label();
             SystemBox1 = new TextBox();
             label5 = new Label();
             groupBox10 = new GroupBox();
@@ -118,18 +116,6 @@
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(261, 20);
             comboBox1.TabIndex = 5;
-            // 
-            // dalleBox1
-            // 
-            dalleBox1.BackColor = Color.FromArgb(224, 224, 224);
-            dalleBox1.BorderStyle = BorderStyle.FixedSingle;
-            dalleBox1.Cursor = Cursors.IBeam;
-            dalleBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            dalleBox1.ForeColor = Color.Black;
-            dalleBox1.Location = new Point(117, 87);
-            dalleBox1.Name = "dalleBox1";
-            dalleBox1.Size = new Size(260, 21);
-            dalleBox1.TabIndex = 4;
             // 
             // TitleBox1
             // 
@@ -358,16 +344,6 @@
             label8.TabIndex = 1005;
             label8.Text = "GPT 요청*:";
             // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            label2.Location = new Point(7, 90);
-            label2.Name = "label2";
-            label2.Size = new Size(91, 15);
-            label2.TabIndex = 1004;
-            label2.Text = "이미지 키워드*:";
-            // 
             // SystemBox1
             // 
             SystemBox1.BackColor = Color.FromArgb(224, 224, 224);
@@ -401,10 +377,8 @@
             groupBox10.Controls.Add(StartBtn1);
             groupBox10.Controls.Add(TitleBox1);
             groupBox10.Controls.Add(label5);
-            groupBox10.Controls.Add(dalleBox1);
             groupBox10.Controls.Add(label7);
             groupBox10.Controls.Add(gptBox1);
-            groupBox10.Controls.Add(label2);
             groupBox10.Controls.Add(SystemBox1);
             groupBox10.Font = new Font("맑은 고딕", 9F, FontStyle.Bold, GraphicsUnit.Point);
             groupBox10.Location = new Point(274, 11);
@@ -492,13 +466,11 @@
         private GroupBox groupBox1;
         private TextBox LogBox1;
         private ComboBox comboBox1;
-        private TextBox dalleBox1;
         private TextBox TitleBox1;
         private TextBox gptBox1;
         private Button FolderPath1Btn1;
         private TextBox FolderPath1;
         private GroupBox groupBox7;
-        private Label label2;
         private TextBox SystemBox1;
         private Label label5;
         private GroupBox groupBox12;
