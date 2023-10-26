@@ -19,8 +19,12 @@ using System.Xml.Linq;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using System.Text.RegularExpressions;
-using OpenAI.ObjectModels.ResponseModels;
+using HtmlAgilityPack;
+using System.Net.Http;
 using System;
+using System.Collections.Generic;
+using HtmlDocument = HtmlAgilityPack.HtmlDocument;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace Web_Automation_WordPress_2
 {
@@ -115,6 +119,71 @@ namespace Web_Automation_WordPress_2
             }
             return;
         }
+
+
+
+        private async Task<string> GetHotelInfoAsync()
+        {
+            string url = HotelUrlBox1.Text;
+            string combinedInfo = "";
+            using (HttpClient client = new HttpClient())
+            {
+                // HtmlAgilityPack를 사용하여 HTML 파싱
+                string html = await client.GetStringAsync(url);
+                HtmlDocument doc = new HtmlDocument();
+                doc.LoadHtml(html);
+
+                // 원하는 정보를 추출
+                // 예를 들어, <title> 요소의 내용을 추출
+                var names = doc.DocumentNode.SelectNodes("//h2[@class='d2fee87262 pp-header__title']");
+                var infos = doc.DocumentNode.SelectNodes("//p[@class='a53cbfa6de b3efd73f69']");
+                var reviewNodes = doc.DocumentNode.SelectNodes("//div[@class='a53cbfa6de b5726afd0b']"); // reviews를 여러 요소로 선택
+                int reviewCount = reviewNodes.Count;
+                var checkinTimes = doc.DocumentNode.SelectNodes("//div[@id='checkin_policy']//p[2]");
+                var checkoutTimes = doc.DocumentNode.SelectNodes("//div[@id='checkout_policy']//p[2]");
+
+                List<string> additionalReviews = new List<string>();
+
+                // 추출된 정보 출력
+                try
+                {
+                    string name = names[0].InnerText.Trim();
+                    string info = infos[0].InnerText.Trim();
+                    string checkinTime = checkinTimes[0].InnerText.Trim();
+                    string checkoutTime = checkoutTimes[0].InnerText.Trim();
+                    for (int i = 0; i < reviewCount - 5; i++)
+                    {
+                        // reviewNodes에서 리뷰 가져오기
+                        var reviewNode = reviewNodes[i];
+                        string additionalReview = reviewNode.InnerText.Trim();
+
+                        // 리뷰 목록에 저장
+                        additionalReviews.Add(additionalReview);
+                    }
+                    // containers에 있는 정보를 문자열로 결합
+                    combinedInfo = $"Name: {name}\n\rInfo: {info}\n\rCheck-in Time: {checkinTime}\nCheck-out Time: {checkoutTime}\n\rReviews:\n- {string.Join("\n- ", additionalReviews)}";
+                    // 결과 출력
+                    Console.WriteLine(combinedInfo);
+                    return combinedInfo;
+                }
+                catch (Exception ex)
+                {
+                    LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+                    return combinedInfo;
+                }
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+        /*===============================================*/
 
         // 이미지 크롤링 - 완료
         private void Crawling_Naver()
@@ -226,7 +295,7 @@ namespace Web_Automation_WordPress_2
             int count = 0, i = 0;
             List<string> responseImgList = new List<string>(); // 이미지 업로드 결과를 저장할 리스트
 
-            while (count != 15) // 총 15장의 사진을 url로 리스트
+            while (count != 7) // 총 7장의 사진을 url로 리스트
             {
                 // 이미지 파일 경로 가져오기
                 string localImagePath = Path.Combine(selectedFolder, $"{i}.jpg");
@@ -411,8 +480,8 @@ namespace Web_Automation_WordPress_2
 
 
                 LogBox1.AppendText($"호텔 정보 추가..." + Environment.NewLine);
-                // TODO : 호텔 정보 API
-                string result_Hotel = "";
+                // TODO : 호텔 이미지, 지도
+                string result_Hotel = await GetHotelInfoAsync();
                 LogBox1.AppendText($"호텔 정보 추가 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
@@ -460,7 +529,7 @@ namespace Web_Automation_WordPress_2
                 var post = new Post()
                 {
                     Title = new Title(TitleBox1.Text),
-                    Content = new Content(head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
+                    Content = new Content(head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_Hotel  + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
                     FeaturedMedia = result_thumbNail, // 썸네일
                     Categories = new List<int> { comboBox1_SelectedItem() }, // ComboBox에서 선택한 카테고리 ID 설정
                     CommentStatus = OpenStatus.Open, // 댓글 상태
@@ -760,6 +829,17 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"Line:xxx 폴더가 없습니다" + Environment.NewLine);
             }
 
+        }
+
+
+
+
+
+
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            GetHotelInfoAsync();
         }
     }
 

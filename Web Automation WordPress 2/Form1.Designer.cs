@@ -33,7 +33,7 @@
             LogBox1 = new TextBox();
             comboBox1 = new ComboBox();
             TitleBox1 = new TextBox();
-            gptBox1 = new TextBox();
+            HotelUrlBox1 = new TextBox();
             FolderPath1Btn1 = new Button();
             FolderPath1 = new TextBox();
             groupBox7 = new GroupBox();
@@ -58,6 +58,7 @@
             TagBox1 = new TextBox();
             label6 = new Label();
             label7 = new Label();
+            button1 = new Button();
             groupBox1.SuspendLayout();
             groupBox7.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -112,7 +113,7 @@
             comboBox1.ForeColor = Color.Black;
             comboBox1.FormattingEnabled = true;
             comboBox1.Items.AddRange(new object[] { "오희 리빙템", "오희 면접준비", "오희 잡담", "오희 지원정보" });
-            comboBox1.Location = new Point(116, 116);
+            comboBox1.Location = new Point(116, 91);
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(261, 20);
             comboBox1.TabIndex = 5;
@@ -129,18 +130,18 @@
             TitleBox1.Size = new Size(260, 21);
             TitleBox1.TabIndex = 1;
             // 
-            // gptBox1
+            // HotelUrlBox1
             // 
-            gptBox1.BackColor = Color.FromArgb(224, 224, 224);
-            gptBox1.BorderStyle = BorderStyle.FixedSingle;
-            gptBox1.Cursor = Cursors.IBeam;
-            gptBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            gptBox1.ForeColor = Color.Black;
-            gptBox1.Location = new Point(116, 147);
-            gptBox1.Multiline = true;
-            gptBox1.Name = "gptBox1";
-            gptBox1.Size = new Size(260, 77);
-            gptBox1.TabIndex = 6;
+            HotelUrlBox1.BackColor = Color.FromArgb(224, 224, 224);
+            HotelUrlBox1.BorderStyle = BorderStyle.FixedSingle;
+            HotelUrlBox1.Cursor = Cursors.IBeam;
+            HotelUrlBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            HotelUrlBox1.ForeColor = Color.Black;
+            HotelUrlBox1.Location = new Point(116, 122);
+            HotelUrlBox1.Multiline = true;
+            HotelUrlBox1.Name = "HotelUrlBox1";
+            HotelUrlBox1.Size = new Size(260, 47);
+            HotelUrlBox1.TabIndex = 6;
             // 
             // FolderPath1Btn1
             // 
@@ -338,11 +339,11 @@
             // 
             label8.AutoSize = true;
             label8.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            label8.Location = new Point(34, 147);
+            label8.Location = new Point(34, 122);
             label8.Name = "label8";
             label8.Size = new Size(64, 15);
             label8.TabIndex = 1005;
-            label8.Text = "GPT 요청*:";
+            label8.Text = "호텔 URL*:";
             // 
             // SystemBox1
             // 
@@ -378,7 +379,7 @@
             groupBox10.Controls.Add(TitleBox1);
             groupBox10.Controls.Add(label5);
             groupBox10.Controls.Add(label7);
-            groupBox10.Controls.Add(gptBox1);
+            groupBox10.Controls.Add(HotelUrlBox1);
             groupBox10.Controls.Add(SystemBox1);
             groupBox10.Font = new Font("맑은 고딕", 9F, FontStyle.Bold, GraphicsUnit.Point);
             groupBox10.Location = new Point(274, 11);
@@ -425,11 +426,21 @@
             // 
             label7.AutoSize = true;
             label7.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            label7.Location = new Point(35, 118);
+            label7.Location = new Point(35, 93);
             label7.Name = "label7";
             label7.Size = new Size(63, 15);
             label7.TabIndex = 1001;
             label7.Text = "카테고리*:";
+            // 
+            // button1
+            // 
+            button1.Location = new Point(580, 379);
+            button1.Name = "button1";
+            button1.Size = new Size(75, 23);
+            button1.TabIndex = 1006;
+            button1.Text = "저장";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
             // 
             // Form1
             // 
@@ -437,6 +448,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
             ClientSize = new Size(674, 596);
+            Controls.Add(button1);
             Controls.Add(groupBox10);
             Controls.Add(groupBox7);
             Controls.Add(groupBox1);
@@ -467,7 +479,7 @@
         private TextBox LogBox1;
         private ComboBox comboBox1;
         private TextBox TitleBox1;
-        private TextBox gptBox1;
+        private TextBox HotelUrlBox1;
         private Button FolderPath1Btn1;
         private TextBox FolderPath1;
         private GroupBox groupBox7;
@@ -492,5 +504,6 @@
         private TextBox TagBox1;
         private Button RenameBtn1;
         private Button CrollBtn1;
+        private Button button1;
     }
 }
