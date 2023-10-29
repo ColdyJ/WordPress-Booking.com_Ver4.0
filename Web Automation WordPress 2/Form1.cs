@@ -120,69 +120,6 @@ namespace Web_Automation_WordPress_2
             return;
         }
 
-
-
-        private async Task<string> GetHotelInfoAsync()
-        {
-            string url = HotelUrlBox1.Text;
-            string combinedInfo = "";
-            using (HttpClient client = new HttpClient())
-            {
-                // HtmlAgilityPack를 사용하여 HTML 파싱
-                string html = await client.GetStringAsync(url);
-                HtmlDocument doc = new HtmlDocument();
-                doc.LoadHtml(html);
-
-                // 원하는 정보를 추출
-                // 예를 들어, <title> 요소의 내용을 추출
-                var names = doc.DocumentNode.SelectNodes("//h2[@class='d2fee87262 pp-header__title']");
-                var infos = doc.DocumentNode.SelectNodes("//p[@class='a53cbfa6de b3efd73f69']");
-                var reviewNodes = doc.DocumentNode.SelectNodes("//div[@class='a53cbfa6de b5726afd0b']"); // reviews를 여러 요소로 선택
-                int reviewCount = reviewNodes.Count;
-                var checkinTimes = doc.DocumentNode.SelectNodes("//div[@id='checkin_policy']//p[2]");
-                var checkoutTimes = doc.DocumentNode.SelectNodes("//div[@id='checkout_policy']//p[2]");
-
-                List<string> additionalReviews = new List<string>();
-
-                // 추출된 정보 출력
-                try
-                {
-                    string name = names[0].InnerText.Trim();
-                    string info = infos[0].InnerText.Trim();
-                    string checkinTime = checkinTimes[0].InnerText.Trim();
-                    string checkoutTime = checkoutTimes[0].InnerText.Trim();
-                    for (int i = 0; i < reviewCount - 5; i++)
-                    {
-                        // reviewNodes에서 리뷰 가져오기
-                        var reviewNode = reviewNodes[i];
-                        string additionalReview = reviewNode.InnerText.Trim();
-
-                        // 리뷰 목록에 저장
-                        additionalReviews.Add(additionalReview);
-                    }
-                    // containers에 있는 정보를 문자열로 결합
-                    combinedInfo = $"Name: {name}\n\rInfo: {info}\n\rCheck-in Time: {checkinTime}\nCheck-out Time: {checkoutTime}\n\rReviews:\n- {string.Join("\n- ", additionalReviews)}";
-                    // 결과 출력
-                    Console.WriteLine(combinedInfo);
-                    return combinedInfo;
-                }
-                catch (Exception ex)
-                {
-                    LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
-                    return combinedInfo;
-                }
-            }
-        }
-
-
-
-
-
-
-
-
-
-
         /*===============================================*/
 
         // 이미지 크롤링 - 완료
@@ -201,7 +138,7 @@ namespace Web_Automation_WordPress_2
             //이미지 검색 : CCL 상업적 이용가능 
             LogBox1.AppendText($"===========================" + Environment.NewLine);
             LogBox1.AppendText($"Line:xxx 이미지 검색" + Environment.NewLine);
-            string baseUrl = $"https://search.naver.com/search.naver?where=image&section=image&query={TitleBox1.Text}";
+            string baseUrl = $"https://search.naver.com/search.naver?where=image&section=image&query={crollBox1.Text}";
             string endUrl = "&res_fr=0&res_to=0&sm=tab_opt&color=&ccl=2&nso=so%3Ar%2Ca%3Aall%2Cp%3Aall&recent=0&datetype=0&startdate=0&enddate=0&gif=0&optStr=&nso_open=1&pq=";
             driver.Navigate().GoToUrl(baseUrl + endUrl);
             Delay();
@@ -252,6 +189,85 @@ namespace Web_Automation_WordPress_2
         }
 
         /*===============================================*/
+
+        // 호텔 정보 추출
+        private async Task<string> GetHotelInfoAsync()
+        {
+            string url = HotelUrlBox1.Text;
+            string combinedInfo = "";
+            using (HttpClient client = new HttpClient())
+            {
+                // HtmlAgilityPack를 사용하여 HTML 파싱
+                string html = await client.GetStringAsync(url);
+                HtmlDocument doc = new HtmlDocument();
+                doc.LoadHtml(html);
+                List<string> additionalReviews = new List<string>();
+
+                // 원하는 정보를 추출
+                // 예를 들어, <title> 요소의 내용을 추출
+                var names = doc.DocumentNode.SelectNodes("//h2[@class='d2fee87262 pp-header__title']");
+                var infos = doc.DocumentNode.SelectNodes("//p[@class='a53cbfa6de b3efd73f69']");
+                var reviewNodes = doc.DocumentNode.SelectNodes("//div[@class='a53cbfa6de b5726afd0b']"); // reviews를 여러 요소로 선택
+                if (reviewNodes != null)
+                {
+                    int reviewCount = reviewNodes.Count;
+                    // reviewNodes가 null이 아닌 경우에만 Count를 호출하고 처리합니다.
+                    for (int i = 0; i < 5; i++)
+                    {
+                        // reviewNodes에서 리뷰 가져오기
+                        var reviewNode = reviewNodes[i];
+                        string additionalReview = reviewNode.InnerText.Trim();
+
+                        // 리뷰 목록에 저장
+                        additionalReviews.Add(additionalReview);
+                    }
+                }
+                var points = doc.DocumentNode.SelectNodes("//div[@class='a3b8729ab1 d86cee9b25']"); // 평점
+                var checkinTimes = doc.DocumentNode.SelectNodes("//div[@id='checkin_policy']//p[2]");
+                var checkoutTimes = doc.DocumentNode.SelectNodes("//div[@id='checkout_policy']//p[2]");
+
+
+                // 추출된 정보 출력
+                try
+                {
+                    hotelName = names[0].InnerText.Trim();
+                    string info = infos[0].InnerText.Trim();
+                    string checkinTime = checkinTimes[0].InnerText.Trim();
+                    string checkoutTime = checkoutTimes[0].InnerText.Trim();
+                    string point = points[0].InnerText.Trim();
+
+                    // containers에 있는 정보를 문자열로 결합
+                    combinedInfo = $"숙소 명: {hotelName}\n\r숙소 정보: {info}\n\r숙소 평점: {point}\n\rCheck-in Time: {checkinTime}\nCheck-out Time: {checkoutTime}\n\r숙소 리뷰:\n- {string.Join("\n- ", additionalReviews)}";
+                    // 결과 출력
+                    Console.WriteLine(combinedInfo);
+                    return combinedInfo;
+                }
+                catch (Exception ex)
+                {
+                    LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+                    return combinedInfo;
+                }
+            }
+        }
+
+        // 카테고리 분류 매서드
+        private async Task<int> AddCategoriesAsync()
+        {
+            var client = new WordPressClient(WP_URL);
+            client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
+            int categoryId = 0;
+            var categories = await client.Categories.GetAllAsync();
+            foreach (var category in categories)
+            {
+                string categoryName = category.Name; // 포스트의 Link 값을 추출
+                categoryId = category.Id; // 게시물의 제목을 가져옵니다.
+                if (CategoryBox1.Text == categoryName) return categoryId;
+            }
+
+            //var categories = await client.Categories.GetByIDAsync(CategoryBox1.Text);
+            return 1;
+        }
+
         private string GPT_Prompt(string prompt)
         {
             /*
@@ -265,7 +281,7 @@ namespace Web_Automation_WordPress_2
         private async Task<string> AddGPTToContentAsync()
         {
             string result = "";
-            string prompt1 = GPT_Prompt(TitleBox1.Text); // GPT Prompt 전달
+            string prompt1 = GPT_Prompt(hotelName + " 숙박 후기"); // GPT Prompt 전달
             try
             {
                 result = await RequestGPT(prompt1); // GPT에 요청하고 결과를 얻습니다.
@@ -291,7 +307,7 @@ namespace Web_Automation_WordPress_2
         {
             var client = new WordPressClient(WP_URL);
             client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
-            translation = Papago(TitleBox1.Text);
+            translation = Papago(hotelName + " 숙박 후기");
             int count = 0, i = 0;
             List<string> responseImgList = new List<string>(); // 이미지 업로드 결과를 저장할 리스트
 
@@ -302,7 +318,7 @@ namespace Web_Automation_WordPress_2
                 if (File.Exists(localImagePath))
                 {
                     var createdMedia = await client.Media.CreateAsync(localImagePath, $"{translation + '_' + i}.jpg"); // localImagePath로 media({translation}.jpg) 생성
-                    string responseImg = $"<img src=\"{createdMedia.SourceUrl}\">"; // content_2는 createdMedia에서 변환 시켰으니 img src로 변경
+                    string responseImg = $"<img class=\"aligncenter\" src=\"{createdMedia.SourceUrl}\">"; // createdMedia에서 변환 시켰으니 img src로 변경
                     responseImgList.Add(responseImg);
                     count++;
                     i++;
@@ -349,7 +365,7 @@ namespace Web_Automation_WordPress_2
         {
             var client = new WordPressClient(WP_URL);
             client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
-            string tags = "'" + TagBox1.Text.Trim() + "'" + "을 포함한 인기 검색어 10개를 ','로 구분해서 알려줘";
+            string tags = "'" + hotelName + " 숙박 후기" + "'" + "을 포함한 인기 검색어 10개를 ','로 구분해서 알려줘";
             string tagResult = "";
             try
             {
@@ -389,6 +405,7 @@ namespace Web_Automation_WordPress_2
                 string linkHtml = $"<a title=\"{postTitle}\" href=\"{postLink}\">&nbsp;▶{postTitle}</a>";
                 postLinks.Add(linkHtml);
             }
+
             Random random = new Random(); // 랜덤하게 3개의 Link 값을 선택합니다.
             List<string> selectedLinks = new List<string>();
             for (int i = 0; i < 3; i++)
@@ -426,7 +443,7 @@ namespace Web_Automation_WordPress_2
                     "https://m.blog.naver.com/jhkim6281/223106542250?referrerCode=1"
                 };
             List<string> selectedOutLinks = new List<string>();
-            Random random = new Random(); // 랜덤하게 3개의 Link 값을 선택합니다.
+            Random random = new Random(); // 랜덤하게 2개의 Link 값을 선택합니다.
             for (int i = 0; i < 2; i++)// 랜덤하게 2개의 URL 선택
             {
                 int index = random.Next(urls.Count);
@@ -434,7 +451,7 @@ namespace Web_Automation_WordPress_2
                 urls.RemoveAt(index); // 중복 선택 방지를 위해 선택한 URL을 리스트에서 제거합니다.
 
                 // 선택된 URL을 linkHtml 형식으로 만듭니다.
-                string postTitle = $"▶{TitleBox1.Text} 에서 참고한 글◀"; // 원하는 제목을 지정하세요
+                string postTitle = $"▶링크◀"; // 원하는 제목을 지정하세요
                 string linkHtml = $"<a title=\"{postTitle}\" href=\"{selectedLink}\">&nbsp;{postTitle}</a>";
                 selectedOutLinks.Add(linkHtml);
             }
@@ -486,52 +503,67 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
 
+                // 카테고리 출력
+                LogBox1.AppendText($"카테고리 분류 시작..." + Environment.NewLine);
+                int result_Categories = await AddCategoriesAsync(); // 완료
+                LogBox1.AppendText($"카테고리 분류 완료" + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+                // GPT 본문 출력
                 LogBox1.AppendText($"GPT 출력 시작..." + Environment.NewLine);
                 string result_GPT = await AddGPTToContentAsync(); // 완료
                 LogBox1.AppendText($"GPT 출력 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
 
+                // GPT 본문 + 이미지 가공
                 LogBox1.AppendText($"이미지 & 내용 패턴 변경 시작..." + Environment.NewLine);
                 List<string> result_ImgList = await ImagesAsyncList(); // selectedFolder 안의 이미지들을 <img src=\"{createdMedia.SourceUrl}\"> 형식으로 List
                 string content = AddImagesToContent(result_GPT, result_ImgList); //resultText 사이에 resultImgList의 string값을 잘 넣어주면됨
                 content = $"<html><body>{content}</body></html>"; // 결과를 HTML 형식으로 표시합니다. 삭제 or 추가
-                string head_2 = $"<h2>{TitleBox1.Text}</h2>";
+                string head_2 = $"<h2>{hotelName + " 숙박 후기"}</h2>";
                 LogBox1.AppendText($"이미지 & 내용 패턴 변경 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
 
+                // 지난 포스팅 링크 추출
                 LogBox1.AppendText($"지난 포스팅 링크 추출..." + Environment.NewLine);
                 string result_OldPostLinks = await AddOldPostAsync(); // 완료
                 LogBox1.AppendText($"지난 포스팅 링크 추출 완료" + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
 
+                // 외부 링크 입력
                 LogBox1.AppendText($"외부 링크 추출..." + Environment.NewLine);
                 string result_OutLinks = AddOutLinksAsync(); // 완료
                 LogBox1.AppendText($"외부 링크 추출 완료" + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
 
+                // 태그 생성 (GPT)
                 LogBox1.AppendText($"태그 생성중..." + Environment.NewLine + Environment.NewLine);
                 int result_TagId = await AddTagAsync(); // 완료
                 LogBox1.AppendText($"태그 생성 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
+
+                // 요약 요청 (GPT)
                 LogBox1.AppendText($"요약중..." + Environment.NewLine);
                 string result_Excerpt = await AddGPTToExcerptAsync(result_GPT); // 완료
                 LogBox1.AppendText($"요약 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
+
 
                 //WP 업로드 
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
                 LogBox1.AppendText($"워드프레스 업로드 시작" + Environment.NewLine);
                 var post = new Post()
                 {
-                    Title = new Title(TitleBox1.Text),
-                    Content = new Content(head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_Hotel  + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
+                    Title = new Title(hotelName + " 숙박 후기"), // TitleBox1.Text
+                    Content = new Content(head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
                     FeaturedMedia = result_thumbNail, // 썸네일
-                    Categories = new List<int> { comboBox1_SelectedItem() }, // ComboBox에서 선택한 카테고리 ID 설정
+                    Categories = new List<int> { result_Categories }, // ComboBox에서 선택한 카테고리 ID 설정
                     CommentStatus = OpenStatus.Open, // 댓글 상태
                     Tags = new List<int> { result_TagId },
                     Status = Status.Publish, // 포스팅 상태 공개,임시
@@ -548,57 +580,6 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
             }
         }
-
-        private int comboBox1_SelectedItem()
-        {
-            string selectedItem = comboBox1.SelectedItem.ToString();
-            int value = 0;
-
-            switch (selectedItem)
-            {
-                case "오희 리빙템":
-                    value = 4;
-                    break;
-                case "오희 면접준비":
-                    value = 134;
-                    break;
-                case "오희 잡담":
-                    value = 77;
-                    break;
-                case "오희 지원정보":
-                    value = 3;
-                    break;
-            }
-            return value;
-        }
-        /*
-        public string GetIdFromName(string nameToFind)
-        {
-            TistoryAPI api = new TistoryAPI();
-            api.SetAccessToken(AccessToken);
-
-            // XML로 결과를 얻을 경우
-            string result = api.GetCategory(blogName);
-
-            // XmlDocument 인스턴스 생성
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(result);
-            // "id"와 "name" 값을 불러와서 출력
-            XmlNodeList categoryNodes = xmlDoc.SelectNodes("/tistory/item/categories/category");
-            foreach (XmlNode categoryNode in categoryNodes)
-            {
-                string id = categoryNode.SelectSingleNode("id").InnerText;
-                string name = categoryNode.SelectSingleNode("name").InnerText;
-                if (name.Equals(nameToFind, StringComparison.OrdinalIgnoreCase)) // 대소문자를 무시하고 일치 여부를 확인합니다.
-                {
-                    return id; // 일치하는 "name"을 찾으면 해당 "id" 값을 반환합니다.
-                }
-            }
-            // "nameToFind"에 해당하는 "name"을 찾지 못한 경우 null 또는 다른 적절한 값을 반환할 수 있습니다.
-            return "0";
-        }
-        */
-
 
         private async Task<string> RequestGPT(string prompt1)
         {
@@ -700,6 +681,8 @@ namespace Web_Automation_WordPress_2
         private string WP_PW = "";
         private string WP_URL = "";
         private string OPENAI_API_KEY = "";
+        private string hotelName = "";
+
 
         private void APIKeybox1_TextChanged(object sender, EventArgs e)
         {

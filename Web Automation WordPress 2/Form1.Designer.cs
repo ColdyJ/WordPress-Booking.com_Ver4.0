@@ -31,12 +31,13 @@
             StartBtn1 = new Button();
             groupBox1 = new GroupBox();
             LogBox1 = new TextBox();
-            comboBox1 = new ComboBox();
             TitleBox1 = new TextBox();
             HotelUrlBox1 = new TextBox();
             FolderPath1Btn1 = new Button();
             FolderPath1 = new TextBox();
             groupBox7 = new GroupBox();
+            label2 = new Label();
+            crollBox1 = new TextBox();
             RenameBtn1 = new Button();
             CrollBtn1 = new Button();
             groupBox2 = new GroupBox();
@@ -54,10 +55,11 @@
             SystemBox1 = new TextBox();
             label5 = new Label();
             groupBox10 = new GroupBox();
+            CategoryBox1 = new TextBox();
+            label7 = new Label();
             label1 = new Label();
             TagBox1 = new TextBox();
             label6 = new Label();
-            label7 = new Label();
             button1 = new Button();
             groupBox1.SuspendLayout();
             groupBox7.SuspendLayout();
@@ -106,18 +108,6 @@
             LogBox1.Size = new Size(633, 119);
             LogBox1.TabIndex = 0;
             // 
-            // comboBox1
-            // 
-            comboBox1.BackColor = Color.FromArgb(224, 224, 224);
-            comboBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            comboBox1.ForeColor = Color.Black;
-            comboBox1.FormattingEnabled = true;
-            comboBox1.Items.AddRange(new object[] { "오희 리빙템", "오희 면접준비", "오희 잡담", "오희 지원정보" });
-            comboBox1.Location = new Point(116, 91);
-            comboBox1.Name = "comboBox1";
-            comboBox1.Size = new Size(261, 20);
-            comboBox1.TabIndex = 5;
-            // 
             // TitleBox1
             // 
             TitleBox1.BackColor = Color.FromArgb(224, 224, 224);
@@ -125,7 +115,7 @@
             TitleBox1.Cursor = Cursors.IBeam;
             TitleBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
             TitleBox1.ForeColor = Color.Black;
-            TitleBox1.Location = new Point(116, 28);
+            TitleBox1.Location = new Point(209, 379);
             TitleBox1.Name = "TitleBox1";
             TitleBox1.Size = new Size(260, 21);
             TitleBox1.TabIndex = 1;
@@ -137,10 +127,10 @@
             HotelUrlBox1.Cursor = Cursors.IBeam;
             HotelUrlBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
             HotelUrlBox1.ForeColor = Color.Black;
-            HotelUrlBox1.Location = new Point(116, 122);
+            HotelUrlBox1.Location = new Point(91, 65);
             HotelUrlBox1.Multiline = true;
             HotelUrlBox1.Name = "HotelUrlBox1";
-            HotelUrlBox1.Size = new Size(260, 47);
+            HotelUrlBox1.Size = new Size(285, 47);
             HotelUrlBox1.TabIndex = 6;
             // 
             // FolderPath1Btn1
@@ -168,6 +158,8 @@
             // 
             // groupBox7
             // 
+            groupBox7.Controls.Add(label2);
+            groupBox7.Controls.Add(crollBox1);
             groupBox7.Controls.Add(RenameBtn1);
             groupBox7.Controls.Add(CrollBtn1);
             groupBox7.Controls.Add(groupBox2);
@@ -185,11 +177,32 @@
             groupBox7.TabStop = false;
             groupBox7.Text = "API 옵션";
             // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            label2.Location = new Point(9, 321);
+            label2.Name = "label2";
+            label2.Size = new Size(51, 15);
+            label2.TabIndex = 1010;
+            label2.Text = "크롤링*:";
+            // 
+            // crollBox1
+            // 
+            crollBox1.BackColor = Color.FromArgb(224, 224, 224);
+            crollBox1.BorderStyle = BorderStyle.FixedSingle;
+            crollBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            crollBox1.Location = new Point(77, 317);
+            crollBox1.Margin = new Padding(2);
+            crollBox1.Name = "crollBox1";
+            crollBox1.Size = new Size(96, 21);
+            crollBox1.TabIndex = 1009;
+            // 
             // RenameBtn1
             // 
-            RenameBtn1.Location = new Point(178, 264);
+            RenameBtn1.Location = new Point(178, 244);
             RenameBtn1.Name = "RenameBtn1";
-            RenameBtn1.Size = new Size(75, 23);
+            RenameBtn1.Size = new Size(75, 43);
             RenameBtn1.TabIndex = 1008;
             RenameBtn1.Text = "파일 정리";
             RenameBtn1.UseVisualStyleBackColor = true;
@@ -197,7 +210,7 @@
             // 
             // CrollBtn1
             // 
-            CrollBtn1.Location = new Point(178, 238);
+            CrollBtn1.Location = new Point(178, 316);
             CrollBtn1.Name = "CrollBtn1";
             CrollBtn1.Size = new Size(75, 23);
             CrollBtn1.TabIndex = 1007;
@@ -339,7 +352,7 @@
             // 
             label8.AutoSize = true;
             label8.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            label8.Location = new Point(34, 122);
+            label8.Location = new Point(9, 65);
             label8.Name = "label8";
             label8.Size = new Size(64, 15);
             label8.TabIndex = 1005;
@@ -350,7 +363,7 @@
             SystemBox1.BackColor = Color.FromArgb(224, 224, 224);
             SystemBox1.BorderStyle = BorderStyle.FixedSingle;
             SystemBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            SystemBox1.Location = new Point(116, 57);
+            SystemBox1.Location = new Point(91, 31);
             SystemBox1.Margin = new Padding(2);
             SystemBox1.Name = "SystemBox1";
             SystemBox1.Size = new Size(96, 21);
@@ -360,7 +373,7 @@
             // 
             label5.AutoSize = true;
             label5.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            label5.Location = new Point(43, 61);
+            label5.Location = new Point(18, 35);
             label5.Name = "label5";
             label5.Size = new Size(55, 15);
             label5.TabIndex = 1003;
@@ -368,15 +381,11 @@
             // 
             // groupBox10
             // 
-            groupBox10.Controls.Add(label1);
+            groupBox10.Controls.Add(CategoryBox1);
             groupBox10.Controls.Add(LoadBtn1);
-            groupBox10.Controls.Add(TagBox1);
             groupBox10.Controls.Add(label8);
-            groupBox10.Controls.Add(comboBox1);
             groupBox10.Controls.Add(SaveBtn1);
-            groupBox10.Controls.Add(label6);
             groupBox10.Controls.Add(StartBtn1);
-            groupBox10.Controls.Add(TitleBox1);
             groupBox10.Controls.Add(label5);
             groupBox10.Controls.Add(label7);
             groupBox10.Controls.Add(HotelUrlBox1);
@@ -391,11 +400,33 @@
             groupBox10.TabStop = false;
             groupBox10.Text = "포스팅 옵션_Ver 2.0";
             // 
+            // CategoryBox1
+            // 
+            CategoryBox1.BackColor = Color.FromArgb(224, 224, 224);
+            CategoryBox1.BorderStyle = BorderStyle.FixedSingle;
+            CategoryBox1.Cursor = Cursors.IBeam;
+            CategoryBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            CategoryBox1.ForeColor = Color.Black;
+            CategoryBox1.Location = new Point(280, 31);
+            CategoryBox1.Name = "CategoryBox1";
+            CategoryBox1.Size = new Size(96, 21);
+            CategoryBox1.TabIndex = 1008;
+            // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            label7.Location = new Point(199, 33);
+            label7.Name = "label7";
+            label7.Size = new Size(63, 15);
+            label7.TabIndex = 1001;
+            label7.Text = "카테고리*:";
+            // 
             // label1
             // 
             label1.AutoSize = true;
             label1.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            label1.Location = new Point(222, 61);
+            label1.Location = new Point(315, 412);
             label1.Name = "label1";
             label1.Size = new Size(39, 15);
             label1.TabIndex = 1007;
@@ -406,7 +437,7 @@
             TagBox1.BackColor = Color.FromArgb(224, 224, 224);
             TagBox1.BorderStyle = BorderStyle.FixedSingle;
             TagBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            TagBox1.Location = new Point(269, 57);
+            TagBox1.Location = new Point(362, 408);
             TagBox1.Margin = new Padding(2);
             TagBox1.Name = "TagBox1";
             TagBox1.Size = new Size(107, 21);
@@ -416,21 +447,11 @@
             // 
             label6.AutoSize = true;
             label6.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            label6.Location = new Point(59, 28);
+            label6.Location = new Point(152, 379);
             label6.Name = "label6";
             label6.Size = new Size(39, 15);
             label6.TabIndex = 1002;
             label6.Text = "제목*:";
-            // 
-            // label7
-            // 
-            label7.AutoSize = true;
-            label7.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            label7.Location = new Point(35, 93);
-            label7.Name = "label7";
-            label7.Size = new Size(63, 15);
-            label7.TabIndex = 1001;
-            label7.Text = "카테고리*:";
             // 
             // button1
             // 
@@ -449,14 +470,19 @@
             BackColor = Color.White;
             ClientSize = new Size(674, 596);
             Controls.Add(button1);
+            Controls.Add(label1);
             Controls.Add(groupBox10);
             Controls.Add(groupBox7);
+            Controls.Add(TagBox1);
             Controls.Add(groupBox1);
+            Controls.Add(TitleBox1);
+            Controls.Add(label6);
             Name = "Form1";
             Text = "Auto Posting for WordPress";
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
             groupBox7.ResumeLayout(false);
+            groupBox7.PerformLayout();
             groupBox2.ResumeLayout(false);
             groupBox2.PerformLayout();
             groupBox6.ResumeLayout(false);
@@ -470,6 +496,7 @@
             groupBox10.ResumeLayout(false);
             groupBox10.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -477,7 +504,6 @@
         private Button StartBtn1;
         private GroupBox groupBox1;
         private TextBox LogBox1;
-        private ComboBox comboBox1;
         private TextBox TitleBox1;
         private TextBox HotelUrlBox1;
         private Button FolderPath1Btn1;
@@ -505,5 +531,8 @@
         private Button RenameBtn1;
         private Button CrollBtn1;
         private Button button1;
+        private TextBox CategoryBox1;
+        private Label label2;
+        private TextBox crollBox1;
     }
 }
