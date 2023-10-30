@@ -13,8 +13,9 @@ using OpenQA.Selenium.Chrome;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
-
-
+using System.Drawing.Text;
+using System.Drawing.Drawing2D;
+using System.Drawing;
 
 namespace Web_Automation_WordPress_2
 {
@@ -231,7 +232,7 @@ namespace Web_Automation_WordPress_2
                     string[] keywords = { "숙소 명:", "숙소 정보:", "숙소 평점:", "Check-in Time:", "Check-out Time:", "숙소 리뷰:" };
                     foreach (var keyword in keywords)
                     {
-                        combinedInfo = Regex.Replace(combinedInfo, keyword, $"<h3><span style='color: #FF8C00; font-size:120%; font-weight: bold;'>{keyword}</span></h3>");
+                        combinedInfo = Regex.Replace(combinedInfo, keyword, $"<h3><span style='color: #FF8C00; font-size:110%; font-weight: bold;'>{keyword}</span></h3>");
                     }
                     // 결과 출력
                     Console.WriteLine(combinedInfo);
@@ -253,14 +254,37 @@ namespace Web_Automation_WordPress_2
 
                                 using (Graphics graphics = Graphics.FromImage(image))
                                 {
-                                    string text = hotelName + "\n\n" + "숙박 후기";
-                                    Font font = new Font("Arial", 50, FontStyle.Bold);
-                                    Brush brush = Brushes.White;
+                                    string text = hotelName + "\n" + "숙박 솔직 후기\n★할인 예약코드";
+                                    Font font = new Font("NPSfont_regular", 60, FontStyle.Bold);
+
+                                    Brush grayBrush = Brushes.LightGray;
+                                    Brush whitebrush = Brushes.White;
+
+                                    Color transparentColor = Color.FromArgb(170, Color.White); //투명도 조절
+                                    Brush transparentBrush = new SolidBrush(transparentColor);
+
+                                    Color shadowColor = Color.FromArgb(180, Color.Black); // 그림자 색상 (투명도를 조절하기 위해 Alpha 채널 설정)
+                                    Brush shadowBrush = new SolidBrush(shadowColor);
+
                                     // Calculate the position to insert the text in the middle of the image
                                     float x = (image.Width - graphics.MeasureString(text, font).Width) / 2;
                                     float y = (image.Height - graphics.MeasureString(text, font).Height) / 2;
-                                    graphics.DrawString(text, font, brush, new PointF(x, y));
+
+                                    // 하얀색 바 그리기
+                                    int barHeight = 380; // 바의 높이를 조절하세요
+                                    graphics.FillRectangle(transparentBrush, 0, y - 50, image.Width, barHeight); // 사각형 바
+
+                                    // 그림자 효과를 추가하기 위해 속성 설정
+                                    graphics.TextRenderingHint = TextRenderingHint.AntiAlias;
+                                    graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                                    graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+
+                                    // 그림자 효과 적용
+                                    int shadowOffset = 5; // 그림자의 오프셋
+                                    graphics.DrawString(text, font, shadowBrush, new PointF(x + shadowOffset, y + shadowOffset));
+                                    graphics.DrawString(text, font, whitebrush, new PointF(x, y));
                                 }
+
                                 string outputPath = Path.Combine(basePath, "EditedThum_1.jpg");
                                 image.Save(outputPath);
                                 image.Dispose();
@@ -328,7 +352,7 @@ namespace Web_Automation_WordPress_2
             /*
              1. 공항에서 찾아가는 방법 / 2. 외관 / 3. 내부 방 설명 / 4. 부대시설 / 5.주위맛집 / 6.숙박경험
              */
-            string prompt1 = $"'{prompt}'에 관련된 블로그 글을 작성할거야. 이 템플릿에 맞춰서 아주 길고 자세하게 써줄래? 1.공항에서 찾아가는 방법:, 2.외관: , 3.내부 스타일: , 4.부대시설: , 5.주위맛집:  , 6.숙박경험: ...... 그리고 말투는 '했어요' 이런식으로 써줘";
+            string prompt1 = $"'{prompt}'에 관련된 블로그 글을 작성할거야. 이 템플릿에 맞춰서 아주 길고 자세하게 써줄래? 1.공항에서 찾아가는 방법:, 2.외관: , 3.내부 스타일: , 4.부대시설: , 5.주위맛집:  , 6.숙박경험:";
             return prompt1;
         }
 
@@ -405,7 +429,7 @@ namespace Web_Automation_WordPress_2
                     string imageSrc = result_ImgList.FirstOrDefault(); // 이미지 URL을 가져옴
                     if (!string.IsNullOrEmpty(imageSrc))
                     {
-                        result_GPT = result_GPT.Replace(imageInfo, $"\r{imageSrc}\r<br><span style='color: #FF8C00; font-size:120%; font-weight: bold;'>{imageInfo}</span>");
+                        result_GPT = result_GPT.Replace(imageInfo, $"\r{imageSrc}\r<br><span style='color: #FF8C00; font-size:110%; font-weight: bold;'>{imageInfo}</span>");
                         result_ImgList.RemoveAt(0); // 사용한 이미지 URL을 리스트에서 제거
                     }
                 }
@@ -766,7 +790,9 @@ namespace Web_Automation_WordPress_2
                 new XElement("InputValue1", IdBox1.Text),
                 new XElement("InputValue2", PwBox1.Text),
                 new XElement("InputValue3", UrlBox1.Text),
-                new XElement("InputValue4", APIKeybox1.Text)));
+                new XElement("InputValue4", APIKeybox1.Text),
+                new XElement("InputValue5", CategoryBox1.Text),
+                new XElement("InputValue6", SystemBox1.Text)));
             doc.Save(configFile);
         }
         // Textbox 로드기능 (Start btn부분)
@@ -782,6 +808,9 @@ namespace Web_Automation_WordPress_2
                 PwBox1.Text = doc.Root.Element("InputValue2")?.Value;
                 UrlBox1.Text = doc.Root.Element("InputValue3")?.Value;
                 APIKeybox1.Text = doc.Root.Element("InputValue4")?.Value;
+                SystemBox1.Text = doc.Root.Element("InputValue5")?.Value;
+                CategoryBox1.Text = doc.Root.Element("InputValue6")?.Value;
+
             }
         }
 
@@ -797,8 +826,9 @@ namespace Web_Automation_WordPress_2
                         new XElement("InputValue1", IdBox1.Text),
                         new XElement("InputValue2", PwBox1.Text),
                         new XElement("InputValue3", UrlBox1.Text),
-                        new XElement("InputValue4", APIKeybox1.Text)));
-
+                        new XElement("InputValue4", APIKeybox1.Text),
+                        new XElement("InputValue5", CategoryBox1.Text),
+                        new XElement("InputValue6", SystemBox1.Text)));
                     doc.Save(saveFileDialog.FileName);
                     MessageBox.Show("Settings saved.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
@@ -817,6 +847,8 @@ namespace Web_Automation_WordPress_2
                     PwBox1.Text = doc.Root.Element("InputValue2")?.Value;
                     UrlBox1.Text = doc.Root.Element("InputValue3")?.Value;
                     APIKeybox1.Text = doc.Root.Element("InputValue4")?.Value;
+                    SystemBox1.Text = doc.Root.Element("InputValue5")?.Value;
+                    CategoryBox1.Text = doc.Root.Element("InputValue6")?.Value;
 
                     MessageBox.Show("Settings loaded.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }

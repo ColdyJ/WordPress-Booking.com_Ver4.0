@@ -381,6 +381,7 @@
             // 
             // groupBox10
             // 
+            groupBox10.Controls.Add(button1);
             groupBox10.Controls.Add(CategoryBox1);
             groupBox10.Controls.Add(LoadBtn1);
             groupBox10.Controls.Add(label8);
@@ -455,11 +456,11 @@
             // 
             // button1
             // 
-            button1.Location = new Point(580, 379);
+            button1.Location = new Point(144, 272);
             button1.Name = "button1";
             button1.Size = new Size(75, 23);
             button1.TabIndex = 1006;
-            button1.Text = "저장";
+            button1.Text = "테스트";
             button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
             // 
@@ -469,7 +470,6 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
             ClientSize = new Size(674, 596);
-            Controls.Add(button1);
             Controls.Add(label1);
             Controls.Add(groupBox10);
             Controls.Add(groupBox7);
