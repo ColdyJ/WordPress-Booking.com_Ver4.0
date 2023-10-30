@@ -1,11 +1,3 @@
-//TODO : FeaturedMedia 이거 왜 id로 들어가는데 안되는지 ㅅㅂ 확인 필요 
-// Nuget : https://github.com/wp-net/WordPressPCL/commit/2dde3f7f614f551842b663d34fafc89bb1304dd0
-
-// TODO : Tag 기능 살릴것
-
-
-
-
 using Newtonsoft.Json.Linq;
 using OpenAI.Managers;
 using OpenAI.ObjectModels.RequestModels;
@@ -20,11 +12,9 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
-using System.Net.Http;
-using System;
-using System.Collections.Generic;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+
+
 
 namespace Web_Automation_WordPress_2
 {
@@ -203,10 +193,14 @@ namespace Web_Automation_WordPress_2
                 doc.LoadHtml(html);
                 List<string> additionalReviews = new List<string>();
 
-                // 원하는 정보를 추출
-                // 예를 들어, <title> 요소의 내용을 추출
+                // 원하는 정보를 추출, 예를 들어, <title> 요소의 내용을 추출
                 var names = doc.DocumentNode.SelectNodes("//h2[@class='d2fee87262 pp-header__title']");
                 var infos = doc.DocumentNode.SelectNodes("//p[@class='a53cbfa6de b3efd73f69']");
+                var points = doc.DocumentNode.SelectNodes("//div[@class='a3b8729ab1 d86cee9b25']"); // 평점
+                var checkinTimes = doc.DocumentNode.SelectNodes("//div[@id='checkin_policy']//p[2]");
+                var checkoutTimes = doc.DocumentNode.SelectNodes("//div[@id='checkout_policy']//p[2]");
+
+                // 리뷰 추출
                 var reviewNodes = doc.DocumentNode.SelectNodes("//div[@class='a53cbfa6de b5726afd0b']"); // reviews를 여러 요소로 선택
                 if (reviewNodes != null)
                 {
@@ -222,10 +216,6 @@ namespace Web_Automation_WordPress_2
                         additionalReviews.Add(additionalReview);
                     }
                 }
-                var points = doc.DocumentNode.SelectNodes("//div[@class='a3b8729ab1 d86cee9b25']"); // 평점
-                var checkinTimes = doc.DocumentNode.SelectNodes("//div[@id='checkin_policy']//p[2]");
-                var checkoutTimes = doc.DocumentNode.SelectNodes("//div[@id='checkout_policy']//p[2]");
-
 
                 // 추출된 정보 출력
                 try
@@ -238,8 +228,50 @@ namespace Web_Automation_WordPress_2
 
                     // containers에 있는 정보를 문자열로 결합
                     combinedInfo = $"숙소 명: {hotelName}\n\r숙소 정보: {info}\n\r숙소 평점: {point}\n\rCheck-in Time: {checkinTime}\nCheck-out Time: {checkoutTime}\n\r숙소 리뷰:\n- {string.Join("\n- ", additionalReviews)}";
+                    string[] keywords = { "숙소 명:", "숙소 정보:", "숙소 평점:", "Check-in Time:", "Check-out Time:", "숙소 리뷰:" };
+                    foreach (var keyword in keywords)
+                    {
+                        combinedInfo = Regex.Replace(combinedInfo, keyword, $"<h3><span style='color: #FF8C00; font-size:120%; font-weight: bold;'>{keyword}</span></h3>");
+                    }
                     // 결과 출력
                     Console.WriteLine(combinedInfo);
+
+                    // 썸네일 추출, 편집
+                    HtmlNode imgNode = doc.DocumentNode.SelectSingleNode("//a[@class='bh-photo-grid-item bh-photo-grid-photo1 active-image ']/img");
+                    if (imgNode != null)
+                    {
+                        string imageUrl = imgNode.GetAttributeValue("src", "");
+                        string basePath = selectedFolder; // 기본 저장 폴더 경로
+                        string imagePath = Path.Combine(basePath, "Thum_1.jpg"); // 경로 조합
+                        try
+                        {
+                            using (WebClient webclient = new WebClient())
+                            {
+                                webclient.DownloadFile(imageUrl, imagePath);
+                                Console.WriteLine("이미지 다운로드 및 저장 완료: " + imagePath);
+                                Image image = Image.FromFile(imagePath);
+
+                                using (Graphics graphics = Graphics.FromImage(image))
+                                {
+                                    string text = hotelName + "\n\n" + "숙박 후기";
+                                    Font font = new Font("Arial", 50, FontStyle.Bold);
+                                    Brush brush = Brushes.White;
+                                    // Calculate the position to insert the text in the middle of the image
+                                    float x = (image.Width - graphics.MeasureString(text, font).Width) / 2;
+                                    float y = (image.Height - graphics.MeasureString(text, font).Height) / 2;
+                                    graphics.DrawString(text, font, brush, new PointF(x, y));
+                                }
+                                string outputPath = Path.Combine(basePath, "EditedThum_1.jpg");
+                                image.Save(outputPath);
+                                image.Dispose();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+                        }
+                    }
+
                     return combinedInfo;
                 }
                 catch (Exception ex)
@@ -248,6 +280,29 @@ namespace Web_Automation_WordPress_2
                     return combinedInfo;
                 }
             }
+        }
+
+        // 썸네일 등록
+        private async Task<string> ThumnailAsync()
+        {
+            var client = new WordPressClient(WP_URL);
+            client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
+            string responseImg = "";
+            try
+            {
+                translation = Papago(hotelName + " 대표 사진");
+                string localThumnailPath = Path.Combine(selectedFolder, $"EditedThum_1.jpg"); // 이미지 파일 경로 가져오기
+                var createdThumMedia = await client.Media.CreateAsync(localThumnailPath, $"{translation}.jpg"); // localImagePath로 media({translation}.jpg) 생성
+                responseImg = $"<img class=\"aligncenter\" src=\"{createdThumMedia.SourceUrl}\">"; // createdMedia에서 변환 시켰으니 img src로 변경
+                result_thumbNail = createdThumMedia.Id;
+            }
+            catch (Exception ex)
+            {
+                // 오류 처리 - 예외가 발생한 경우 처리
+                LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+            }
+            return responseImg; // 이미지 업로드 결과를 리스트로 반환
+
         }
 
         // 카테고리 분류 매서드
@@ -322,7 +377,6 @@ namespace Web_Automation_WordPress_2
                     responseImgList.Add(responseImg);
                     count++;
                     i++;
-                    result_thumbNail = createdMedia.Id;
                 }
                 else
                 {
@@ -351,7 +405,7 @@ namespace Web_Automation_WordPress_2
                     string imageSrc = result_ImgList.FirstOrDefault(); // 이미지 URL을 가져옴
                     if (!string.IsNullOrEmpty(imageSrc))
                     {
-                        result_GPT = result_GPT.Replace(imageInfo, $"\r{imageSrc}\r<br><span style='color: #FF8C00; font-size:150%; font-weight: bold;'>{imageInfo}</span>");
+                        result_GPT = result_GPT.Replace(imageInfo, $"\r{imageSrc}\r<br><span style='color: #FF8C00; font-size:120%; font-weight: bold;'>{imageInfo}</span>");
                         result_ImgList.RemoveAt(0); // 사용한 이미지 URL을 리스트에서 제거
                     }
                 }
@@ -497,8 +551,9 @@ namespace Web_Automation_WordPress_2
 
 
                 LogBox1.AppendText($"호텔 정보 추가..." + Environment.NewLine);
-                // TODO : 호텔 이미지, 지도
+                // TODO : 호텔 지도
                 string result_Hotel = await GetHotelInfoAsync();
+                string result_ThumnailImg = await ThumnailAsync(); // 썸네일 등록id 및 img src
                 LogBox1.AppendText($"호텔 정보 추가 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
@@ -561,7 +616,7 @@ namespace Web_Automation_WordPress_2
                 var post = new Post()
                 {
                     Title = new Title(hotelName + " 숙박 후기"), // TitleBox1.Text
-                    Content = new Content(head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
+                    Content = new Content(head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
                     FeaturedMedia = result_thumbNail, // 썸네일
                     Categories = new List<int> { result_Categories }, // ComboBox에서 선택한 카테고리 ID 설정
                     CommentStatus = OpenStatus.Open, // 댓글 상태

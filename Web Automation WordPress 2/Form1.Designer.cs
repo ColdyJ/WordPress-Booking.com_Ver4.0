@@ -410,7 +410,7 @@
             CategoryBox1.Location = new Point(280, 31);
             CategoryBox1.Name = "CategoryBox1";
             CategoryBox1.Size = new Size(96, 21);
-            CategoryBox1.TabIndex = 1008;
+            CategoryBox1.TabIndex = 3;
             // 
             // label7
             // 
