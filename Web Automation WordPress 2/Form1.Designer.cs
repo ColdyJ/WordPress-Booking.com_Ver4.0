@@ -31,7 +31,6 @@
             StartBtn1 = new Button();
             groupBox1 = new GroupBox();
             LogBox1 = new TextBox();
-            TitleBox1 = new TextBox();
             HotelUrlBox1 = new TextBox();
             FolderPath1Btn1 = new Button();
             FolderPath1 = new TextBox();
@@ -55,12 +54,11 @@
             SystemBox1 = new TextBox();
             label5 = new Label();
             groupBox10 = new GroupBox();
+            label3 = new Label();
+            AffiliateBox1 = new TextBox();
+            button1 = new Button();
             CategoryBox1 = new TextBox();
             label7 = new Label();
-            label1 = new Label();
-            TagBox1 = new TextBox();
-            label6 = new Label();
-            button1 = new Button();
             groupBox1.SuspendLayout();
             groupBox7.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -107,18 +105,6 @@
             LogBox1.ReadOnly = true;
             LogBox1.Size = new Size(633, 119);
             LogBox1.TabIndex = 0;
-            // 
-            // TitleBox1
-            // 
-            TitleBox1.BackColor = Color.FromArgb(224, 224, 224);
-            TitleBox1.BorderStyle = BorderStyle.FixedSingle;
-            TitleBox1.Cursor = Cursors.IBeam;
-            TitleBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            TitleBox1.ForeColor = Color.Black;
-            TitleBox1.Location = new Point(209, 379);
-            TitleBox1.Name = "TitleBox1";
-            TitleBox1.Size = new Size(260, 21);
-            TitleBox1.TabIndex = 1;
             // 
             // HotelUrlBox1
             // 
@@ -381,6 +367,8 @@
             // 
             // groupBox10
             // 
+            groupBox10.Controls.Add(label3);
+            groupBox10.Controls.Add(AffiliateBox1);
             groupBox10.Controls.Add(button1);
             groupBox10.Controls.Add(CategoryBox1);
             groupBox10.Controls.Add(LoadBtn1);
@@ -400,6 +388,38 @@
             groupBox10.TabIndex = 1000;
             groupBox10.TabStop = false;
             groupBox10.Text = "포스팅 옵션_Ver 2.0";
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            label3.Location = new Point(17, 121);
+            label3.Name = "label3";
+            label3.Size = new Size(56, 15);
+            label3.TabIndex = 1009;
+            label3.Text = "Affiliate*:";
+            // 
+            // AffiliateBox1
+            // 
+            AffiliateBox1.BackColor = Color.FromArgb(224, 224, 224);
+            AffiliateBox1.BorderStyle = BorderStyle.FixedSingle;
+            AffiliateBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            AffiliateBox1.Location = new Point(91, 121);
+            AffiliateBox1.Margin = new Padding(2);
+            AffiliateBox1.Multiline = true;
+            AffiliateBox1.Name = "AffiliateBox1";
+            AffiliateBox1.Size = new Size(285, 47);
+            AffiliateBox1.TabIndex = 1008;
+            // 
+            // button1
+            // 
+            button1.Location = new Point(144, 272);
+            button1.Name = "button1";
+            button1.Size = new Size(75, 23);
+            button1.TabIndex = 1006;
+            button1.Text = "테스트";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
             // 
             // CategoryBox1
             // 
@@ -423,60 +443,15 @@
             label7.TabIndex = 1001;
             label7.Text = "카테고리*:";
             // 
-            // label1
-            // 
-            label1.AutoSize = true;
-            label1.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            label1.Location = new Point(315, 412);
-            label1.Name = "label1";
-            label1.Size = new Size(39, 15);
-            label1.TabIndex = 1007;
-            label1.Text = "태그*:";
-            // 
-            // TagBox1
-            // 
-            TagBox1.BackColor = Color.FromArgb(224, 224, 224);
-            TagBox1.BorderStyle = BorderStyle.FixedSingle;
-            TagBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            TagBox1.Location = new Point(362, 408);
-            TagBox1.Margin = new Padding(2);
-            TagBox1.Name = "TagBox1";
-            TagBox1.Size = new Size(107, 21);
-            TagBox1.TabIndex = 3;
-            // 
-            // label6
-            // 
-            label6.AutoSize = true;
-            label6.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            label6.Location = new Point(152, 379);
-            label6.Name = "label6";
-            label6.Size = new Size(39, 15);
-            label6.TabIndex = 1002;
-            label6.Text = "제목*:";
-            // 
-            // button1
-            // 
-            button1.Location = new Point(144, 272);
-            button1.Name = "button1";
-            button1.Size = new Size(75, 23);
-            button1.TabIndex = 1006;
-            button1.Text = "테스트";
-            button1.UseVisualStyleBackColor = true;
-            button1.Click += button1_Click;
-            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
             ClientSize = new Size(674, 596);
-            Controls.Add(label1);
             Controls.Add(groupBox10);
             Controls.Add(groupBox7);
-            Controls.Add(TagBox1);
             Controls.Add(groupBox1);
-            Controls.Add(TitleBox1);
-            Controls.Add(label6);
             Name = "Form1";
             Text = "Auto Posting for WordPress";
             groupBox1.ResumeLayout(false);
@@ -496,7 +471,6 @@
             groupBox10.ResumeLayout(false);
             groupBox10.PerformLayout();
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion
@@ -504,7 +478,6 @@
         private Button StartBtn1;
         private GroupBox groupBox1;
         private TextBox LogBox1;
-        private TextBox TitleBox1;
         private TextBox HotelUrlBox1;
         private Button FolderPath1Btn1;
         private TextBox FolderPath1;
@@ -517,7 +490,6 @@
         private GroupBox groupBox10;
         private Button LoadBtn1;
         private Button SaveBtn1;
-        private Label label6;
         private Label label7;
         private GroupBox groupBox4;
         private TextBox IdBox1;
@@ -526,13 +498,13 @@
         private Label label8;
         private GroupBox groupBox2;
         private TextBox UrlBox1;
-        private Label label1;
-        private TextBox TagBox1;
         private Button RenameBtn1;
         private Button CrollBtn1;
         private Button button1;
         private TextBox CategoryBox1;
         private Label label2;
         private TextBox crollBox1;
+        private Label label3;
+        private TextBox AffiliateBox1;
     }
 }

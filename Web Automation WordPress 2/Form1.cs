@@ -16,6 +16,11 @@ using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 using System.Drawing.Text;
 using System.Drawing.Drawing2D;
 using System.Drawing;
+using GoogleApi.Entities.Maps.Common;
+using GoogleApi;
+using GoogleApi.Entities.Maps.Geocoding.Place.Request;
+
+
 
 namespace Web_Automation_WordPress_2
 {
@@ -201,6 +206,20 @@ namespace Web_Automation_WordPress_2
                 var checkinTimes = doc.DocumentNode.SelectNodes("//div[@id='checkin_policy']//p[2]");
                 var checkoutTimes = doc.DocumentNode.SelectNodes("//div[@id='checkout_policy']//p[2]");
 
+                //지도 정보 추출
+                var hotel_address = doc.DocumentNode.SelectNodes("//a[@id='hotel_address']");
+                foreach (var element in hotel_address)
+                {
+                    string latLngAttribute = element.GetAttributeValue("data-atlas-latlng", ""); // data-atlas-latlng 속성 값을 가져옵니다.
+                    string[] latLng = latLngAttribute.Split(','); // lat와 lng를 추출합니다.
+                    // lat와 lng 값을 출력합니다.
+                    if (latLng.Length == 2)
+                    {
+                        lat = latLng[0];
+                        lng = latLng[1];
+                    }
+                }
+
                 // 리뷰 추출
                 var reviewNodes = doc.DocumentNode.SelectNodes("//div[@class='a53cbfa6de b5726afd0b']"); // reviews를 여러 요소로 선택
                 if (reviewNodes != null)
@@ -228,7 +247,7 @@ namespace Web_Automation_WordPress_2
                     string point = points[0].InnerText.Trim();
 
                     // containers에 있는 정보를 문자열로 결합
-                    combinedInfo = $"숙소 명: {hotelName}\n\r숙소 정보: {info}\n\r숙소 평점: {point}\n\rCheck-in Time: {checkinTime}\nCheck-out Time: {checkoutTime}\n\r숙소 리뷰:\n- {string.Join("\n- ", additionalReviews)}";
+                    combinedInfo = $"숙소 명: {hotelName}\n\r숙소 정보: {info}\n\r숙소 평점: {point}\n\rCheck-in Time: {checkinTime}\nCheck-out Time: {checkoutTime}\n\r숙소 리뷰:\n- {string.Join("<p>&nbsp;</p>- ", additionalReviews)}";
                     string[] keywords = { "숙소 명:", "숙소 정보:", "숙소 평점:", "Check-in Time:", "Check-out Time:", "숙소 리뷰:" };
                     foreach (var keyword in keywords)
                     {
@@ -304,6 +323,49 @@ namespace Web_Automation_WordPress_2
                     return combinedInfo;
                 }
             }
+        }
+
+        // 구글맵
+        static async Task<string> google_map()
+        {
+            // API 키 값을 설정합니다.
+            string apiKey = "AIzaSyAnHzeNRM0qu_meS7GRfjaTz3QUm8vhJG8";
+
+            // HTML 문자열을 생성합니다.
+            string maphtml = $@"
+<head>
+    <title>Google Maps Example</title>
+    <script src='https://maps.googleapis.com/maps/api/js?key={apiKey}'></script>
+    <style>
+        #map {{
+            height: 400px;
+            width: 100%;
+        }}
+    </style>
+</head>
+<body>
+    <div id='map'></div>
+    <script>
+        function initMap() {{
+            const position = {{ lat: {lat}, lng: {lng} }};
+            const map = new google.maps.Map(document.getElementById('map'), {{
+                zoom: 17,
+                center: position
+            }});
+            const marker = new google.maps.Marker({{
+                position: position,
+                map: map,
+                title: 'Uluru'
+            }});
+        }}
+    </script>
+    <script>
+        google.maps.event.addDomListener(window, 'load', initMap);
+    </script>
+</body>
+";
+            maphtml = $"<!-- wp:html -->{maphtml}<!-- /wp:html -->";
+            return maphtml;
         }
 
         // 썸네일 등록
@@ -429,7 +491,7 @@ namespace Web_Automation_WordPress_2
                     string imageSrc = result_ImgList.FirstOrDefault(); // 이미지 URL을 가져옴
                     if (!string.IsNullOrEmpty(imageSrc))
                     {
-                        result_GPT = result_GPT.Replace(imageInfo, $"\r{imageSrc}\r<br><span style='color: #FF8C00; font-size:110%; font-weight: bold;'>{imageInfo}</span>");
+                        result_GPT = result_GPT.Replace(imageInfo, $"\r{imageSrc}\r<p>&nbsp;</p><span style='color: #FF8C00; font-size:110%; font-weight: bold;'>{imageInfo}</span>");
                         result_ImgList.RemoveAt(0); // 사용한 이미지 URL을 리스트에서 제거
                     }
                 }
@@ -504,39 +566,40 @@ namespace Web_Automation_WordPress_2
         {
             var client = new WordPressClient(WP_URL);
             client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
-            List<string> urls = new List<string> // 30개의 URL을 리스트에 추가
-                {
-                    "https://m.blog.naver.com/jhkim6281/223020766231?referrerCode=1","https://m.blog.naver.com/jhkim6281/223020776708?referrerCode=1","https://m.blog.naver.com/jhkim6281/223025461120?referrerCode=1",
-                    "https://m.blog.naver.com/jhkim6281/223033987549?referrerCode=1","https://m.blog.naver.com/jhkim6281/223035429797?referrerCode=1","https://m.blog.naver.com/jhkim6281/223035853701?referrerCode=1",
-                    "https://m.blog.naver.com/jhkim6281/223036889995?referrerCode=1","https://m.blog.naver.com/jhkim6281/223037039200?referrerCode=1","https://m.blog.naver.com/jhkim6281/223037877338?referrerCode=1",
-                    "https://m.blog.naver.com/jhkim6281/223037985973?referrerCode=1","https://m.blog.naver.com/jhkim6281/223038143608?referrerCode=1","https://m.blog.naver.com/jhkim6281/223038241526?referrerCode=1",
-                    "https://m.blog.naver.com/jhkim6281/223038253154?referrerCode=1","https://m.blog.naver.com/jhkim6281/223038384369?referrerCode=1","https://m.blog.naver.com/jhkim6281/223039198024?referrerCode=1",
-                    "https://m.blog.naver.com/jhkim6281/223039206222?referrerCode=1","https://m.blog.naver.com/jhkim6281/223039240687?referrerCode=1","https://m.blog.naver.com/jhkim6281/223039265755?referrerCode=1",
-                    "https://m.blog.naver.com/jhkim6281/223039593229?referrerCode=1","https://m.blog.naver.com/jhkim6281/223039613837?referrerCode=1","https://m.blog.naver.com/jhkim6281/223039637726?referrerCode=1",
-                    "https://m.blog.naver.com/jhkim6281/223039657911?referrerCode=1","https://m.blog.naver.com/jhkim6281/223039689956?referrerCode=1","https://m.blog.naver.com/jhkim6281/223040233776?referrerCode=1",
-                    "https://m.blog.naver.com/jhkim6281/223040254238?referrerCode=1","https://m.blog.naver.com/jhkim6281/223040409460?referrerCode=1","https://m.blog.naver.com/jhkim6281/223040432520?referrerCode=1",
-                    "https://m.blog.naver.com/jhkim6281/223040473469?referrerCode=1","https://m.blog.naver.com/jhkim6281/223040519864?referrerCode=1","https://m.blog.naver.com/jhkim6281/223040598554?referrerCode=1",
-                    "https://m.blog.naver.com/jhkim6281/223044247527?referrerCode=1","https://m.blog.naver.com/jhkim6281/223047532120?referrerCode=1","https://m.blog.naver.com/jhkim6281/223047685223?referrerCode=1",
-                    "https://m.blog.naver.com/jhkim6281/223090692705?referrerCode=1","https://m.blog.naver.com/jhkim6281/223092826518?referrerCode=1","https://m.blog.naver.com/jhkim6281/223105279622?referrerCode=1",
-                    "https://m.blog.naver.com/jhkim6281/223106542250?referrerCode=1"
-                };
-            List<string> selectedOutLinks = new List<string>();
-            Random random = new Random(); // 랜덤하게 2개의 Link 값을 선택합니다.
-            for (int i = 0; i < 2; i++)// 랜덤하게 2개의 URL 선택
-            {
-                int index = random.Next(urls.Count);
-                string selectedLink = urls[index];
-                urls.RemoveAt(index); // 중복 선택 방지를 위해 선택한 URL을 리스트에서 제거합니다.
+            string addOutLinks = "상품이 궁금하시다면 아래 링크를 클릭해주세요 :)\r\n";
+            string outLinks = ""; // 각 링크를 개행 문자로 구분
 
-                // 선택된 URL을 linkHtml 형식으로 만듭니다.
-                string postTitle = $"▶링크◀"; // 원하는 제목을 지정하세요
-                string linkHtml = $"<a title=\"{postTitle}\" href=\"{selectedLink}\">&nbsp;{postTitle}</a>";
-                selectedOutLinks.Add(linkHtml);
+            try
+            {
+                //AffiliateBox1
+                List<string> urls = new List<string> // 30개의 URL을 리스트에 추가
+                {
+                    AffiliateBox1.Text,AffiliateBox1.Text,AffiliateBox1.Text,
+                    AffiliateBox1.Text,AffiliateBox1.Text,AffiliateBox1.Text
+                };
+                List<string> selectedOutLinks = new List<string>();
+                Random random = new Random(); // 랜덤하게 2개의 Link 값을 선택합니다.
+                for (int i = 0; i < 2; i++)// 랜덤하게 2개의 URL 선택
+                {
+                    int index = random.Next(urls.Count);
+                    string selectedLink = urls[index];
+                    urls.RemoveAt(index); // 중복 선택 방지를 위해 선택한 URL을 리스트에서 제거합니다.
+
+                    // 선택된 URL을 linkHtml 형식으로 만듭니다.
+                    //string postTitle = $"▶링크◀"; // 원하는 제목을 지정하세요
+                    //string linkHtml = $"<a title=\"{postTitle}\" href=\"{selectedLink}\">&nbsp;{postTitle}</a>";
+                    string modifiedLink = Regex.Replace(selectedLink, @"(width\s*=\s*)""\d+""", "$1\"300\"");
+                    string linkText = $"<!-- wp:html -->{modifiedLink}<!-- /wp:html -->";
+                    selectedOutLinks.Add(linkText);
+                }
+                // 선택된 URL을 outlinks 문자열에 추가
+                outLinks = string.Join("\r\n", selectedOutLinks); // 각 링크를 개행 문자로 구분
             }
-            // 선택된 URL을 outlinks 문자열에 추가
-            string addOutLinks = "다른 글이 궁금하시다면 아래 링크를 클릭해주세요 :)\r\n";
-            string outLinks = string.Join("\r\n", selectedOutLinks); // 각 링크를 개행 문자로 구분
-            return addOutLinks + outLinks;
+            catch (Exception ex)
+            {
+                LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+            }
+            return addOutLinks + "<p>&nbsp;</p>" + outLinks;
         }
 
 
@@ -566,19 +629,19 @@ namespace Web_Automation_WordPress_2
 
             try
             {
+                // 호텔 정보
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
-                LogBox1.AppendText($"구글 지도 추가..." + Environment.NewLine);
-                // TODO : 구글 API 함수
-                string result_GoogleMap = "";
-                LogBox1.AppendText($"구글 지도 추가 완료..." + Environment.NewLine);
-                LogBox1.AppendText($"===========================" + Environment.NewLine);
-
-
                 LogBox1.AppendText($"호텔 정보 추가..." + Environment.NewLine);
-                // TODO : 호텔 지도
                 string result_Hotel = await GetHotelInfoAsync();
                 string result_ThumnailImg = await ThumnailAsync(); // 썸네일 등록id 및 img src
                 LogBox1.AppendText($"호텔 정보 추가 완료..." + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+                // 구글 지도
+                LogBox1.AppendText($"구글 지도 추가..." + Environment.NewLine);
+                string result_GoogleMap = await google_map();
+                LogBox1.AppendText($"구글 지도 추가 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
 
@@ -600,7 +663,7 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"이미지 & 내용 패턴 변경 시작..." + Environment.NewLine);
                 List<string> result_ImgList = await ImagesAsyncList(); // selectedFolder 안의 이미지들을 <img src=\"{createdMedia.SourceUrl}\"> 형식으로 List
                 string content = AddImagesToContent(result_GPT, result_ImgList); //resultText 사이에 resultImgList의 string값을 잘 넣어주면됨
-                content = $"<html><body>{content}</body></html>"; // 결과를 HTML 형식으로 표시합니다. 삭제 or 추가
+                //content = $"<html><body>{content}</body></html>"; // 결과를 HTML 형식으로 표시합니다. 삭제 or 추가
                 string head_2 = $"<h2>{hotelName + " 숙박 후기"}</h2>";
                 LogBox1.AppendText($"이미지 & 내용 패턴 변경 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
@@ -640,7 +703,7 @@ namespace Web_Automation_WordPress_2
                 var post = new Post()
                 {
                     Title = new Title(hotelName + " 숙박 후기"), // TitleBox1.Text
-                    Content = new Content(head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
+                    Content = new Content(head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
                     FeaturedMedia = result_thumbNail, // 썸네일
                     Categories = new List<int> { result_Categories }, // ComboBox에서 선택한 카테고리 ID 설정
                     CommentStatus = OpenStatus.Open, // 댓글 상태
@@ -761,7 +824,8 @@ namespace Web_Automation_WordPress_2
         private string WP_URL = "";
         private string OPENAI_API_KEY = "";
         private string hotelName = "";
-
+        private static string lat = "";
+        private static string lng = "";
 
         private void APIKeybox1_TextChanged(object sender, EventArgs e)
         {
