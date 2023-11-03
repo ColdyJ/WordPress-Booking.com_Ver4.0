@@ -347,7 +347,7 @@ namespace Web_Automation_WordPress_2
         function initMap() {{
             const position = {{ lat: {lat}, lng: {lng} }};
             const map = new google.maps.Map(document.getElementById('map'), {{
-                zoom: 17,
+                zoom: 18,
                 center: position
             }});
             const marker = new google.maps.Marker({{
@@ -535,6 +535,10 @@ namespace Web_Automation_WordPress_2
             var client = new WordPressClient(WP_URL);
             client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
             var posts = await client.Posts.GetAllAsync();
+
+            string addOldPostLinks = "다른 숙박 후기가 궁금하시다면 ??? \r\n";
+            string oldPostsLinks = ""; // 각 링크를 개행 문자로 구분
+
             List<string> postLinks = new List<string>(); // 포스트의 Link 값을 저장할 리스트를 만듭니다.
             foreach (var postli in posts)
             {
@@ -554,30 +558,64 @@ namespace Web_Automation_WordPress_2
                 postLinks.RemoveAt(index); // 중복 선택 방지를 위해 선택한 Link 값을 리스트에서 제거합니다.
             }
             // 선택된 Link 값을 oldposts 문자열에 추가합니다.
-            string oldPostsLinks = string.Join("\r\n", selectedLinks); // 각 링크를 개행 문자로 구분
-            return oldPostsLinks;
+            oldPostsLinks = string.Join("\r\n", selectedLinks); // 각 링크를 개행 문자로 구분
+
+            return addOldPostLinks + "<p>&nbsp;</p>" + oldPostsLinks;
         }
 
 
         //외부 링크 추출
         private string AddOutLinksAsync()
         {
-            var client = new WordPressClient(WP_URL);
-            client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
-            string addOutLinks = "최저가 예약이 궁금하시다면 아래 링크를 클릭해주세요 :)\r\n";
+            string addOutLinks = "▼▼▼ 자동으로 최저가 + 프로모션 코드적용되어 검색 됩니다 :) ▼▼▼\r\n";
             string outLinks = ""; // 각 링크를 개행 문자로 구분
 
             try
             {
                 //AffiliateBox1
+                List<string> urls = new List<string> // 3개의 URL을 리스트에 추가
+                {// 순서대로 익스피디아, 호텔스닷컴, 트립닷컴
+                    "https://expedia.com/affiliate/jVHhwTh",
+                    "https://www.hotels.com/affiliate/l9VN1VM",
+                    "https://kr.trip.com/?Allianceid=4004476&SID=25361194&trip_sub1=&trip_sub3=D108514"
+                };
+                // 선택된 URL을 linkHtml 형식으로 만듭니다.
+                string expediaLink = $"▶익스피디아 최저가 검색◀"; // 
+                string hotelscomLink = $"▶호텔스닷컴 최저가 검색◀"; // 
+                string tripcomLink = $"▶트립닷컴 최저가 검색◀"; // 
+
+                string expediaHtml = $"<a title=\"{expediaLink}\" href=\"{urls[0]}\">&nbsp;{expediaLink}</a>";
+                string hotelscomHtml = $"<a title=\"{hotelscomLink}\" href=\"{urls[1]}\">&nbsp;{hotelscomLink}</a>";
+                string tripcomHtml = $"<a title=\"{tripcomLink}\" href=\"{urls[2]}\">&nbsp;{tripcomLink}</a>";
+
+                // 선택된 URL을 outlinks 문자열에 추가
+                string[] selectedOutLinks = new string[] { expediaHtml, hotelscomHtml, tripcomHtml };
+                outLinks = string.Join("\r\n", selectedOutLinks); // 각 링크를 개행 문자로 구분
+            }
+            catch (Exception ex)
+            {
+                LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+            }
+            return addOutLinks + "<p>&nbsp;</p>" + outLinks;
+        }
+
+        //외부 링크 추출
+        private string AddOutBannersAsync()
+        {
+            string addOutBanners = "▼▼▼ 최저가 검색은 여기서 ▼▼▼\r\n";
+            string outLinks = ""; // 각 링크를 개행 문자로 구분
+
+            try
+            {
                 List<string> urls = new List<string> // 30개의 URL을 리스트에 추가
                 {
-                    AffiliateBox1.Text,AffiliateBox1.Text,AffiliateBox1.Text,
-                    AffiliateBox1.Text,AffiliateBox1.Text,AffiliateBox1.Text
+                    "<iframe border=\"0\" src=\"https://kr.trip.com/partners/ad/S108499?Allianceid=4004476&SID=25361194&trip_sub1=\" style=\"width:900px;height:200px\" frameborder=\"0\" scrolling=\"no\" style=\"border:none\" id=\"S108499\"></iframe>",
+                    "<div class=\"eg-widget\" data-widget=\"search\" data-program=\"kr-expedia\" data-lobs=\"stays,flights\" data-network=\"pz\" data-camref=\"1101lS7wB\"></div>\r\n<script class=\"eg-widgets-script\" src=\"https://affiliates.expediagroup.com/products/widgets/assets/eg-widgets.js\"></script>\r\n",
+                    "<div class=\"eg-widget\" data-widget=\"search\" data-program=\"kr-hcom\" data-lobs=\"\" data-network=\"pz\" data-camref=\"1011lS9WN\"></div>\r\n<script class=\"eg-widgets-script\" src=\"https://affiliates.expediagroup.com/products/widgets/assets/eg-widgets.js\"></script>"
                 };
                 List<string> selectedOutLinks = new List<string>();
-                Random random = new Random(); // 랜덤하게 2개의 Link 값을 선택합니다.
-                for (int i = 0; i < 2; i++)// 랜덤하게 2개의 URL 선택
+                Random random = new Random(); // 랜덤하게 1개의 Link 값을 선택합니다.
+                for (int i = 0; i < 1; i++)// 랜덤하게 1개의 URL 선택
                 {
                     int index = random.Next(urls.Count);
                     string selectedLink = urls[index];
@@ -586,8 +624,7 @@ namespace Web_Automation_WordPress_2
                     // 선택된 URL을 linkHtml 형식으로 만듭니다.
                     //string postTitle = $"▶링크◀"; // 원하는 제목을 지정하세요
                     //string linkHtml = $"<a title=\"{postTitle}\" href=\"{selectedLink}\">&nbsp;{postTitle}</a>";
-                    string modifiedLink = Regex.Replace(selectedLink, @"(width\s*=\s*)""\d+""", "$1\"300\"");
-                    string linkText = $"<!-- wp:html -->{modifiedLink}<!-- /wp:html -->";
+                    string linkText = $"<!-- wp:html -->{selectedLink}<!-- /wp:html -->";
                     selectedOutLinks.Add(linkText);
                 }
                 // 선택된 URL을 outlinks 문자열에 추가
@@ -597,7 +634,7 @@ namespace Web_Automation_WordPress_2
             {
                 LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
             }
-            return addOutLinks + "<p>&nbsp;</p>" + outLinks;
+            return addOutBanners + "<p>&nbsp;</p>" + outLinks;
         }
 
 
@@ -677,6 +714,7 @@ namespace Web_Automation_WordPress_2
                 // 외부 링크 입력
                 LogBox1.AppendText($"외부 링크 추출..." + Environment.NewLine);
                 string result_OutLinks = AddOutLinksAsync(); // 완료
+                string result_OutBanners = AddOutBannersAsync(); // 완료
                 LogBox1.AppendText($"외부 링크 추출 완료" + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
@@ -701,7 +739,7 @@ namespace Web_Automation_WordPress_2
                 var post = new Post()
                 {
                     Title = new Title(hotelName + " 숙박 후기"), // TitleBox1.Text
-                    Content = new Content(head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OldPostLinks + "<p>&nbsp;</p>" + result_OutLinks), // GPT
+                    Content = new Content(head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
                     FeaturedMedia = result_thumbNail, // 썸네일
                     Categories = new List<int> { result_Categories }, // ComboBox에서 선택한 카테고리 ID 설정
                     CommentStatus = OpenStatus.Open, // 댓글 상태
