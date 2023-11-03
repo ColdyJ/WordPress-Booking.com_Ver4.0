@@ -247,7 +247,7 @@ namespace Web_Automation_WordPress_2
                     string point = points[0].InnerText.Trim();
 
                     // containers에 있는 정보를 문자열로 결합
-                    combinedInfo = $"숙소 명: {hotelName}\n\r숙소 정보: {info}\n\r숙소 평점: {point}\n\rCheck-in Time: {checkinTime}\nCheck-out Time: {checkoutTime}\n\r숙소 리뷰:\n- {string.Join("<p>&nbsp;</p>- ", additionalReviews)}";
+                    combinedInfo = $"숙소 명: {hotelName}<p>&nbsp;</p>\n숙소 정보: {info}<p>&nbsp;</p>\n숙소 평점: {point}<p>&nbsp;</p>\nCheck-in Time: {checkinTime}\nCheck-out Time: {checkoutTime}<p>&nbsp;</p>\n숙소 리뷰:\n- {string.Join("<p>&nbsp;</p>- ", additionalReviews)}";
                     string[] keywords = { "숙소 명:", "숙소 정보:", "숙소 평점:", "Check-in Time:", "Check-out Time:", "숙소 리뷰:" };
                     foreach (var keyword in keywords)
                     {
@@ -438,7 +438,7 @@ namespace Web_Automation_WordPress_2
             // 찾은 소제목 패턴을 강조하고 크게 표시합니다.
             string result_GPT = regex.Replace(content, match =>
             {
-                return $"<h3>{match.Value}</h3><br>";
+                return $"<h3>{match.Value}</h3><br>"; // 사실 이미지 + GPT 가공부분에서 H3 설정을 해주므로 필요 없을 것 같지만 일단 냅둠
             });
             return result_GPT;
         }
@@ -491,7 +491,7 @@ namespace Web_Automation_WordPress_2
                     string imageSrc = result_ImgList.FirstOrDefault(); // 이미지 URL을 가져옴
                     if (!string.IsNullOrEmpty(imageSrc))
                     {
-                        result_GPT = result_GPT.Replace(imageInfo, $"\r{imageSrc}\r<p>&nbsp;</p><span style='color: #FF8C00; font-size:110%; font-weight: bold;'>{imageInfo}</span>");
+                        result_GPT = result_GPT.Replace(imageInfo, $"\r{imageSrc}<p>&nbsp;</p>\r<h3><span style='color: #FF8C00; font-size:110%; font-weight: bold;'>{imageInfo}</span></h3>");
                         result_ImgList.RemoveAt(0); // 사용한 이미지 URL을 리스트에서 제거
                     }
                 }
@@ -566,7 +566,7 @@ namespace Web_Automation_WordPress_2
         {
             var client = new WordPressClient(WP_URL);
             client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
-            string addOutLinks = "상품이 궁금하시다면 아래 링크를 클릭해주세요 :)\r\n";
+            string addOutLinks = "최저가 예약이 궁금하시다면 아래 링크를 클릭해주세요 :)\r\n";
             string outLinks = ""; // 각 링크를 개행 문자로 구분
 
             try
@@ -703,7 +703,7 @@ namespace Web_Automation_WordPress_2
                 var post = new Post()
                 {
                     Title = new Title(hotelName + " 숙박 후기"), // TitleBox1.Text
-                    Content = new Content(head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
+                    Content = new Content(head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OldPostLinks + "<p>&nbsp;</p>" + result_OutLinks), // GPT
                     FeaturedMedia = result_thumbNail, // 썸네일
                     Categories = new List<int> { result_Categories }, // ComboBox에서 선택한 카테고리 ID 설정
                     CommentStatus = OpenStatus.Open, // 댓글 상태

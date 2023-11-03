@@ -117,7 +117,7 @@
             HotelUrlBox1.Multiline = true;
             HotelUrlBox1.Name = "HotelUrlBox1";
             HotelUrlBox1.Size = new Size(285, 47);
-            HotelUrlBox1.TabIndex = 6;
+            HotelUrlBox1.TabIndex = 3;
             // 
             // FolderPath1Btn1
             // 
@@ -353,7 +353,7 @@
             SystemBox1.Margin = new Padding(2);
             SystemBox1.Name = "SystemBox1";
             SystemBox1.Size = new Size(96, 21);
-            SystemBox1.TabIndex = 2;
+            SystemBox1.TabIndex = 1;
             // 
             // label5
             // 
@@ -409,7 +409,7 @@
             AffiliateBox1.Multiline = true;
             AffiliateBox1.Name = "AffiliateBox1";
             AffiliateBox1.Size = new Size(285, 47);
-            AffiliateBox1.TabIndex = 1008;
+            AffiliateBox1.TabIndex = 4;
             // 
             // button1
             // 
@@ -431,7 +431,7 @@
             CategoryBox1.Location = new Point(280, 31);
             CategoryBox1.Name = "CategoryBox1";
             CategoryBox1.Size = new Size(96, 21);
-            CategoryBox1.TabIndex = 3;
+            CategoryBox1.TabIndex = 2;
             // 
             // label7
             // 
