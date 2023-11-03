@@ -567,7 +567,7 @@ namespace Web_Automation_WordPress_2
         //외부 링크 추출
         private string AddOutLinksAsync()
         {
-            string addOutLinks = "▼▼▼ 자동으로 최저가 + 프로모션 코드적용되어 검색 됩니다 :) ▼▼▼\r\n";
+            string addOutLinks = "▼▼▼ 최저가 + 프로모션 코드 적용된 링크 :) ▼▼▼\r\n";
             string outLinks = ""; // 각 링크를 개행 문자로 구분
 
             try
