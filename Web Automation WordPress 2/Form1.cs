@@ -16,9 +16,7 @@ using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 using System.Drawing.Text;
 using System.Drawing.Drawing2D;
 using System.Drawing;
-using GoogleApi.Entities.Maps.Common;
-using GoogleApi;
-using GoogleApi.Entities.Maps.Geocoding.Place.Request;
+
 
 
 
