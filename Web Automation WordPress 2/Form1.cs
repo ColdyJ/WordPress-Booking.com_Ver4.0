@@ -187,7 +187,12 @@ namespace Web_Automation_WordPress_2
         // 호텔 정보 추출
         private async Task<string> GetHotelInfoAsync()
         {
-            string url = HotelUrlBox1.Text;
+            string url = HotelUrlBox1.Text; // url에 .html 앞에 ko가 없으면 붙이는 쪽으로..?
+            if (!url.Contains(".ko."))
+            {
+                // 정규 표현식을 사용하여 ".html" 앞에 "ko"가 없는 경우 "ko.html"를 추가
+                url = Regex.Replace(url, @"(?<!ko)\.html", ".ko.html");
+            }
             string combinedInfo = "";
             using (HttpClient client = new HttpClient())
             {
@@ -222,16 +227,33 @@ namespace Web_Automation_WordPress_2
                 var reviewNodes = doc.DocumentNode.SelectNodes("//div[@class='a53cbfa6de b5726afd0b']"); // reviews를 여러 요소로 선택
                 if (reviewNodes != null)
                 {
+                    // reviewCount가 5 미만인 경우 reviewCount만큼 출력
                     int reviewCount = reviewNodes.Count;
-                    // reviewNodes가 null이 아닌 경우에만 Count를 호출하고 처리합니다.
-                    for (int i = 0; i < 5; i++)
-                    {
-                        // reviewNodes에서 리뷰 가져오기
-                        var reviewNode = reviewNodes[i];
-                        string additionalReview = reviewNode.InnerText.Trim();
+                    int maxReviewsToDisplay = Math.Min(5, reviewCount);
 
-                        // 리뷰 목록에 저장
-                        additionalReviews.Add(additionalReview);
+                    if (reviewCount < 5)
+                    {
+                        for (int i = 0; i < maxReviewsToDisplay; i++)
+                        {
+                            // reviewNodes에서 리뷰 가져오기
+                            var reviewNode = reviewNodes[i];
+                            string additionalReview = reviewNode.InnerText.Trim();
+
+                            // 리뷰 목록에 저장
+                            additionalReviews.Add(additionalReview);
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 0; i < 5; i++)
+                        {
+                            // reviewNodes에서 리뷰 가져오기
+                            var reviewNode = reviewNodes[i];
+                            string additionalReview = reviewNode.InnerText.Trim();
+
+                            // 리뷰 목록에 저장
+                            additionalReviews.Add(additionalReview);
+                        }
                     }
                 }
 
@@ -242,14 +264,15 @@ namespace Web_Automation_WordPress_2
                     string info = infos[0].InnerText.Trim();
                     string checkinTime = checkinTimes[0].InnerText.Trim();
                     string checkoutTime = checkoutTimes[0].InnerText.Trim();
-                    string point = points[0].InnerText.Trim();
+                    string point = "정보 없음";
+                    if (points != null) { point = points[0].InnerText.Trim(); }
 
                     // containers에 있는 정보를 문자열로 결합
                     combinedInfo = $"숙소 명: {hotelName}<p>&nbsp;</p>\n숙소 정보: {info}<p>&nbsp;</p>\n숙소 평점: {point}<p>&nbsp;</p>\nCheck-in Time: {checkinTime}\nCheck-out Time: {checkoutTime}<p>&nbsp;</p>\n숙소 리뷰:\n- {string.Join("<p>&nbsp;</p>- ", additionalReviews)}";
                     string[] keywords = { "숙소 명:", "숙소 정보:", "숙소 평점:", "Check-in Time:", "Check-out Time:", "숙소 리뷰:" };
                     foreach (var keyword in keywords)
                     {
-                        combinedInfo = Regex.Replace(combinedInfo, keyword, $"<h3><span style='color: #FF8C00; font-size:110%; font-weight: bold;'>{keyword}</span></h3>");
+                        combinedInfo = Regex.Replace(combinedInfo, keyword, $"<h3><span style='color: #FF8C00; font-weight: bold;'>{keyword}</span></h3>");
                     }
                     // 결과 출력
                     Console.WriteLine(combinedInfo);
@@ -430,13 +453,13 @@ namespace Web_Automation_WordPress_2
                 // 오류 처리 - 예외가 발생한 경우 처리
                 LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
             }
-            string content = result.Replace("\n", "<br>") + "<br>"; // \n을 <br>로 변경 , HTML로 줄바꿈 
+            string content = result.Replace("\n", "\n\r"); // \n을 \n\r로 변경 , HTML로 줄바꿈 
             string pattern = @"\d+\.\s*[\p{L}\d\s]+(?::)?"; // 정규표현식 = 1. 2. 3. 등 숫자로 분류된 소제목 글꼴변경을 위한 패턴
             Regex regex = new Regex(pattern);
             // 찾은 소제목 패턴을 강조하고 크게 표시합니다.
             string result_GPT = regex.Replace(content, match =>
             {
-                return $"<h3>{match.Value}</h3><br>"; // 사실 이미지 + GPT 가공부분에서 H3 설정을 해주므로 필요 없을 것 같지만 일단 냅둠
+                return $"<h3>{match.Value}</h3>"; // 사실 이미지 + GPT 가공부분에서 H3 설정을 해주므로 필요 없을 것 같지만 일단 냅둠
             });
             return result_GPT;
         }
@@ -489,7 +512,7 @@ namespace Web_Automation_WordPress_2
                     string imageSrc = result_ImgList.FirstOrDefault(); // 이미지 URL을 가져옴
                     if (!string.IsNullOrEmpty(imageSrc))
                     {
-                        result_GPT = result_GPT.Replace(imageInfo, $"\r{imageSrc}<p>&nbsp;</p>\r<h3><span style='color: #FF8C00; font-size:110%; font-weight: bold;'>{imageInfo}</span></h3>");
+                        result_GPT = result_GPT.Replace(imageInfo, $"\r<p>&nbsp;</p><br>{imageSrc}\r<h3><span style='color: #FF8C00; font-weight: bold;'>{imageInfo}</span></h3>");
                         result_ImgList.RemoveAt(0); // 사용한 이미지 URL을 리스트에서 제거
                     }
                 }
@@ -503,7 +526,7 @@ namespace Web_Automation_WordPress_2
         {
             var client = new WordPressClient(WP_URL);
             client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
-            string tags = "'" + hotelName + " 숙박 후기" + "'" + "을 포함한 인기 검색어 10개를 ','로 구분해서 알려줘";
+            string tags = "'" + hotelName + " 숙박 후기" + "'" + "을 포함한 인기 검색어 8개를 ','로 구분해서 알려줘";
             string tagResult = "";
             try
             {
@@ -536,7 +559,7 @@ namespace Web_Automation_WordPress_2
             client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
             var posts = await client.Posts.GetAllAsync();
 
-            string addOldPostLinks = "다른 숙박 후기가 궁금하시다면 ??? \r\n";
+            string addOldPostLinks = "<h3>다른 숙박 후기가 궁금하시다면 ??? </h3>\r\n";
             string oldPostsLinks = ""; // 각 링크를 개행 문자로 구분
 
             List<string> postLinks = new List<string>(); // 포스트의 Link 값을 저장할 리스트를 만듭니다.

@@ -401,13 +401,14 @@
             // 
             // AffiliateBox1
             // 
-            AffiliateBox1.BackColor = Color.FromArgb(224, 224, 224);
+            AffiliateBox1.BackColor = Color.Gray;
             AffiliateBox1.BorderStyle = BorderStyle.FixedSingle;
             AffiliateBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
             AffiliateBox1.Location = new Point(91, 121);
             AffiliateBox1.Margin = new Padding(2);
             AffiliateBox1.Multiline = true;
             AffiliateBox1.Name = "AffiliateBox1";
+            AffiliateBox1.ReadOnly = true;
             AffiliateBox1.Size = new Size(285, 47);
             AffiliateBox1.TabIndex = 4;
             // 
