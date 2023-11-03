@@ -120,56 +120,73 @@ namespace Web_Automation_WordPress_2
         private void Crawling_Naver()
         {
             LogBox1.AppendText($"===========================" + Environment.NewLine);
-            LogBox1.AppendText($"Line:xxx 크롤링 시작" + Environment.NewLine);
+            LogBox1.AppendText($"크롤링 시작" + Environment.NewLine);
 
             // 크롬창 생성
             var driverService = ChromeDriverService.CreateDefaultService();
             driverService.HideCommandPromptWindow = true;
-            options.AddArguments("--headless"); // 브라우저를 숨김
+            //options.AddArguments("--headless"); // 브라우저를 숨김
             driver = new ChromeDriver(driverService, options);
             Delay();
 
             //이미지 검색 : CCL 상업적 이용가능 
             LogBox1.AppendText($"===========================" + Environment.NewLine);
-            LogBox1.AppendText($"Line:xxx 이미지 검색" + Environment.NewLine);
+            LogBox1.AppendText($"이미지 검색" + Environment.NewLine);
             string baseUrl = $"https://search.naver.com/search.naver?where=image&section=image&query={crollBox1.Text}";
             string endUrl = "&res_fr=0&res_to=0&sm=tab_opt&color=&ccl=2&nso=so%3Ar%2Ca%3Aall%2Cp%3Aall&recent=0&datetype=0&startdate=0&enddate=0&gif=0&optStr=&nso_open=1&pq=";
             driver.Navigate().GoToUrl(baseUrl + endUrl);
             Delay();
             ScrollToBottom(driver);
 
-            // 이미지 요소를 찾아서 처리
-            var imgElements = driver.FindElements(By.CssSelector("img._image._listImage"));
-            LogBox1.AppendText($"Line:xxx 총 사진 수: {imgElements.Count}장");
-            LogBox1.AppendText(Environment.NewLine);
-
-            foreach (var imgElement in imgElements) // 이미지 다운로드 루프
+            try
             {
-                string imageUrl = imgElement.GetAttribute("src");
-                if (!string.IsNullOrEmpty(imageUrl) && (imageUrl.StartsWith("http://") || imageUrl.StartsWith("https://")))
+                // 이미지 요소를 찾아서 처리
+                var imgElements = driver.FindElements(By.ClassName("image_tile_bx"));
+                LogBox1.AppendText($"총 사진 수: {imgElements.Count}장");
+                LogBox1.AppendText(Environment.NewLine);
+
+                // "fe_image_tab_content_thumbnail_image" 클래스를 가진 모든 이미지 요소를 찾기 (첫번째 이미지 클릭)
+                var imageElements = driver.FindElements(By.CssSelector("img._fe_image_tab_content_thumbnail_image"));
+                if (imageElements.Count > 0) imageElements[0].Click();// 첫 번째 이미지를 클릭
+
+                for (int i = 0; i < imgElements.Count - 1; i++)
                 {
-                    string basePath = selectedFolder; // 기본 저장 경로
-                    int fileCount = 1;
-                    string fileName = $"{fileCount}.jpg"; // 저장할 이미지 파일 이름
-                    while (File.Exists(Path.Combine(basePath, fileName)))
+                    // "다음 이미지" 버튼 요소를 찾기 + 버튼 누르기
+                    IWebElement nextButton = driver.FindElement(By.CssSelector("a.btn_next._fe_image_viewer_next_button"));
+                    nextButton.Click();
+
+                    // 이미지 요소를 찾기
+                    IWebElement imageElement = driver.FindElement(By.CssSelector("img._fe_image_viewer_image_fallback_target"));
+                    string imageUrl = imageElement.GetAttribute("src");
+                    if (!string.IsNullOrEmpty(imageUrl) && (imageUrl.StartsWith("http://") || imageUrl.StartsWith("https://")))
                     {
-                        fileCount++;
-                        fileName = $"{fileCount}.jpg";
-                    }
-                    // 이미지 다운로드
-                    using (WebClient client = new WebClient())
-                    {
-                        // 로컬 폴더에 이미지 저장
-                        byte[] imageData = client.DownloadData(imageUrl);
-                        string filePath = Path.Combine(basePath, fileName);
-                        File.WriteAllBytes(filePath, imageData);
-                        Delay();
-                        LogBox1.AppendText($"Line:xxx 다운로드 중: ({fileCount}/{imgElements.Count})" + Environment.NewLine);
+                        string basePath = selectedFolder; // 기본 저장 경로
+                        int fileCount = 1;
+                        string fileName = $"{fileCount}.jpg"; // 저장할 이미지 파일 이름
+                        while (File.Exists(Path.Combine(basePath, fileName)))
+                        {
+                            fileCount++;
+                            fileName = $"{fileCount}.jpg";
+                        }
+                        // 이미지 다운로드
+                        using (WebClient client = new WebClient())
+                        {
+                            // 로컬 폴더에 이미지 저장
+                            byte[] imageData = client.DownloadData(imageUrl);
+                            string filePath = Path.Combine(basePath, fileName);
+                            File.WriteAllBytes(filePath, imageData);
+                            Delay();
+                            LogBox1.AppendText($"다운로드 중: ({fileCount}/{imgElements.Count})" + Environment.NewLine);
+                        }
                     }
                 }
+                LogBox1.AppendText($"이미지 크롤링 완료..." + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
             }
-            LogBox1.AppendText($"이미지 크롤링 완료..." + Environment.NewLine);
-            LogBox1.AppendText($"===========================" + Environment.NewLine);
+            catch(  Exception ex)
+            {
+                LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+            }
         }
         private void ScrollToBottom(IWebDriver driver)
         {
