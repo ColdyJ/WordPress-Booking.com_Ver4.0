@@ -59,6 +59,8 @@
             button1 = new Button();
             CategoryBox1 = new TextBox();
             label7 = new Label();
+            label1 = new Label();
+            HotelListBox1 = new TextBox();
             groupBox1.SuspendLayout();
             groupBox7.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -367,6 +369,8 @@
             // 
             // groupBox10
             // 
+            groupBox10.Controls.Add(label1);
+            groupBox10.Controls.Add(HotelListBox1);
             groupBox10.Controls.Add(label3);
             groupBox10.Controls.Add(AffiliateBox1);
             groupBox10.Controls.Add(button1);
@@ -444,6 +448,29 @@
             label7.TabIndex = 1001;
             label7.Text = "카테고리*:";
             // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            label1.Location = new Point(6, 209);
+            label1.Name = "label1";
+            label1.Size = new Size(67, 15);
+            label1.TabIndex = 1011;
+            label1.Text = "호텔 목록*:";
+            // 
+            // HotelListBox1
+            // 
+            HotelListBox1.BackColor = Color.FromArgb(224, 224, 224);
+            HotelListBox1.BorderStyle = BorderStyle.FixedSingle;
+            HotelListBox1.Cursor = Cursors.IBeam;
+            HotelListBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            HotelListBox1.ForeColor = Color.Black;
+            HotelListBox1.Location = new Point(91, 209);
+            HotelListBox1.Multiline = true;
+            HotelListBox1.Name = "HotelListBox1";
+            HotelListBox1.Size = new Size(285, 47);
+            HotelListBox1.TabIndex = 1010;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -507,5 +534,7 @@
         private TextBox crollBox1;
         private Label label3;
         private TextBox AffiliateBox1;
+        private Label label1;
+        private TextBox HotelListBox1;
     }
 }

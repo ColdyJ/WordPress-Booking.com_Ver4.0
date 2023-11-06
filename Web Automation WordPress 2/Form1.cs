@@ -16,9 +16,7 @@ using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 using System.Drawing.Text;
 using System.Drawing.Drawing2D;
 using System.Drawing;
-
-
-
+using OfficeOpenXml;
 
 namespace Web_Automation_WordPress_2
 {
@@ -31,6 +29,7 @@ namespace Web_Automation_WordPress_2
             InitializeComponent();
             LoadConfig(); // Textbox 저장값 프로그램 시작 시 설정 로드
             LogBox1.ScrollBars = ScrollBars.Vertical;
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         }
         private IWebDriver driver;
         ChromeOptions options = new ChromeOptions();
@@ -114,6 +113,22 @@ namespace Web_Automation_WordPress_2
             return;
         }
 
+        //Delay 함수 61분~80분
+        public void DelayHr()
+        {
+            int min = 61;
+            int max = 80;
+            Random random = new Random();
+            int delay = random.Next(min, max);
+            DateTime startTime = DateTime.Now;
+            DateTime endTime = startTime.AddMinutes(delay);
+            while (DateTime.Now < endTime)
+            {
+                Application.DoEvents();
+            }
+            return;
+        }
+
         /*===============================================*/
 
         // 이미지 크롤링 - 완료
@@ -183,7 +198,7 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"이미지 크롤링 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
             }
-            catch(  Exception ex)
+            catch (Exception ex)
             {
                 LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
             }
@@ -274,7 +289,7 @@ namespace Web_Automation_WordPress_2
         }
         private void ScrollToBottom_2(IWebDriver driver)
         {
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < 1; i++)
             {
                 // JavaScript를 실행하여 스크롤을 아래로 이동합니다.
                 IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
@@ -302,12 +317,116 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
             }
         }
+
+        /*===============================================*/
+
+        /*===============================================*/
+
+        //호텔 리스트업 HotelListBox1
+        private void GetHotelListAsync()
+        {
+            string url = HotelListBox1.Text; // url
+            string excelFilePath = Path.Combine(selectedFolder, "HotelList.xlsx");
+            var excelFile = new FileInfo(excelFilePath);
+            int currentpage = 1;
+
+            // 엑셀 파일이 없다면 새로 생성
+            if (!excelFile.Exists)
+            {
+                var newExcelPackage = new ExcelPackage();
+                newExcelPackage.Workbook.Worksheets.Add("HotelList");
+                newExcelPackage.SaveAs(excelFile);
+            }
+
+            var driverService = ChromeDriverService.CreateDefaultService();
+            driverService.HideCommandPromptWindow = true;
+            using (var driver = new ChromeDriver(driverService))
+            {
+                driver.Navigate().GoToUrl(url);
+                var excelPackage = new ExcelPackage(excelFile);
+                var worksheet = excelPackage.Workbook.Worksheets[0];
+
+                while (true)
+                {
+                    try
+                    {
+                        string html = driver.PageSource;
+                        var doc = new HtmlDocument();
+                        doc.LoadHtml(html);
+
+                        var titles = doc.DocumentNode.SelectNodes("//div[@class='f6431b446c a15b38c233']"); // 호텔명
+                        var hrefs = doc.DocumentNode.SelectNodes("//h3[@class='aab71f8e4e']//a"); // 호텔 주소
+                        int startRow = worksheet.Dimension?.Rows ?? 0; // 엑셀 워크시트 0번
+
+                        if (titles != null && hrefs != null)
+                        {
+                            for (int i = 0; i < titles.Count; i++)
+                            {
+                                string title = titles[i].InnerText.Trim();
+                                string href = hrefs[i].GetAttributeValue("href", "");
+
+                                // 중복 검사: 이미 엑셀에 저장된 데이터와 비교
+                                bool isDuplicate = false;
+                                for (int row = 1; row <= startRow; row++)
+                                {
+                                    if (worksheet.Cells[row, 1].Text == title && worksheet.Cells[row, 2].Text == href)
+                                    {
+                                        isDuplicate = true;
+                                        break; // 중복 발견
+                                    }
+                                }
+
+                                if (!isDuplicate)// 중복이 아닌 경우에만 저장
+                                {
+                                    worksheet.Cells[startRow + i + 1, 1].Value = title;
+                                    worksheet.Cells[startRow + i + 1, 2].Value = href;
+                                }
+                            }
+                        }
+
+                        Delay();
+                        try
+                        {
+                            // JavaScript를 사용하여 클릭
+                            string script = "document.querySelector('button[aria-label=\"로그인 혜택 안내 창 닫기.\"]').click();";
+                            ((IJavaScriptExecutor)driver).ExecuteScript(script);
+                        }
+                        catch (Exception ex)
+                        {
+                            LogBox1.AppendText($"현재 페이지: {currentpage}" + Environment.NewLine);
+                        }
+                        currentpage++;
+                        Delay();
+                        try
+                        {
+                            // JavaScript를 사용하여 클릭
+                            string script = $"document.querySelector('button.a83ed08757.a2028338ea[aria-label=\" {currentpage}\"]').click();"; // currentpage앞 띄어쓰기 한칸 주의 ㅡㅡ
+                            ((IJavaScriptExecutor)driver).ExecuteScript(script);
+                        }
+                        catch (Exception ex)
+                        {
+                            LogBox1.AppendText($"다음 페이지가 없음: 종료: {ex.Message}" + Environment.NewLine);
+                            break;
+                        }
+                        Delay();
+
+                    }
+                    catch (Exception ex)
+                    {
+                        LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+                    }
+                }
+                excelPackage.Save();
+
+            }
+        }
+
         /*===============================================*/
 
         // 호텔 정보 추출
         private async Task<string> GetHotelInfoAsync()
         {
-            string url = HotelUrlBox1.Text; // url에 .html 앞에 ko가 없으면 붙이는 쪽으로..?
+            string url = HotelUrlBox1.Text; // url에 .html 앞에 ko가 없으면 붙임
             if (!url.Contains(".ko."))
             {
                 // 정규 표현식을 사용하여 ".html" 앞에 "ko"가 없는 경우 "ko.html"를 추가
@@ -1160,7 +1279,10 @@ namespace Web_Automation_WordPress_2
 
         private void button1_Click(object sender, EventArgs e)
         {
-            GetHotelInfoAsync();
+
+            GetHotelListAsync();
+
+
         }
     }
 
