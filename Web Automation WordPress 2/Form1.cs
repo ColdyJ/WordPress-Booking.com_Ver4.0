@@ -89,7 +89,20 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
                 LogBox1.AppendText($"포스팅 시작" + Environment.NewLine);
 
-                WP_API_Auto();
+                GetHotelListup();  // 리스트업 된 호텔들 전역변수로 변환
+
+                // HotelUrl 문자열을 쉼표로 분리하여 리스트로 변환
+                List<string> hotelUrlList = HotelUrl.Split(',').ToList();
+
+                // hotelUrlList을 순회하면서 처리 가능
+                foreach (string url in hotelUrlList)
+                {
+                    // 각 URL에 대한 작업 수행
+                    PostingHotel = url;
+                    WP_API_Auto();
+                }
+
+                
             }
             else
             {
@@ -322,7 +335,7 @@ namespace Web_Automation_WordPress_2
 
         /*===============================================*/
 
-        //호텔 리스트업 HotelListBox1
+        //호텔 리스트업 엑셀화 HotelListBox1
         private void GetHotelListAsync()
         {
             string url = HotelListBox1.Text; // url
@@ -423,12 +436,37 @@ namespace Web_Automation_WordPress_2
             }
         }
 
+        // 리스트업 된 호텔들 전역변수로 변환
+        private void GetHotelListup()
+        {
+            // 엑셀 파일 경로
+            string excelFilePath = Path.Combine(selectedFolder, "HotelList.xlsx");
+
+            // ExcelPackage를 사용하여 엑셀 파일 열기
+            using (ExcelPackage package = new ExcelPackage(new FileInfo(excelFilePath)))
+            {
+                // 워크시트 선택 (0은 첫 번째 워크시트를 의미)
+                ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+
+                int rowCount = worksheet.Dimension.Rows;
+
+                // B열 (두 번째 열)에서 값 추출하여 문자열로 추가
+                for (int row = 1; row <= rowCount; row++)
+                {
+                    string url = worksheet.Cells[row, 2].Text;
+                    HotelUrl += url + ","; // URL을 쉼표로 구분하여 문자열에 추가
+                }
+            }
+            HotelUrl = HotelUrl.TrimEnd(','); // 마지막 쉼표 제거
+
+
+        }
         /*===============================================*/
 
         // 호텔 정보 추출
         private async Task<string> GetHotelInfoAsync()
         {
-            string url = HotelUrlBox1.Text; // url에 .html 앞에 ko가 없으면 붙임
+            string url = PostingHotel; // url에 .html 앞에 ko가 없으면 붙임
             if (!url.Contains(".ko."))
             {
                 // 정규 표현식을 사용하여 ".html" 앞에 "ko"가 없는 경우 "ko.html"를 추가
@@ -1134,6 +1172,10 @@ namespace Web_Automation_WordPress_2
         private string hotelName = "";
         private static string lat = "";
         private static string lng = "";
+        private string HotelUrl = "";
+        private string PostingHotel = "";
+
+
 
         private void APIKeybox1_TextChanged(object sender, EventArgs e)
         {
