@@ -215,7 +215,7 @@ namespace Web_Automation_WordPress_2
         }
 
 
-        private void Auto_Crawling_Naver()
+        private void Auto_Crawling_Naver() // 부킹닷컴 안에 있는 사진을 가져와서 30개정도 땡긴 후 rename으로 믹싱 해서 7장 사용하는게 나을지도?
         {
             LogBox1.AppendText($"===========================" + Environment.NewLine);
             LogBox1.AppendText($"크롤링 시작" + Environment.NewLine);
@@ -340,6 +340,8 @@ namespace Web_Automation_WordPress_2
 
             var driverService = ChromeDriverService.CreateDefaultService();
             driverService.HideCommandPromptWindow = true;
+            options.AddArguments("--headless"); // 브라우저를 숨김
+
             using (var driver = new ChromeDriver(driverService))
             {
                 driver.Navigate().GoToUrl(url);
