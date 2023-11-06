@@ -458,9 +458,8 @@ namespace Web_Automation_WordPress_2
                 }
             }
             HotelUrl = HotelUrl.TrimEnd(','); // 마지막 쉼표 제거
-
-
         }
+
         /*===============================================*/
 
         // 호텔 정보 추출
