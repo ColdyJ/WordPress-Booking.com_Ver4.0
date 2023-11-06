@@ -54,13 +54,13 @@
             SystemBox1 = new TextBox();
             label5 = new Label();
             groupBox10 = new GroupBox();
+            label1 = new Label();
+            HotelListBox1 = new TextBox();
             label3 = new Label();
             AffiliateBox1 = new TextBox();
             button1 = new Button();
             CategoryBox1 = new TextBox();
             label7 = new Label();
-            label1 = new Label();
-            HotelListBox1 = new TextBox();
             groupBox1.SuspendLayout();
             groupBox7.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -110,7 +110,7 @@
             // 
             // HotelUrlBox1
             // 
-            HotelUrlBox1.BackColor = Color.FromArgb(224, 224, 224);
+            HotelUrlBox1.BackColor = Color.Gray;
             HotelUrlBox1.BorderStyle = BorderStyle.FixedSingle;
             HotelUrlBox1.Cursor = Cursors.IBeam;
             HotelUrlBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
@@ -118,6 +118,7 @@
             HotelUrlBox1.Location = new Point(91, 65);
             HotelUrlBox1.Multiline = true;
             HotelUrlBox1.Name = "HotelUrlBox1";
+            HotelUrlBox1.ReadOnly = true;
             HotelUrlBox1.Size = new Size(285, 47);
             HotelUrlBox1.TabIndex = 3;
             // 
@@ -393,6 +394,29 @@
             groupBox10.TabStop = false;
             groupBox10.Text = "포스팅 옵션_Ver 2.0";
             // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            label1.Location = new Point(6, 209);
+            label1.Name = "label1";
+            label1.Size = new Size(67, 15);
+            label1.TabIndex = 1011;
+            label1.Text = "호텔 목록*:";
+            // 
+            // HotelListBox1
+            // 
+            HotelListBox1.BackColor = Color.FromArgb(224, 224, 224);
+            HotelListBox1.BorderStyle = BorderStyle.FixedSingle;
+            HotelListBox1.Cursor = Cursors.IBeam;
+            HotelListBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            HotelListBox1.ForeColor = Color.Black;
+            HotelListBox1.Location = new Point(91, 209);
+            HotelListBox1.Multiline = true;
+            HotelListBox1.Name = "HotelListBox1";
+            HotelListBox1.Size = new Size(285, 47);
+            HotelListBox1.TabIndex = 1010;
+            // 
             // label3
             // 
             label3.AutoSize = true;
@@ -418,11 +442,11 @@
             // 
             // button1
             // 
-            button1.Location = new Point(144, 272);
+            button1.Location = new Point(120, 272);
             button1.Name = "button1";
-            button1.Size = new Size(75, 23);
+            button1.Size = new Size(99, 23);
             button1.TabIndex = 1006;
-            button1.Text = "테스트";
+            button1.Text = "호텔 목록화";
             button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
             // 
@@ -447,29 +471,6 @@
             label7.Size = new Size(63, 15);
             label7.TabIndex = 1001;
             label7.Text = "카테고리*:";
-            // 
-            // label1
-            // 
-            label1.AutoSize = true;
-            label1.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            label1.Location = new Point(6, 209);
-            label1.Name = "label1";
-            label1.Size = new Size(67, 15);
-            label1.TabIndex = 1011;
-            label1.Text = "호텔 목록*:";
-            // 
-            // HotelListBox1
-            // 
-            HotelListBox1.BackColor = Color.FromArgb(224, 224, 224);
-            HotelListBox1.BorderStyle = BorderStyle.FixedSingle;
-            HotelListBox1.Cursor = Cursors.IBeam;
-            HotelListBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            HotelListBox1.ForeColor = Color.Black;
-            HotelListBox1.Location = new Point(91, 209);
-            HotelListBox1.Multiline = true;
-            HotelListBox1.Name = "HotelListBox1";
-            HotelListBox1.Size = new Size(285, 47);
-            HotelListBox1.TabIndex = 1010;
             // 
             // Form1
             // 

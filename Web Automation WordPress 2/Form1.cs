@@ -78,7 +78,7 @@ namespace Web_Automation_WordPress_2
             }
         }
 
-        private void StartBtn1_Click(object sender, EventArgs e)
+        private async void StartBtn1_Click(object sender, EventArgs e)
         {
             SaveConfig();
 
@@ -97,12 +97,10 @@ namespace Web_Automation_WordPress_2
                 // hotelUrlList을 순회하면서 처리 가능
                 foreach (string url in hotelUrlList)
                 {
-                    // 각 URL에 대한 작업 수행
                     PostingHotel = url;
-                    WP_API_Auto();
+                    await WP_API_Auto();
+                    DelayHr();
                 }
-
-                
             }
             else
             {
@@ -227,8 +225,50 @@ namespace Web_Automation_WordPress_2
             }
         }
 
+        // 파일명 정리 - 완료
+        private int renameCounter = 1;
+        private void Rename()
+        {
+            try
+            {
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+                LogBox1.AppendText($"파일명 변환 시작..." + Environment.NewLine);
 
-        private void Auto_Crawling_Naver() // 부킹닷컴 안에 있는 사진을 가져와서 30개정도 땡긴 후 rename으로 믹싱 해서 7장 사용하는게 나을지도?
+                if (!string.IsNullOrEmpty(selectedFolder) && Directory.Exists(selectedFolder))
+                {
+                    string[] files = Directory.GetFiles(selectedFolder);
+                    foreach (string filePath in files)
+                    {
+                        string extension = Path.GetExtension(filePath);
+                        // .xml 파일은 제외하고 처리
+                        if (!string.Equals(extension, ".xml", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string newFileName = $"{renameCounter}{extension}";
+                            string newFilePath = Path.Combine(selectedFolder, newFileName);
+                            // 이미 존재하는 파일일 경우 renameCounter를 증가시키고 새로운 파일 경로 생성
+                            while (File.Exists(newFilePath))
+                            {
+                                renameCounter++;
+                                newFileName = $"{renameCounter}{extension}";
+                                newFilePath = Path.Combine(selectedFolder, newFileName);
+                            }
+                            File.Move(filePath, newFilePath);
+                            renameCounter = 1;
+                        }
+                    }
+                    LogBox1.AppendText($"파일명 변환 완료..." + Environment.NewLine);
+                    LogBox1.AppendText($"===========================" + Environment.NewLine);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+            }
+
+        }
+
+        // 리스트업 된 부킹닷컴 호텔페이지에서 사진 크롤링 후 Rename 
+        private void Auto_Crawling_Naver() 
         {
             LogBox1.AppendText($"===========================" + Environment.NewLine);
             LogBox1.AppendText($"크롤링 시작" + Environment.NewLine);
@@ -240,35 +280,38 @@ namespace Web_Automation_WordPress_2
             driver = new ChromeDriver(driverService, options);
             Delay();
 
-            //이미지 검색 : CCL 상업적 이용가능 
+            //이미지 검색 
             LogBox1.AppendText($"===========================" + Environment.NewLine);
             LogBox1.AppendText($"이미지 검색" + Environment.NewLine);
-            string baseUrl = $"https://search.naver.com/search.naver?where=image&section=image&query={hotelName}";
-            string endUrl = "&res_fr=0&res_to=0&sm=tab_opt&color=&ccl=2&nso=so%3Ar%2Ca%3Aall%2Cp%3Aall&recent=0&datetype=0&startdate=0&enddate=0&gif=0&optStr=&nso_open=1&pq=";
-            driver.Navigate().GoToUrl(baseUrl + endUrl);
+            string baseUrl = $"{PostingHotel}";
+            driver.Navigate().GoToUrl(baseUrl);
             Delay();
-            ScrollToBottom_2(driver);
+            // 새로운 탭 열기 (첫번째 탭에서 호텔 주소 바로 열면 리스트로 이동되어서 두번째 탭을 오픈하는 편법)
+            ((IJavaScriptExecutor)driver).ExecuteScript("window.open('about:blank','_blank');");
+            var tabs = driver.WindowHandles;
+            driver.SwitchTo().Window(tabs[1]); // 두 번째 탭으로 전환
+            driver.Navigate().GoToUrl(baseUrl);
 
             try
             {
-                // 이미지 요소를 찾아서 처리
-                var imgElements = driver.FindElements(By.ClassName("image_tile_bx"));
+                // 이미지 더보기 클릭: ".bh-photo-grid-thumb-more-inner-2" (클래스를 가진 이미지 요소를 찾기)
+                IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver;
+                string imageElements = "document.querySelector('.bh-photo-grid-thumb-more-inner-2').click();";
+                jsExecutor.ExecuteScript(imageElements);
+                Delay();
+
+                // 이미지 요소를 찾기 (bh-photo-modal-masonry-grid-item caption_hover)
+                var imgElements = driver.FindElements(By.XPath("//li[contains(@class, 'bh-photo-modal-masonry-grid-item caption_hover')]/a"));
                 LogBox1.AppendText($"총 사진 수: {imgElements.Count}장");
                 LogBox1.AppendText(Environment.NewLine);
+                Delay();
 
-                // "fe_image_tab_content_thumbnail_image" 클래스를 가진 모든 이미지 요소를 찾기 (첫번째 이미지 클릭)
-                var imageElements = driver.FindElements(By.CssSelector("img._fe_image_tab_content_thumbnail_image"));
-                if (imageElements.Count > 0) imageElements[0].Click();// 첫 번째 이미지를 클릭
-
-                for (int i = 0; i < 13 - 1; i++)
+                // 이미지를 포함한 모든 요소 선택 (bh-photo-modal-masonry-grid-item caption_hover)
+                IReadOnlyCollection<IWebElement> elements = driver.FindElements(By.XPath("//li[contains(@class, 'bh-photo-modal-masonry-grid-item caption_hover')]/a"));
+                foreach (var element in elements)
                 {
-                    // "다음 이미지" 버튼 요소를 찾기 + 버튼 누르기
-                    IWebElement nextButton = driver.FindElement(By.CssSelector("a.btn_next._fe_image_viewer_next_button"));
-                    nextButton.Click();
-
-                    // 이미지 요소를 찾기
-                    IWebElement imageElement = driver.FindElement(By.CssSelector("img._fe_image_viewer_image_fallback_target"));
-                    string imageUrl = imageElement.GetAttribute("src");
+                    // 이미지 URL 추출
+                    string imageUrl = element.GetAttribute("href");
                     if (!string.IsNullOrEmpty(imageUrl) && (imageUrl.StartsWith("http://") || imageUrl.StartsWith("https://")))
                     {
                         string basePath = selectedFolder; // 기본 저장 경로
@@ -292,22 +335,13 @@ namespace Web_Automation_WordPress_2
                     }
                 }
                 driver.Quit();
+                Rename(); // 사진 랜덤 재분배
                 LogBox1.AppendText($"이미지 크롤링 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
             }
             catch (Exception ex)
             {
                 LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
-            }
-        }
-        private void ScrollToBottom_2(IWebDriver driver)
-        {
-            for (int i = 0; i < 1; i++)
-            {
-                // JavaScript를 실행하여 스크롤을 아래로 이동합니다.
-                IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
-                js.ExecuteScript("window.scrollTo(50, document.body.scrollHeight);");
-                Delay();
             }
         }
 
@@ -355,7 +389,7 @@ namespace Web_Automation_WordPress_2
             driverService.HideCommandPromptWindow = true;
             options.AddArguments("--headless"); // 브라우저를 숨김
 
-            using (var driver = new ChromeDriver(driverService))
+            using (var driver = new ChromeDriver(driverService, options))
             {
                 driver.Navigate().GoToUrl(url);
                 var excelPackage = new ExcelPackage(excelFile);
@@ -410,6 +444,7 @@ namespace Web_Automation_WordPress_2
                         {
                             LogBox1.AppendText($"현재 페이지: {currentpage}" + Environment.NewLine);
                         }
+
                         currentpage++;
                         Delay();
                         try
@@ -424,7 +459,6 @@ namespace Web_Automation_WordPress_2
                             break;
                         }
                         Delay();
-
                     }
                     catch (Exception ex)
                     {
@@ -432,8 +466,8 @@ namespace Web_Automation_WordPress_2
                     }
                 }
                 excelPackage.Save();
-
             }
+            driver.Quit();
         }
 
         // 리스트업 된 호텔들 전역변수로 변환
@@ -474,6 +508,7 @@ namespace Web_Automation_WordPress_2
             string combinedInfo = "";
             using (HttpClient client = new HttpClient())
             {
+
                 // HtmlAgilityPack를 사용하여 HTML 파싱
                 string html = await client.GetStringAsync(url);
                 HtmlDocument doc = new HtmlDocument();
@@ -958,7 +993,7 @@ namespace Web_Automation_WordPress_2
         }
 
 
-        private async void WP_API_Auto()
+        public async Task WP_API_Auto()
         {
             var client = new WordPressClient(WP_URL);
             client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
@@ -1272,46 +1307,9 @@ namespace Web_Automation_WordPress_2
         {
             Crawling_Naver();
         }
-        // 파일명 변경 버튼 Rename
-        private int renameCounter = 1;
         private void RenameBtn1_Click(object sender, EventArgs e)
         {
-            try
-            {
-                LogBox1.AppendText($"===========================" + Environment.NewLine);
-                LogBox1.AppendText($"Line:xxx 파일명 변환 시작..." + Environment.NewLine);
-
-                if (!string.IsNullOrEmpty(selectedFolder) && Directory.Exists(selectedFolder))
-                {
-                    string[] files = Directory.GetFiles(selectedFolder);
-                    foreach (string filePath in files)
-                    {
-                        string extension = Path.GetExtension(filePath);
-                        // .xml 파일은 제외하고 처리
-                        if (!string.Equals(extension, ".xml", StringComparison.OrdinalIgnoreCase))
-                        {
-                            string newFileName = $"{renameCounter}{extension}";
-                            string newFilePath = Path.Combine(selectedFolder, newFileName);
-                            // 이미 존재하는 파일일 경우 renameCounter를 증가시키고 새로운 파일 경로 생성
-                            while (File.Exists(newFilePath))
-                            {
-                                renameCounter++;
-                                newFileName = $"{renameCounter}{extension}";
-                                newFilePath = Path.Combine(selectedFolder, newFileName);
-                            }
-                            File.Move(filePath, newFilePath);
-                            renameCounter = 1;
-                        }
-                    }
-                    LogBox1.AppendText($"Line:xxx 파일명 변환 완료..." + Environment.NewLine);
-                    LogBox1.AppendText($"===========================" + Environment.NewLine);
-                }
-            }
-            catch
-            {
-                LogBox1.AppendText($"Line:xxx 폴더가 없습니다" + Environment.NewLine);
-            }
-
+            Rename();
         }
 
 
