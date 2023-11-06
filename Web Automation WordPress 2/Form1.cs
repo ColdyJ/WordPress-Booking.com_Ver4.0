@@ -199,6 +199,109 @@ namespace Web_Automation_WordPress_2
             }
         }
 
+
+        private void Auto_Crawling_Naver()
+        {
+            LogBox1.AppendText($"===========================" + Environment.NewLine);
+            LogBox1.AppendText($"크롤링 시작" + Environment.NewLine);
+
+            // 크롬창 생성
+            var driverService = ChromeDriverService.CreateDefaultService();
+            driverService.HideCommandPromptWindow = true;
+            options.AddArguments("--headless"); // 브라우저를 숨김
+            driver = new ChromeDriver(driverService, options);
+            Delay();
+
+            //이미지 검색 : CCL 상업적 이용가능 
+            LogBox1.AppendText($"===========================" + Environment.NewLine);
+            LogBox1.AppendText($"이미지 검색" + Environment.NewLine);
+            string baseUrl = $"https://search.naver.com/search.naver?where=image&section=image&query={hotelName}";
+            string endUrl = "&res_fr=0&res_to=0&sm=tab_opt&color=&ccl=2&nso=so%3Ar%2Ca%3Aall%2Cp%3Aall&recent=0&datetype=0&startdate=0&enddate=0&gif=0&optStr=&nso_open=1&pq=";
+            driver.Navigate().GoToUrl(baseUrl + endUrl);
+            Delay();
+            ScrollToBottom_2(driver);
+
+            try
+            {
+                // 이미지 요소를 찾아서 처리
+                var imgElements = driver.FindElements(By.ClassName("image_tile_bx"));
+                LogBox1.AppendText($"총 사진 수: {imgElements.Count}장");
+                LogBox1.AppendText(Environment.NewLine);
+
+                // "fe_image_tab_content_thumbnail_image" 클래스를 가진 모든 이미지 요소를 찾기 (첫번째 이미지 클릭)
+                var imageElements = driver.FindElements(By.CssSelector("img._fe_image_tab_content_thumbnail_image"));
+                if (imageElements.Count > 0) imageElements[0].Click();// 첫 번째 이미지를 클릭
+
+                for (int i = 0; i < 13 - 1; i++)
+                {
+                    // "다음 이미지" 버튼 요소를 찾기 + 버튼 누르기
+                    IWebElement nextButton = driver.FindElement(By.CssSelector("a.btn_next._fe_image_viewer_next_button"));
+                    nextButton.Click();
+
+                    // 이미지 요소를 찾기
+                    IWebElement imageElement = driver.FindElement(By.CssSelector("img._fe_image_viewer_image_fallback_target"));
+                    string imageUrl = imageElement.GetAttribute("src");
+                    if (!string.IsNullOrEmpty(imageUrl) && (imageUrl.StartsWith("http://") || imageUrl.StartsWith("https://")))
+                    {
+                        string basePath = selectedFolder; // 기본 저장 경로
+                        int fileCount = 1;
+                        string fileName = $"{fileCount}.jpg"; // 저장할 이미지 파일 이름
+                        while (File.Exists(Path.Combine(basePath, fileName)))
+                        {
+                            fileCount++;
+                            fileName = $"{fileCount}.jpg";
+                        }
+                        // 이미지 다운로드
+                        using (WebClient client = new WebClient())
+                        {
+                            // 로컬 폴더에 이미지 저장
+                            byte[] imageData = client.DownloadData(imageUrl);
+                            string filePath = Path.Combine(basePath, fileName);
+                            File.WriteAllBytes(filePath, imageData);
+                            Delay();
+                            LogBox1.AppendText($"다운로드 중: ({fileCount}/{imgElements.Count})" + Environment.NewLine);
+                        }
+                    }
+                }
+                driver.Quit();
+                LogBox1.AppendText($"이미지 크롤링 완료..." + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+            }
+            catch (Exception ex)
+            {
+                LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+            }
+        }
+        private void ScrollToBottom_2(IWebDriver driver)
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                // JavaScript를 실행하여 스크롤을 아래로 이동합니다.
+                IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
+                js.ExecuteScript("window.scrollTo(50, document.body.scrollHeight);");
+                Delay();
+            }
+        }
+
+        // 선택 폴더 내 JPG파일 전부 삭제
+        private void DeleteAllJpgFilesInFolder(string folderPath)
+        {
+            try
+            {
+                // 지정된 폴더에서 모든 JPG 파일을 검색합니다.
+                string[] jpgFiles = Directory.GetFiles(folderPath, "*.jpg");
+
+                // 검색된 모든 JPG 파일을 삭제합니다.
+                foreach (string jpgFile in jpgFiles)
+                {
+                    File.Delete(jpgFile);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+            }
+        }
         /*===============================================*/
 
         // 호텔 정보 추출
@@ -713,6 +816,13 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
 
+                // 이미지 크롤링
+                LogBox1.AppendText($"이미지 크롤링 시작..." + Environment.NewLine);
+                Auto_Crawling_Naver();
+                LogBox1.AppendText($"이미지 크롤링 완료..." + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
                 // 구글 지도
                 LogBox1.AppendText($"구글 지도 추가..." + Environment.NewLine);
                 string result_GoogleMap = await google_map();
@@ -791,6 +901,7 @@ namespace Web_Automation_WordPress_2
                 var createdPost = await client.Posts.CreateAsync(post); // 포스팅 요청 보내기
                 LogBox1.AppendText($"글 본문 출력 완료" + Environment.NewLine);
                 LogBox1.AppendText($"워드프레스 업로드 완료" + Environment.NewLine);
+                DeleteAllJpgFilesInFolder(selectedFolder);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
             }
             catch (Exception ex)
