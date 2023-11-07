@@ -241,7 +241,7 @@ namespace Web_Automation_WordPress_2
                     {
                         string extension = Path.GetExtension(filePath);
                         // .xml 파일은 제외하고 처리
-                        if (!string.Equals(extension, ".xml", StringComparison.OrdinalIgnoreCase))
+                        if (string.Equals(extension, ".jpg", StringComparison.OrdinalIgnoreCase))
                         {
                             string newFileName = $"{renameCounter}{extension}";
                             string newFilePath = Path.Combine(selectedFolder, newFileName);
@@ -268,7 +268,7 @@ namespace Web_Automation_WordPress_2
         }
 
         // 리스트업 된 부킹닷컴 호텔페이지에서 사진 크롤링 후 Rename 
-        private void Auto_Crawling_Naver() 
+        private void Auto_Crawling_Naver()
         {
             LogBox1.AppendText($"===========================" + Environment.NewLine);
             LogBox1.AppendText($"크롤링 시작" + Environment.NewLine);
@@ -384,89 +384,86 @@ namespace Web_Automation_WordPress_2
                 newExcelPackage.Workbook.Worksheets.Add("HotelList");
                 newExcelPackage.SaveAs(excelFile);
             }
+            var excelPackage = new ExcelPackage(excelFile);
+            var worksheet = excelPackage.Workbook.Worksheets[0];
 
             var driverService = ChromeDriverService.CreateDefaultService();
             driverService.HideCommandPromptWindow = true;
-            options.AddArguments("--headless"); // 브라우저를 숨김
+            //options.AddArguments("--headless"); // 브라우저를 숨김
+            driver = new ChromeDriver(driverService, options);
+            driver.Navigate().GoToUrl(url);
 
-            using (var driver = new ChromeDriver(driverService, options))
+            while (true)
             {
-                driver.Navigate().GoToUrl(url);
-                var excelPackage = new ExcelPackage(excelFile);
-                var worksheet = excelPackage.Workbook.Worksheets[0];
-
-                while (true)
+                try
                 {
-                    try
+                    string html = driver.PageSource;
+                    var doc = new HtmlDocument();
+                    doc.LoadHtml(html);
+
+                    var titles = doc.DocumentNode.SelectNodes("//div[@class='f6431b446c a15b38c233']"); // 호텔명
+                    var hrefs = doc.DocumentNode.SelectNodes("//h3[@class='aab71f8e4e']//a"); // 호텔 주소
+                    int startRow = worksheet.Dimension?.Rows ?? 0; // 엑셀 워크시트 0번
+
+                    if (titles != null && hrefs != null)
                     {
-                        string html = driver.PageSource;
-                        var doc = new HtmlDocument();
-                        doc.LoadHtml(html);
-
-                        var titles = doc.DocumentNode.SelectNodes("//div[@class='f6431b446c a15b38c233']"); // 호텔명
-                        var hrefs = doc.DocumentNode.SelectNodes("//h3[@class='aab71f8e4e']//a"); // 호텔 주소
-                        int startRow = worksheet.Dimension?.Rows ?? 0; // 엑셀 워크시트 0번
-
-                        if (titles != null && hrefs != null)
+                        for (int i = 0; i < titles.Count; i++)
                         {
-                            for (int i = 0; i < titles.Count; i++)
+                            string title = titles[i].InnerText.Trim();
+                            string href = hrefs[i].GetAttributeValue("href", "");
+
+                            // 중복 검사: 이미 엑셀에 저장된 데이터와 비교
+                            bool isDuplicate = false;
+                            for (int row = 1; row <= startRow; row++)
                             {
-                                string title = titles[i].InnerText.Trim();
-                                string href = hrefs[i].GetAttributeValue("href", "");
-
-                                // 중복 검사: 이미 엑셀에 저장된 데이터와 비교
-                                bool isDuplicate = false;
-                                for (int row = 1; row <= startRow; row++)
+                                if (worksheet.Cells[row, 1].Text == title && worksheet.Cells[row, 2].Text == href)
                                 {
-                                    if (worksheet.Cells[row, 1].Text == title && worksheet.Cells[row, 2].Text == href)
-                                    {
-                                        isDuplicate = true;
-                                        break; // 중복 발견
-                                    }
-                                }
-
-                                if (!isDuplicate)// 중복이 아닌 경우에만 저장
-                                {
-                                    worksheet.Cells[startRow + i + 1, 1].Value = title;
-                                    worksheet.Cells[startRow + i + 1, 2].Value = href;
+                                    isDuplicate = true;
+                                    break; // 중복 발견
                                 }
                             }
-                        }
 
-                        Delay();
-                        try
-                        {
-                            // JavaScript를 사용하여 클릭
-                            string script = "document.querySelector('button[aria-label=\"로그인 혜택 안내 창 닫기.\"]').click();";
-                            ((IJavaScriptExecutor)driver).ExecuteScript(script);
+                            if (!isDuplicate)// 중복이 아닌 경우에만 저장
+                            {
+                                worksheet.Cells[startRow + i + 1, 1].Value = title;
+                                worksheet.Cells[startRow + i + 1, 2].Value = href;
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            LogBox1.AppendText($"현재 페이지: {currentpage}" + Environment.NewLine);
-                        }
+                    }
 
-                        currentpage++;
-                        Delay();
-                        try
-                        {
-                            // JavaScript를 사용하여 클릭
-                            string script = $"document.querySelector('button.a83ed08757.a2028338ea[aria-label=\" {currentpage}\"]').click();"; // currentpage앞 띄어쓰기 한칸 주의 ㅡㅡ
-                            ((IJavaScriptExecutor)driver).ExecuteScript(script);
-                        }
-                        catch (Exception ex)
-                        {
-                            LogBox1.AppendText($"다음 페이지가 없음: 종료: {ex.Message}" + Environment.NewLine);
-                            break;
-                        }
-                        Delay();
+                    Delay();
+                    try
+                    {
+                        // JavaScript를 사용하여 클릭
+                        string script = "document.querySelector('button[aria-label=\"로그인 혜택 안내 창 닫기.\"]').click();";
+                        ((IJavaScriptExecutor)driver).ExecuteScript(script);
                     }
                     catch (Exception ex)
                     {
-                        LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+                        LogBox1.AppendText($"현재 페이지: {currentpage}" + Environment.NewLine);
                     }
+
+                    currentpage++;
+                    Delay();
+                    try
+                    {
+                        // JavaScript를 사용하여 클릭
+                        string script = $"document.querySelector('button.a83ed08757.a2028338ea[aria-label=\" {currentpage}\"]').click();"; // currentpage앞 띄어쓰기 한칸 주의 ㅡㅡ
+                        ((IJavaScriptExecutor)driver).ExecuteScript(script);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogBox1.AppendText($"다음 페이지가 없음: 종료: {ex.Message}" + Environment.NewLine);
+                        break;
+                    }
+                    Delay();
                 }
-                excelPackage.Save();
+                catch (Exception ex)
+                {
+                    LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+                }
             }
+            excelPackage.Save();
             driver.Quit();
         }
 
