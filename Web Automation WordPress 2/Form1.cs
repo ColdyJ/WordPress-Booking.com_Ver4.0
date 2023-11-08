@@ -900,7 +900,7 @@ namespace Web_Automation_WordPress_2
         //외부 링크 추출
         private string AddOutLinksAsync()
         {
-            string addOutLinks = "▼▼▼ 최저가 + 프로모션 코드 적용된 링크 :) ▼▼▼\r\n";
+            string addOutLinks = "▼▼▼ 예약 웹사이트 바로가기 :) ▼▼▼\r\n";
             string outLinks = ""; // 각 링크를 개행 문자로 구분
 
             try
@@ -910,19 +910,22 @@ namespace Web_Automation_WordPress_2
                 {// 순서대로 익스피디아, 호텔스닷컴, 트립닷컴
                     "https://expedia.com/affiliate/jVHhwTh",
                     "https://www.hotels.com/affiliate/l9VN1VM",
-                    "https://kr.trip.com/?Allianceid=4004476&SID=25361194&trip_sub1=&trip_sub3=D108514"
+                    "https://kr.trip.com/?Allianceid=4004476&SID=25361194&trip_sub1=&trip_sub3=D108514",
+                    "https://www.agoda.com/partners/partnersearch.aspx?pcs=1&cid=1919982&hl=ko-kr"
                 };
                 // 선택된 URL을 linkHtml 형식으로 만듭니다.
                 string expediaLink = $"▶익스피디아 최저가 검색◀"; // 
                 string hotelscomLink = $"▶호텔스닷컴 최저가 검색◀"; // 
                 string tripcomLink = $"▶트립닷컴 최저가 검색◀"; // 
+                string agodaLink = $"▶아고다 최저가 검색◀"; // 
 
                 string expediaHtml = $"<a title=\"{expediaLink}\" href=\"{urls[0]}\">&nbsp;{expediaLink}</a>";
                 string hotelscomHtml = $"<a title=\"{hotelscomLink}\" href=\"{urls[1]}\">&nbsp;{hotelscomLink}</a>";
                 string tripcomHtml = $"<a title=\"{tripcomLink}\" href=\"{urls[2]}\">&nbsp;{tripcomLink}</a>";
+                string agodaHtml = $"<a title=\"{agodaLink}\" href=\"{urls[3]}\">&nbsp;{agodaLink}</a>";
 
                 // 선택된 URL을 outlinks 문자열에 추가
-                string[] selectedOutLinks = new string[] { expediaHtml, hotelscomHtml, tripcomHtml };
+                string[] selectedOutLinks = new string[] { expediaHtml, hotelscomHtml, tripcomHtml, agodaHtml };
                 outLinks = string.Join("\r\n", selectedOutLinks); // 각 링크를 개행 문자로 구분
             }
             catch (Exception ex)
@@ -935,14 +938,14 @@ namespace Web_Automation_WordPress_2
         //외부 링크 추출
         private string AddOutBannersAsync()
         {
-            string addOutBanners = "▼▼▼ 최저가 검색은 여기서 ▼▼▼\r\n";
+            string addOutBanners = "▼▼▼ 기간 한정 특가 검색은 여기서 ▼▼▼\r\n";
             string outLinks = ""; // 각 링크를 개행 문자로 구분
 
             try
             {
                 List<string> urls = new List<string> // 30개의 URL을 리스트에 추가
                 {
-                    "<iframe border=\"0\" src=\"https://kr.trip.com/partners/ad/S108499?Allianceid=4004476&SID=25361194&trip_sub1=\" style=\"width:900px;height:200px\" frameborder=\"0\" scrolling=\"no\" style=\"border:none\" id=\"S108499\"></iframe>",
+                    "<iframe border=\"0\" src=\"https://kr.trip.com/partners/ad/S110279?Allianceid=4004476&SID=25361194&trip_sub1=\" style=\"width:300px;height:300px\" frameborder=\"0\" scrolling=\"no\" style=\"border:none\" id=\"S110279\"></iframe>",
                     "<div class=\"eg-widget\" data-widget=\"search\" data-program=\"kr-expedia\" data-lobs=\"stays,flights\" data-network=\"pz\" data-camref=\"1101lS7wB\"></div>\r\n<script class=\"eg-widgets-script\" src=\"https://affiliates.expediagroup.com/products/widgets/assets/eg-widgets.js\"></script>\r\n",
                     "<div class=\"eg-widget\" data-widget=\"search\" data-program=\"kr-hcom\" data-lobs=\"\" data-network=\"pz\" data-camref=\"1011lS9WN\"></div>\r\n<script class=\"eg-widgets-script\" src=\"https://affiliates.expediagroup.com/products/widgets/assets/eg-widgets.js\"></script>"
                 };
