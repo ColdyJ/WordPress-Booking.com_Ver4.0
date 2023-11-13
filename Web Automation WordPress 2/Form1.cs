@@ -766,7 +766,7 @@ namespace Web_Automation_WordPress_2
             // 찾은 소제목 패턴을 강조하고 크게 표시합니다.
             string result_GPT = regex.Replace(content, match =>
             {
-                return $"<h3>{match.Value}</h3>"; // 사실 이미지 + GPT 가공부분에서 H3 설정을 해주므로 필요 없을 것 같지만 일단 냅둠
+                return $"{match.Value}"; // 사실 이미지 + GPT 가공부분에서 H3 설정을 해주므로 필요 없을 것 같지만 일단 냅둠
             });
             return result_GPT;
         }
@@ -780,7 +780,7 @@ namespace Web_Automation_WordPress_2
             int count = 0, i = 0;
             List<string> responseImgList = new List<string>(); // 이미지 업로드 결과를 저장할 리스트
 
-            while (count != 10) // 총 9장의 사진을 url로 리스트
+            while (count != 11) // 총 10장의 사진을 url로 리스트
             {
                 // 이미지 파일 경로 가져오기
                 string localImagePath = Path.Combine(selectedFolder, $"{i}.jpg");
@@ -819,7 +819,7 @@ namespace Web_Automation_WordPress_2
                     string imageSrc = result_ImgList.FirstOrDefault(); // 이미지 URL을 가져옴
                     if (!string.IsNullOrEmpty(imageSrc))
                     {
-                        result_GPT = result_GPT.Replace(imageInfo, $"\r<p>&nbsp;</p><br>{imageSrc}\r<h3><span style='color: #FF8C00; font-weight: bold;'>{imageInfo}</span></h3>");
+                        result_GPT = result_GPT.Replace(imageInfo, $"\r<p>&nbsp;</p><br>{imageSrc}\r<br><br><h3><span style='color: #FF8C00; font-weight: bold;'>{imageInfo}</span></h3>");
                         result_ImgList.RemoveAt(0); // 사용한 이미지 URL을 리스트에서 제거
                     }
                 }
@@ -897,7 +897,7 @@ namespace Web_Automation_WordPress_2
         //외부 링크 추출
         private string AddOutLinksAsync()
         {
-            string addOutLinks = "▼▼▼ 예약 웹사이트 바로가기 :) ▼▼▼\r\n";
+            string addOutLinks = "<h3>▼▼▼ 예약 웹사이트 바로가기 ▼▼▼</h3>\r\n";
             string outLinks = ""; // 각 링크를 개행 문자로 구분
 
             try
@@ -932,7 +932,7 @@ namespace Web_Automation_WordPress_2
             return addOutLinks + "<p>&nbsp;</p>" + outLinks;
         }
 
-        //외부 링크 추출
+        //외부 배너 추출
         private string AddOutBannersAsync()
         {
             string addOutBanners = "▼▼▼ 기간 한정 최저가 검색은 여기서 ▼▼▼\r\n";
@@ -1038,7 +1038,6 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"이미지 & 내용 패턴 변경 시작..." + Environment.NewLine);
                 List<string> result_ImgList = await ImagesAsyncList(); // selectedFolder 안의 이미지들을 <img src=\"{createdMedia.SourceUrl}\"> 형식으로 List
                 string content = AddImagesToContent(result_GPT, result_ImgList); //resultText 사이에 resultImgList의 string값을 잘 넣어주면됨
-                //content = $"<html><body>{content}</body></html>"; // 결과를 HTML 형식으로 표시합니다. 삭제 or 추가
                 string head_2 = $"<h2>{hotelName + " " + addTitleBox1.Text + " 여행 베스트 숙소 추천 숙박 후기"}</h2>";
                 LogBox1.AppendText($"이미지 & 내용 패턴 변경 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
