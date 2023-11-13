@@ -742,7 +742,7 @@ namespace Web_Automation_WordPress_2
 
         private string GPT_Prompt(string prompt)
         {
-            /*
+             /*
              1. 공항에서 찾아가는 방법 / 2. 외관 / 3. 내부 방 설명 / 4. 부대시설 / 5.주위맛집 / 6.숙박경험
              */
             string prompt1 = $"'{prompt}'에 관련된 블로그 글을 작성할거야. 이 템플릿에 맞춰서 아주 길고 자세하게 써줄래? 1.올스테이 해야 하는 이유:, 2.어메니티: , 3.조식: , 4.내부: , 5.로비/부대시설: , 6.외관/인테리어:  , 7.숙박경험:";
