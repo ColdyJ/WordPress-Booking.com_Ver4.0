@@ -268,7 +268,7 @@ namespace Web_Automation_WordPress_2
         }
 
         // 리스트업 된 부킹닷컴 호텔페이지에서 사진 크롤링 후 Rename 
-        private void Auto_Crawling_Naver()
+        private void Auto_Crawling()
         {
             LogBox1.AppendText($"===========================" + Environment.NewLine);
             LogBox1.AppendText($"크롤링 시작" + Environment.NewLine);
@@ -605,7 +605,7 @@ namespace Web_Automation_WordPress_2
                                 using (Graphics graphics = Graphics.FromImage(image))
                                 {
                                     string text = hotelName + "\n" + "숙박 솔직 후기\n★할인 예약코드";
-                                    Font font = new Font("NPSfont_regular", 60, FontStyle.Bold);
+                                    Font font = new Font("NPSfont_regular", 50, FontStyle.Bold);
 
                                     Brush grayBrush = Brushes.LightGray;
                                     Brush whitebrush = Brushes.White;
@@ -745,7 +745,7 @@ namespace Web_Automation_WordPress_2
             /*
              1. 공항에서 찾아가는 방법 / 2. 외관 / 3. 내부 방 설명 / 4. 부대시설 / 5.주위맛집 / 6.숙박경험
              */
-            string prompt1 = $"'{prompt}'에 관련된 블로그 글을 작성할거야. 이 템플릿에 맞춰서 아주 길고 자세하게 써줄래? 1.공항에서 찾아가는 방법:, 2.외관: , 3.내부 스타일: , 4.부대시설: , 5.주위맛집:  , 6.숙박경험:";
+            string prompt1 = $"'{prompt}'에 관련된 블로그 글을 작성할거야. 이 템플릿에 맞춰서 아주 길고 자세하게 써줄래? 1.올스테이 해야 하는 이유:, 2.어메니티: , 3.조식: , 4.내부: , 5.로비/부대시설: , 6.외관/인테리어:  , 7.숙박경험:";
             return prompt1;
         }
 
@@ -783,7 +783,7 @@ namespace Web_Automation_WordPress_2
             int count = 0, i = 0;
             List<string> responseImgList = new List<string>(); // 이미지 업로드 결과를 저장할 리스트
 
-            while (count != 7) // 총 7장의 사진을 url로 리스트
+            while (count != 8) // 총 7장의 사진을 url로 리스트
             {
                 // 이미지 파일 경로 가져오기
                 string localImagePath = Path.Combine(selectedFolder, $"{i}.jpg");
@@ -869,7 +869,7 @@ namespace Web_Automation_WordPress_2
             client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
             var posts = await client.Posts.GetAllAsync();
 
-            string addOldPostLinks = "<h3>다른 숙박 후기가 궁금하시다면 ??? </h3>\r\n";
+            string addOldPostLinks = "<h3>다른 숙박 후기가 궁금하시다면 아래에 더 많은 내용이 있습니다 :) </h3>\r\n";
             string oldPostsLinks = ""; // 각 링크를 개행 문자로 구분
 
             List<string> postLinks = new List<string>(); // 포스트의 Link 값을 저장할 리스트를 만듭니다.
@@ -938,7 +938,7 @@ namespace Web_Automation_WordPress_2
         //외부 링크 추출
         private string AddOutBannersAsync()
         {
-            string addOutBanners = "▼▼▼ 기간 한정 특가 검색은 여기서 ▼▼▼\r\n";
+            string addOutBanners = "▼▼▼ 기간 한정 최저가 검색은 여기서 ▼▼▼\r\n";
             string outLinks = ""; // 각 링크를 개행 문자로 구분
 
             try
@@ -1011,7 +1011,7 @@ namespace Web_Automation_WordPress_2
 
                 // 이미지 크롤링
                 LogBox1.AppendText($"이미지 크롤링 시작..." + Environment.NewLine);
-                Auto_Crawling_Naver();
+                Auto_Crawling();
                 LogBox1.AppendText($"이미지 크롤링 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
@@ -1042,7 +1042,7 @@ namespace Web_Automation_WordPress_2
                 List<string> result_ImgList = await ImagesAsyncList(); // selectedFolder 안의 이미지들을 <img src=\"{createdMedia.SourceUrl}\"> 형식으로 List
                 string content = AddImagesToContent(result_GPT, result_ImgList); //resultText 사이에 resultImgList의 string값을 잘 넣어주면됨
                 //content = $"<html><body>{content}</body></html>"; // 결과를 HTML 형식으로 표시합니다. 삭제 or 추가
-                string head_2 = $"<h2>{hotelName + " 숙박 후기"}</h2>";
+                string head_2 = $"<h2>{hotelName + addTitleBox1.Text + " + 여행 베스트 숙소 추천 숙박 후기"}</h2>";
                 LogBox1.AppendText($"이미지 & 내용 패턴 변경 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
@@ -1081,7 +1081,7 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"워드프레스 업로드 시작" + Environment.NewLine);
                 var post = new Post()
                 {
-                    Title = new Title(hotelName + " 숙박 후기"), // TitleBox1.Text
+                    Title = new Title(hotelName + addTitleBox1.Text + " + 여행 베스트 숙소 추천 숙박 후기"), // TitleBox1.Text
                     Content = new Content(head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
                     FeaturedMedia = result_thumbNail, // 썸네일
                     Categories = new List<int> { result_Categories }, // ComboBox에서 선택한 카테고리 ID 설정

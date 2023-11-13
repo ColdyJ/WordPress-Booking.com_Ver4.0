@@ -54,6 +54,9 @@
             SystemBox1 = new TextBox();
             label5 = new Label();
             groupBox10 = new GroupBox();
+            label6 = new Label();
+            label4 = new Label();
+            addTitleBox1 = new TextBox();
             label1 = new Label();
             HotelListBox1 = new TextBox();
             label3 = new Label();
@@ -115,7 +118,7 @@
             HotelUrlBox1.Cursor = Cursors.IBeam;
             HotelUrlBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
             HotelUrlBox1.ForeColor = Color.Black;
-            HotelUrlBox1.Location = new Point(91, 65);
+            HotelUrlBox1.Location = new Point(91, 97);
             HotelUrlBox1.Multiline = true;
             HotelUrlBox1.Name = "HotelUrlBox1";
             HotelUrlBox1.ReadOnly = true;
@@ -170,11 +173,11 @@
             // 
             label2.AutoSize = true;
             label2.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            label2.Location = new Point(9, 321);
+            label2.Location = new Point(4, 320);
             label2.Name = "label2";
-            label2.Size = new Size(51, 15);
+            label2.Size = new Size(64, 15);
             label2.TabIndex = 1010;
-            label2.Text = "크롤링*:";
+            label2.Text = "N 크롤링*:";
             // 
             // crollBox1
             // 
@@ -341,7 +344,7 @@
             // 
             label8.AutoSize = true;
             label8.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            label8.Location = new Point(9, 65);
+            label8.Location = new Point(9, 97);
             label8.Name = "label8";
             label8.Size = new Size(64, 15);
             label8.TabIndex = 1005;
@@ -370,6 +373,9 @@
             // 
             // groupBox10
             // 
+            groupBox10.Controls.Add(label6);
+            groupBox10.Controls.Add(label4);
+            groupBox10.Controls.Add(addTitleBox1);
             groupBox10.Controls.Add(label1);
             groupBox10.Controls.Add(HotelListBox1);
             groupBox10.Controls.Add(label3);
@@ -393,6 +399,37 @@
             groupBox10.TabIndex = 1000;
             groupBox10.TabStop = false;
             groupBox10.Text = "포스팅 옵션_Ver 2.0";
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            label6.Location = new Point(181, 66);
+            label6.Name = "label6";
+            label6.Size = new Size(195, 15);
+            label6.TabIndex = 1014;
+            label6.Text = "+ 여행 베스트 숙소 추천 숙박 후기";
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            label4.Location = new Point(18, 66);
+            label4.Name = "label4";
+            label4.Size = new Size(39, 15);
+            label4.TabIndex = 1013;
+            label4.Text = "계절*:";
+            // 
+            // addTitleBox1
+            // 
+            addTitleBox1.BackColor = Color.FromArgb(224, 224, 224);
+            addTitleBox1.BorderStyle = BorderStyle.FixedSingle;
+            addTitleBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            addTitleBox1.Location = new Point(91, 62);
+            addTitleBox1.Margin = new Padding(2);
+            addTitleBox1.Name = "addTitleBox1";
+            addTitleBox1.Size = new Size(62, 21);
+            addTitleBox1.TabIndex = 1012;
             // 
             // label1
             // 
@@ -421,7 +458,7 @@
             // 
             label3.AutoSize = true;
             label3.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            label3.Location = new Point(17, 121);
+            label3.Location = new Point(17, 153);
             label3.Name = "label3";
             label3.Size = new Size(56, 15);
             label3.TabIndex = 1009;
@@ -432,7 +469,7 @@
             AffiliateBox1.BackColor = Color.Gray;
             AffiliateBox1.BorderStyle = BorderStyle.FixedSingle;
             AffiliateBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            AffiliateBox1.Location = new Point(91, 121);
+            AffiliateBox1.Location = new Point(91, 153);
             AffiliateBox1.Margin = new Padding(2);
             AffiliateBox1.Multiline = true;
             AffiliateBox1.Name = "AffiliateBox1";
@@ -537,5 +574,8 @@
         private TextBox AffiliateBox1;
         private Label label1;
         private TextBox HotelListBox1;
+        private Label label6;
+        private Label label4;
+        private TextBox addTitleBox1;
     }
 }
