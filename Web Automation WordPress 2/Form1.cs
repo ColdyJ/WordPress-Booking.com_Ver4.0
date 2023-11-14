@@ -82,12 +82,13 @@ namespace Web_Automation_WordPress_2
         {
             SaveConfig();
 
+            int count = 1;
             string userID = UrlBox1.Text;
             int isRegistered = CheckUserID_1(userID); // 등록 아이디 체크
             if (isRegistered == 1)
             {
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
-                LogBox1.AppendText($"포스팅 시작" + Environment.NewLine);
+                LogBox1.AppendText($"{count}번 포스팅 시작" + Environment.NewLine);
 
                 GetHotelListup();  // 리스트업 된 호텔들 전역변수로 변환
 
@@ -100,6 +101,7 @@ namespace Web_Automation_WordPress_2
                     PostingHotel = url;
                     await WP_API_Auto();
                     DelayHr();
+                    count++;
                 }
             }
             else
@@ -124,11 +126,11 @@ namespace Web_Automation_WordPress_2
             return;
         }
 
-        //Delay 함수 61분~80분
+        //Delay 함수 181분~241분
         public void DelayHr()
         {
-            int min = 61;
-            int max = 80;
+            int min = 181;
+            int max = 241;
             Random random = new Random();
             int delay = random.Next(min, max);
             DateTime startTime = DateTime.Now;
@@ -940,11 +942,11 @@ namespace Web_Automation_WordPress_2
 
             try
             {
-                List<string> urls = new List<string> // 30개의 URL을 리스트에 추가
+                List<string> urls = new List<string> // 배너 주소 추가 (해결 될때까진 트립닷컴만 사용)
                 {
-                    "<iframe border=\"0\" src=\"https://kr.trip.com/partners/ad/S110279?Allianceid=4004476&SID=25361194&trip_sub1=\" style=\"width:300px;height:300px\" frameborder=\"0\" scrolling=\"no\" style=\"border:none\" id=\"S110279\"></iframe>",
-                    "<div class=\"eg-widget\" data-widget=\"search\" data-program=\"kr-expedia\" data-lobs=\"stays,flights\" data-network=\"pz\" data-camref=\"1101lS7wB\"></div>\r\n<script class=\"eg-widgets-script\" src=\"https://affiliates.expediagroup.com/products/widgets/assets/eg-widgets.js\"></script>\r\n",
-                    "<div class=\"eg-widget\" data-widget=\"search\" data-program=\"kr-hcom\" data-lobs=\"\" data-network=\"pz\" data-camref=\"1011lS9WN\"></div>\r\n<script class=\"eg-widgets-script\" src=\"https://affiliates.expediagroup.com/products/widgets/assets/eg-widgets.js\"></script>"
+                    "<iframe border=\"0\" src=\"https://kr.trip.com/partners/ad/S110279?Allianceid=4004476&SID=25361194&trip_sub1=\" style=\"width:300px;height:300px\" frameborder=\"0\" scrolling=\"no\" style=\"border:none\" id=\"S110279\"></iframe>"
+                    //"<div class=\"eg-widget\" data-widget=\"search\" data-program=\"kr-expedia\" data-lobs=\"stays,flights\" data-network=\"pz\" data-camref=\"1101lS7wB\"></div>\r\n<script class=\"eg-widgets-script\" src=\"https://affiliates.expediagroup.com/products/widgets/assets/eg-widgets.js\"></script>\r\n",
+                    //"<div class=\"eg-widget\" data-widget=\"search\" data-program=\"kr-hcom\" data-lobs=\"\" data-network=\"pz\" data-camref=\"1011lS9WN\"></div>\r\n<script class=\"eg-widgets-script\" src=\"https://affiliates.expediagroup.com/products/widgets/assets/eg-widgets.js\"></script>"
                 };
                 List<string> selectedOutLinks = new List<string>();
                 Random random = new Random(); // 랜덤하게 1개의 Link 값을 선택합니다.
@@ -1120,7 +1122,7 @@ namespace Web_Automation_WordPress_2
                 },
                 Model = Models.Gpt_3_5_Turbo_16k, //모델명.
                 Temperature = 0.6F,      //대답의 자유도(다양성 - Diversity)). 자유도가 낮으면 같은 대답, 높으면 좀 아무말?
-                MaxTokens = 4000,      //이게 길수록 글자가 많아짐. 이 토큰 단위를 기준으로 트래픽이 매겨지고, (유료인경우) 과금 책정이 됨)
+                MaxTokens = 12000,      //이게 길수록 글자가 많아짐. 이 토큰 단위를 기준으로 트래픽이 매겨지고, (유료인경우) 과금 책정이 됨)
                 N = 1   //경우의 수(대답의 수). N=3으로 하면 3번 다른 회신을 배열에 담아줌
             });
             LogBox1.AppendText($"GPT DEBUG #1" + Environment.NewLine);
@@ -1325,19 +1327,4 @@ namespace Web_Automation_WordPress_2
 
 
 
-
-
-
-
-
-
-
-
-
-    static class Define
-    {
-        public const string WP_ID = "kwon92088@gmail.com";
-        public const string WP_PW = "SV9H TFv0 pMC6 sptk 8s7q 7BsV";
-        public const string WP_URL = "https://oheeliving.com/wp-json/";
-    }
 }
