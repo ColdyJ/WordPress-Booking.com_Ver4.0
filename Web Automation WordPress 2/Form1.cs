@@ -87,21 +87,26 @@ namespace Web_Automation_WordPress_2
             int isRegistered = CheckUserID_1(userID); // 등록 아이디 체크
             if (isRegistered == 1)
             {
-                LogBox1.AppendText($"===========================" + Environment.NewLine);
-                LogBox1.AppendText($"{count}번 포스팅 시작" + Environment.NewLine);
-
-                GetHotelListup();  // 리스트업 된 호텔들 전역변수로 변환
-
-                // HotelUrl 문자열을 쉼표로 분리하여 리스트로 변환
-                List<string> hotelUrlList = HotelUrl.Split(',').ToList();
-
-                // hotelUrlList을 순회하면서 처리 가능
-                foreach (string url in hotelUrlList)
+                try
                 {
-                    PostingHotel = url;
-                    await WP_API_Auto();
-                    DelayHr();
-                    count++;
+                    while (true)
+                    {
+                        LogBox1.AppendText($"===========================" + Environment.NewLine);
+                        LogBox1.AppendText($"{count}번 포스팅 시작" + Environment.NewLine);
+
+                        GetHotelList();  // 엑셀 첫번째 아이템의 url을 HotelUrl 인풋, 없을때 ""
+                        if (HotelUrl == "") break; // 정지 조건
+
+                        await WP_API_Auto();
+                        Delay();
+                        DeleteHotelList();  // 엑셀 첫번째 행 삭제
+                        DelayHr();
+                        count++;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
                 }
             }
             else
@@ -285,7 +290,7 @@ namespace Web_Automation_WordPress_2
             //이미지 검색 
             LogBox1.AppendText($"===========================" + Environment.NewLine);
             LogBox1.AppendText($"이미지 검색" + Environment.NewLine);
-            string baseUrl = $"{PostingHotel}";
+            string baseUrl = $"{HotelUrl}";
             driver.Navigate().GoToUrl(baseUrl);
             Delay();
             // 새로운 탭 열기 (첫번째 탭에서 호텔 주소 바로 열면 리스트로 이동되어서 두번째 탭을 오픈하는 편법)
@@ -469,28 +474,66 @@ namespace Web_Automation_WordPress_2
             driver.Quit();
         }
 
-        // 리스트업 된 호텔들 전역변수로 변환
-        private void GetHotelListup()
+        // 엑셀 파일 내 첫번째 아이템 선택
+        private void GetHotelList()
+        {
+            // 엑셀 파일 경로
+            string excelFilePath = Path.Combine(selectedFolder, "HotelList.xlsx");
+            try
+            {
+                // ExcelPackage를 사용하여 엑셀 파일 열기
+                using (ExcelPackage package = new ExcelPackage(new FileInfo(excelFilePath)))
+                {
+                    // 워크시트 선택 (0은 첫 번째 워크시트를 의미)
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+
+                    // 1번 행의 데이터 읽기
+                    string name = worksheet.Cells[1, 1].Text;
+                    string url = worksheet.Cells[1, 2].Text;
+                    if (name != "" || name != null)
+                    {
+                        HotelUrl = url;
+                        LogBox1.AppendText($"선택된 아이템: {name}" + Environment.NewLine);
+                    }
+                    else { HotelUrl = ""; }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+            }
+        }
+        // 엑셀 파일 내 첫번째 아이템 삭제
+        private void DeleteHotelList()
         {
             // 엑셀 파일 경로
             string excelFilePath = Path.Combine(selectedFolder, "HotelList.xlsx");
 
-            // ExcelPackage를 사용하여 엑셀 파일 열기
-            using (ExcelPackage package = new ExcelPackage(new FileInfo(excelFilePath)))
+            try
             {
-                // 워크시트 선택 (0은 첫 번째 워크시트를 의미)
-                ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
-
-                int rowCount = worksheet.Dimension.Rows;
-
-                // B열 (두 번째 열)에서 값 추출하여 문자열로 추가
-                for (int row = 1; row <= rowCount; row++)
+                // ExcelPackage를 사용하여 엑셀 파일 열기
+                using (ExcelPackage package = new ExcelPackage(new FileInfo(excelFilePath)))
                 {
-                    string url = worksheet.Cells[row, 2].Text;
-                    HotelUrl += url + ","; // URL을 쉼표로 구분하여 문자열에 추가
+                    // 워크시트 선택 (0은 첫 번째 워크시트를 의미)
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+
+                    // 1번 행의 데이터 읽기
+                    string name = worksheet.Cells[1, 1].Text;
+                    if (name != "" || name != null)
+                    {
+                        // 1번 행 삭제
+                        worksheet.DeleteRow(1, 1);
+                        // 변경된 내용을 저장
+                        package.Save();
+                        // 필요에 따라 메시지 박스 등을 통해 사용자에게 알림
+                        LogBox1.AppendText($"엑셀 편집 성공" + Environment.NewLine);
+                    }
                 }
             }
-            HotelUrl = HotelUrl.TrimEnd(','); // 마지막 쉼표 제거
+            catch (Exception ex)
+            {
+                LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+            }
         }
 
         /*===============================================*/
@@ -498,7 +541,7 @@ namespace Web_Automation_WordPress_2
         // 호텔 정보 추출
         private async Task<string> GetHotelInfoAsync()
         {
-            string url = PostingHotel; // url에 .html 앞에 ko가 없으면 붙임
+            string url = HotelUrl; // url에 .html 앞에 ko가 없으면 붙임
             if (!url.Contains(".ko."))
             {
                 // 정규 표현식을 사용하여 ".html" 앞에 "ko"가 없는 경우 "ko.html"를 추가
@@ -1205,7 +1248,6 @@ namespace Web_Automation_WordPress_2
         private static string lat = "";
         private static string lng = "";
         private string HotelUrl = "";
-        private string PostingHotel = "";
 
 
 
