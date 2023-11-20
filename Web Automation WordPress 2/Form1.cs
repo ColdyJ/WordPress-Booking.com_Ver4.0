@@ -100,6 +100,7 @@ namespace Web_Automation_WordPress_2
                         await WP_API_Auto();
                         Delay();
                         DeleteHotelList();  // 엑셀 첫번째 행 삭제
+                        DeleteAllJpgFilesInFolder(selectedFolder); // 폴더 내 사진 삭제
                         DelayHr();
                         count++;
                     }
@@ -365,6 +366,7 @@ namespace Web_Automation_WordPress_2
                 {
                     File.Delete(jpgFile);
                 }
+                LogBox1.AppendText($"폴더 사진 삭제" + Environment.NewLine);
             }
             catch (Exception ex)
             {
@@ -1135,7 +1137,6 @@ namespace Web_Automation_WordPress_2
                 var createdPost = await client.Posts.CreateAsync(post); // 포스팅 요청 보내기
                 LogBox1.AppendText($"글 본문 출력 완료" + Environment.NewLine);
                 LogBox1.AppendText($"워드프레스 업로드 완료" + Environment.NewLine);
-                DeleteAllJpgFilesInFolder(selectedFolder);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
             }
             catch (Exception ex)
