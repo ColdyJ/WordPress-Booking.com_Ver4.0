@@ -1161,7 +1161,7 @@ namespace Web_Automation_WordPress_2
             {
                 Messages = new List<ChatMessage>
                 {
-                    ChatMessage.FromSystem(SystemBox1.Text+"전문가"),
+                    ChatMessage.FromSystem(SystemBox1.Text),
                     ChatMessage.FromUser(prompt1),
                 },
                 Model = Models.Gpt_3_5_Turbo_16k, //모델명.
@@ -1281,7 +1281,9 @@ namespace Web_Automation_WordPress_2
                 new XElement("InputValue3", UrlBox1.Text),
                 new XElement("InputValue4", APIKeybox1.Text),
                 new XElement("InputValue5", CategoryBox1.Text),
-                new XElement("InputValue6", SystemBox1.Text)));
+                new XElement("InputValue6", SystemBox1.Text),
+                new XElement("InputValue7", addTitleBox1.Text)));
+
             doc.Save(configFile);
         }
         // Textbox 로드기능 (Start btn부분)
@@ -1299,6 +1301,7 @@ namespace Web_Automation_WordPress_2
                 APIKeybox1.Text = doc.Root.Element("InputValue4")?.Value;
                 SystemBox1.Text = doc.Root.Element("InputValue5")?.Value;
                 CategoryBox1.Text = doc.Root.Element("InputValue6")?.Value;
+                addTitleBox1.Text = doc.Root.Element("InputValue7")?.Value;
 
             }
         }
@@ -1317,7 +1320,9 @@ namespace Web_Automation_WordPress_2
                         new XElement("InputValue3", UrlBox1.Text),
                         new XElement("InputValue4", APIKeybox1.Text),
                         new XElement("InputValue5", CategoryBox1.Text),
-                        new XElement("InputValue6", SystemBox1.Text)));
+                        new XElement("InputValue6", SystemBox1.Text),
+                        new XElement("InputValue7", addTitleBox1.Text)));
+
                     doc.Save(saveFileDialog.FileName);
                     MessageBox.Show("Settings saved.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
@@ -1338,6 +1343,7 @@ namespace Web_Automation_WordPress_2
                     APIKeybox1.Text = doc.Root.Element("InputValue4")?.Value;
                     SystemBox1.Text = doc.Root.Element("InputValue5")?.Value;
                     CategoryBox1.Text = doc.Root.Element("InputValue6")?.Value;
+                    addTitleBox1.Text = doc.Root.Element("InputValue7")?.Value;
 
                     MessageBox.Show("Settings loaded.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
