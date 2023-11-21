@@ -951,25 +951,34 @@ namespace Web_Automation_WordPress_2
             {
                 //AffiliateBox1
                 List<string> urls = new List<string> // 3개의 URL을 리스트에 추가
-                {// 순서대로 익스피디아, 호텔스닷컴, 트립닷컴
-                    "https://expedia.com/affiliate/jVHhwTh",
-                    "https://www.hotels.com/affiliate/l9VN1VM",
-                    "https://kr.trip.com/?Allianceid=4004476&SID=25361194&trip_sub1=&trip_sub3=D108514",
-                    "https://www.agoda.com/partners/partnersearch.aspx?pcs=1&cid=1919982&hl=ko-kr"
+                {// 순서대로 아고다, 호텔스닷컴, 익스피디아, 트립닷컴, 호텔스컴바인, 트립어드바이저, 야놀자
+                    "https://linkmoa.kr/click.php?m=agoda&a=A100688386&l=0000", // 아고다
+                    "https://linkmoa.kr/click.php?m=hotelskr&a=A100688386&l=0000", // 호텔스닷컴
+                    "https://linkmoa.kr/click.php?m=expedia&a=A100688386&l=0000", // 익스피디아
+                    "https://kr.trip.com/?Allianceid=4004476&SID=25361194&trip_sub1=&trip_sub3=D108514", // 트립닷컴
+                    "https://linkmoa.kr/click.php?m=hcombine&a=A100688386&l=0000", // 호텔스컴바인
+                    "https://linkmoa.kr/click.php?m=tripadviso&a=A100688386&l=0000", // 트립어드바이저
+                    "https://linkmoa.kr/click.php?m=yanolja&a=A100688386&l=0000" // 야놀자
                 };
                 // 선택된 URL을 linkHtml 형식으로 만듭니다.
-                string expediaLink = $"▶익스피디아 최저가 검색◀"; // 
-                string hotelscomLink = $"▶호텔스닷컴 최저가 검색◀"; // 
-                string tripcomLink = $"▶트립닷컴 최저가 검색◀"; // 
                 string agodaLink = $"▶아고다 최저가 검색◀"; // 
+                string hotelscomLink = $"▶호텔스닷컴 최저가 검색◀"; // 
+                string expediaLink = $"▶익스피디아 최저가 검색◀"; // 
+                string tripcomLink = $"▶트립닷컴 최저가 검색◀"; // 
+                string hotelcombineLink = $"▶호텔스컴바인 최저가 검색◀"; // 
+                string tripadvLink = $"▶트립어드바이저 최저가 검색◀"; // 
+                string yanoljaLink = $"▶야놀자 최저가 검색◀"; // 
 
-                string expediaHtml = $"<a title=\"{expediaLink}\" href=\"{urls[0]}\">&nbsp;{expediaLink}</a>";
+                string agodaHtml = $"<a title=\"{agodaLink}\" href=\"{urls[0]}\">&nbsp;{agodaLink}</a>";
                 string hotelscomHtml = $"<a title=\"{hotelscomLink}\" href=\"{urls[1]}\">&nbsp;{hotelscomLink}</a>";
-                string tripcomHtml = $"<a title=\"{tripcomLink}\" href=\"{urls[2]}\">&nbsp;{tripcomLink}</a>";
-                string agodaHtml = $"<a title=\"{agodaLink}\" href=\"{urls[3]}\">&nbsp;{agodaLink}</a>";
+                string expediaHtml = $"<a title=\"{expediaLink}\" href=\"{urls[2]}\">&nbsp;{expediaLink}</a>";
+                string tripcomHtml = $"<a title=\"{tripcomLink}\" href=\"{urls[3]}\">&nbsp;{tripcomLink}</a>";
+                string hotelcombineHtml = $"<a title=\"{hotelcombineLink}\" href=\"{urls[4]}\">&nbsp;{hotelcombineLink}</a>";
+                string tripadvHtml = $"<a title=\"{tripadvLink}\" href=\"{urls[5]}\">&nbsp;{tripadvLink}</a>";
+                string yanoljaHtml = $"<a title=\"{yanoljaLink}\" href=\"{urls[6]}\">&nbsp;{yanoljaLink}</a>";
 
                 // 선택된 URL을 outlinks 문자열에 추가
-                string[] selectedOutLinks = new string[] { expediaHtml, hotelscomHtml, tripcomHtml, agodaHtml };
+                string[] selectedOutLinks = new string[] { agodaHtml, hotelscomHtml, expediaHtml, tripcomHtml, hotelcombineHtml, tripadvHtml, yanoljaHtml };
                 outLinks = string.Join("\r\n", selectedOutLinks); // 각 링크를 개행 문자로 구분
             }
             catch (Exception ex)
@@ -987,11 +996,15 @@ namespace Web_Automation_WordPress_2
 
             try
             {
-                List<string> urls = new List<string> // 배너 주소 추가 (해결 될때까진 트립닷컴만 사용)
-                {
-                    "<iframe border=\"0\" src=\"https://kr.trip.com/partners/ad/S110279?Allianceid=4004476&SID=25361194&trip_sub1=\" style=\"width:300px;height:300px\" frameborder=\"0\" scrolling=\"no\" style=\"border:none\" id=\"S110279\"></iframe>"
-                    //"<div class=\"eg-widget\" data-widget=\"search\" data-program=\"kr-expedia\" data-lobs=\"stays,flights\" data-network=\"pz\" data-camref=\"1101lS7wB\"></div>\r\n<script class=\"eg-widgets-script\" src=\"https://affiliates.expediagroup.com/products/widgets/assets/eg-widgets.js\"></script>\r\n",
-                    //"<div class=\"eg-widget\" data-widget=\"search\" data-program=\"kr-hcom\" data-lobs=\"\" data-network=\"pz\" data-camref=\"1011lS9WN\"></div>\r\n<script class=\"eg-widgets-script\" src=\"https://affiliates.expediagroup.com/products/widgets/assets/eg-widgets.js\"></script>"
+                List<string> urls = new List<string> // 배너 주소 추가 (아고다, 호텔스닷컴, 익스피디아, 트립닷컴, 호텔스컴바인, 트립어드바이저, 야놀자)
+                { 
+                    "<a target=\"_blank\" href=\"http://click.linkprice.com/click.php?m=agoda&a=A100688386&l=73oh&u_id=\"><img src=\"http://img.linkprice.com/files/glink/agoda/20200429/5ea8ce4a8bd27_300_250.jpg\" border=\"0\" width=\"300\" height=\"250\"></a> <img src=\"http://track.linkprice.com/lpshow.php?m_id=agoda&a_id=A100688386&p_id=0000&l_id=73oh&l_cd1=2&l_cd2=0\" width=\"1\" height=\"1\" border=\"0\" nosave style=\"display:none\">",
+                    "<a target=\"_blank\" href=\"http://click.linkprice.com/click.php?m=hotelskr&a=A100688386&l=0001&u_id=\"><img src=\"http://img.linkprice.com/files/glink/hotelskr/20160715/5788aefa50fbc_250_250.jpg\" border=\"0\" width=\"250\" height=\"250\"></a> <img src=\"http://track.linkprice.com/lpshow.php?m_id=hotelskr&a_id=A100688386&p_id=0000&l_id=0001&l_cd1=2&l_cd2=0\" width=\"1\" height=\"1\" border=\"0\" nosave style=\"display:none\">",
+                    "<a target=\"_blank\" href=\"http://click.linkprice.com/click.php?m=expedia&a=A100688386&l=0048&u_id=\"><img src=\"http://img.linkprice.com/files/glink/expedia/20150309/54fd2367bd473_300_250.jpg\" border=\"0\" width=\"300\" height=\"250\"></a> <img src=\"http://track.linkprice.com/lpshow.php?m_id=expedia&a_id=A100688386&p_id=0000&l_id=0048&l_cd1=2&l_cd2=0\" width=\"1\" height=\"1\" border=\"0\" nosave style=\"display:none\">",
+                    "<iframe border=\"0\" src=\"https://kr.trip.com/partners/ad/S110279?Allianceid=4004476&SID=25361194&trip_sub1=\" style=\"width:300px;height:300px\" frameborder=\"0\" scrolling=\"no\" style=\"border:none\" id=\"S110279\"></iframe>",
+                    "<a target=\"_blank\" href=\"http://click.linkprice.com/click.php?m=hcombine&a=A100688386&l=0004&u_id=\"><img src=\"http://img.linkprice.com/files/glink/hcombine/20180918/5ba03c38b4e97_250_250.jpg\" border=\"0\" width=\"250\" height=\"250\"></a> <img src=\"http://track.linkprice.com/lpshow.php?m_id=hcombine&a_id=A100688386&p_id=0000&l_id=0004&l_cd1=2&l_cd2=0\" width=\"1\" height=\"1\" border=\"0\" nosave style=\"display:none\">",
+                    "<a target=\"_blank\" href=\"http://click.linkprice.com/click.php?m=tripadviso&a=A100688386&l=0003&u_id=\"><img src=\"http://img.linkprice.com/files/glink/tripadviso/20150910/55f0dc5d27735_250_250.jpg\" border=\"0\" width=\"250\" height=\"250\"></a> <img src=\"http://track.linkprice.com/lpshow.php?m_id=tripadviso&a_id=A100688386&p_id=0000&l_id=0003&l_cd1=2&l_cd2=0\" width=\"1\" height=\"1\" border=\"0\" nosave style=\"display:none\">",
+                    "<a target=\"_blank\" href=\"http://click.linkprice.com/click.php?m=yanolja&a=A100688386&l=Qbav&u_id=\"><img src=\"https://img.linkprice.com/files/glink/yanolja/20231010/6524efc1ef097_320x100.jpg\" border=\"0\" width=\"320\" height=\"100\"></a> <img src=\"http://track.linkprice.com/lpshow.php?m_id=yanolja&a_id=A100688386&p_id=0000&l_id=Qbav&l_cd1=2&l_cd2=0\" width=\"1\" height=\"1\" border=\"0\" nosave style=\"display:none\">"
                 };
                 List<string> selectedOutLinks = new List<string>();
                 Random random = new Random(); // 랜덤하게 1개의 Link 값을 선택합니다.
