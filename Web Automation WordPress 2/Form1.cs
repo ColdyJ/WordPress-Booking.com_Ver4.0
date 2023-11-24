@@ -755,9 +755,9 @@ namespace Web_Automation_WordPress_2
             string responseImg = "";
             try
             {
-                translation = Papago(hotelName + " 대표 사진");
+                //translation = Papago(hotelName + " 대표 사진");
                 string localThumnailPath = Path.Combine(selectedFolder, $"EditedThum_1.jpg"); // 이미지 파일 경로 가져오기
-                var createdThumMedia = await client.Media.CreateAsync(localThumnailPath, $"{translation}.jpg"); // localImagePath로 media({translation}.jpg) 생성
+                var createdThumMedia = await client.Media.CreateAsync(localThumnailPath, $"{hotelName}.jpg"); // localImagePath로 media({translation}.jpg) 생성
                 responseImg = $"<img class=\"aligncenter\" src=\"{createdThumMedia.SourceUrl}\">"; // createdMedia에서 변환 시켰으니 img src로 변경
                 result_thumbNail = createdThumMedia.Id;
             }
