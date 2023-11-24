@@ -133,11 +133,11 @@ namespace Web_Automation_WordPress_2
             return;
         }
 
-        //Delay 함수 181분~241분
+        //Delay 함수 121분~181분
         public void DelayHr()
         {
-            int min = 181;
-            int max = 241;
+            int min = 121;
+            int max = 181;
             Random random = new Random();
             int delay = random.Next(min, max);
             DateTime startTime = DateTime.Now;
@@ -653,7 +653,7 @@ namespace Web_Automation_WordPress_2
                                 using (Graphics graphics = Graphics.FromImage(image))
                                 {
                                     string text = hotelName + "\n" + "숙박 솔직 후기\n★할인 예약 링크";
-                                    Font font = new Font("NPSfont_regular", 50, FontStyle.Bold);
+                                    Font font = new Font("NPSfont_regular", 35, FontStyle.Bold);
 
                                     Brush grayBrush = Brushes.LightGray;
                                     Brush whitebrush = Brushes.White;
