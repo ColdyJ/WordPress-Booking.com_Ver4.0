@@ -824,8 +824,8 @@ namespace Web_Automation_WordPress_2
         {
             var client = new WordPressClient(WP_URL);
             client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
-            translation = Papago(hotelName + " 숙박 후기");
-            int count = 0, i = 0;
+            //translation = Papago(hotelName + " 숙박 후기");
+            int count = 0, i = 1;
             List<string> responseImgList = new List<string>(); // 이미지 업로드 결과를 저장할 리스트
 
             while (count != 11) // 총 10장의 사진을 url로 리스트
@@ -834,7 +834,7 @@ namespace Web_Automation_WordPress_2
                 string localImagePath = Path.Combine(selectedFolder, $"{i}.jpg");
                 if (File.Exists(localImagePath))
                 {
-                    var createdMedia = await client.Media.CreateAsync(localImagePath, $"{translation + '_' + i}.jpg"); // localImagePath로 media({translation}.jpg) 생성
+                    var createdMedia = await client.Media.CreateAsync(localImagePath, $"{hotelName + '_' + i}.jpg"); // localImagePath로 media({translation}.jpg) 생성
                     string responseImg = $"<img class=\"aligncenter\" src=\"{createdMedia.SourceUrl}\">"; // createdMedia에서 변환 시켰으니 img src로 변경
                     responseImgList.Add(responseImg);
                     count++;
@@ -1313,8 +1313,8 @@ namespace Web_Automation_WordPress_2
                 PwBox1.Text = doc.Root.Element("InputValue2")?.Value;
                 UrlBox1.Text = doc.Root.Element("InputValue3")?.Value;
                 APIKeybox1.Text = doc.Root.Element("InputValue4")?.Value;
-                SystemBox1.Text = doc.Root.Element("InputValue5")?.Value;
-                CategoryBox1.Text = doc.Root.Element("InputValue6")?.Value;
+                CategoryBox1.Text = doc.Root.Element("InputValue5")?.Value;
+                SystemBox1.Text = doc.Root.Element("InputValue6")?.Value;
                 addTitleBox1.Text = doc.Root.Element("InputValue7")?.Value;
 
             }
@@ -1355,8 +1355,8 @@ namespace Web_Automation_WordPress_2
                     PwBox1.Text = doc.Root.Element("InputValue2")?.Value;
                     UrlBox1.Text = doc.Root.Element("InputValue3")?.Value;
                     APIKeybox1.Text = doc.Root.Element("InputValue4")?.Value;
-                    SystemBox1.Text = doc.Root.Element("InputValue5")?.Value;
-                    CategoryBox1.Text = doc.Root.Element("InputValue6")?.Value;
+                    CategoryBox1.Text = doc.Root.Element("InputValue5")?.Value;
+                    SystemBox1.Text = doc.Root.Element("InputValue6")?.Value;
                     addTitleBox1.Text = doc.Root.Element("InputValue7")?.Value;
 
                     MessageBox.Show("Settings loaded.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
