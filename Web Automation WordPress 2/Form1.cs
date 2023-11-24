@@ -102,6 +102,7 @@ namespace Web_Automation_WordPress_2
                         DeleteHotelList();  // 엑셀 첫번째 행 삭제
                         DeleteAllJpgFilesInFolder(selectedFolder); // 폴더 내 사진 삭제
                         DelayHr();
+                        LogBox1.AppendText($"{count}번 포스팅 완료" + Environment.NewLine);
                         count++;
                     }
                 }
@@ -651,7 +652,7 @@ namespace Web_Automation_WordPress_2
 
                                 using (Graphics graphics = Graphics.FromImage(image))
                                 {
-                                    string text = hotelName + "\n" + "숙박 솔직 후기\n★할인 예약코드";
+                                    string text = hotelName + "\n" + "숙박 솔직 후기\n★할인 예약 링크";
                                     Font font = new Font("NPSfont_regular", 50, FontStyle.Bold);
 
                                     Brush grayBrush = Brushes.LightGray;
@@ -789,7 +790,7 @@ namespace Web_Automation_WordPress_2
 
         private string GPT_Prompt(string prompt)
         {
-            string prompt1 = $"'{prompt}'에 관련된 블로그 글을 작성할거야. 이 템플릿에 맞춰서 아주 길고 자세하게 써줄래? 1.올스테이 해야 하는 이유: , 2.호텔 내부: , 3.룸 타입: , 4.어메니티: , 5.조식: , 6.부대시설: , 7.외관: , 8.인테리어: , 9.숙박경험:";
+            string prompt1 = $"'{prompt}'에 관련된 블로그 글을 작성할거야. 이 템플릿에 맞춰서 아주 길고 자세하게 써줄래? 1.{addTitleBox1.Text} 숙소로 추천하는 이유: , 2.호텔 내부: , 3.룸 타입: , 4.어메니티: , 5.조식: , 6.부대시설: , 7.외관: , 8.인테리어: , 9.숙박 경험:";
             return prompt1;
         }
 
@@ -880,7 +881,7 @@ namespace Web_Automation_WordPress_2
         {
             var client = new WordPressClient(WP_URL);
             client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
-            string tags = "'" + hotelName + " 숙박 후기" + "'" + "을 포함한 인기 검색어 8개를 ','로 구분해서 알려줘";
+            string tags = "'" + hotelName + " 숙박 후기" + "'" + "을 포함한 인기 검색어 7개를 ','로 구분해서 알려줘";
             string tagResult = "";
             try
             {
@@ -991,13 +992,13 @@ namespace Web_Automation_WordPress_2
         //외부 배너 추출
         private string AddOutBannersAsync()
         {
-            string addOutBanners = "▼▼▼ 기간 한정 최저가 검색은 여기서 ▼▼▼\r\n";
+            string addOutBanners = "▼▼▼ 기간 한정 최저가 검색은 이미지 클릭 ▼▼▼\r\n";
             string outLinks = ""; // 각 링크를 개행 문자로 구분
 
             try
             {
                 List<string> urls = new List<string> // 배너 주소 추가 (아고다, 호텔스닷컴, 익스피디아, 트립닷컴, 호텔스컴바인, 트립어드바이저, 야놀자)
-                { 
+                {
                     "<a target=\"_blank\" href=\"http://click.linkprice.com/click.php?m=agoda&a=A100688386&l=73oh&u_id=\"><img src=\"http://img.linkprice.com/files/glink/agoda/20200429/5ea8ce4a8bd27_300_250.jpg\" border=\"0\" width=\"300\" height=\"250\"></a> <img src=\"http://track.linkprice.com/lpshow.php?m_id=agoda&a_id=A100688386&p_id=0000&l_id=73oh&l_cd1=2&l_cd2=0\" width=\"1\" height=\"1\" border=\"0\" nosave style=\"display:none\">",
                     "<a target=\"_blank\" href=\"http://click.linkprice.com/click.php?m=hotelskr&a=A100688386&l=0001&u_id=\"><img src=\"http://img.linkprice.com/files/glink/hotelskr/20160715/5788aefa50fbc_250_250.jpg\" border=\"0\" width=\"250\" height=\"250\"></a> <img src=\"http://track.linkprice.com/lpshow.php?m_id=hotelskr&a_id=A100688386&p_id=0000&l_id=0001&l_cd1=2&l_cd2=0\" width=\"1\" height=\"1\" border=\"0\" nosave style=\"display:none\">",
                     "<a target=\"_blank\" href=\"http://click.linkprice.com/click.php?m=expedia&a=A100688386&l=0048&u_id=\"><img src=\"http://img.linkprice.com/files/glink/expedia/20150309/54fd2367bd473_300_250.jpg\" border=\"0\" width=\"300\" height=\"250\"></a> <img src=\"http://track.linkprice.com/lpshow.php?m_id=expedia&a_id=A100688386&p_id=0000&l_id=0048&l_cd1=2&l_cd2=0\" width=\"1\" height=\"1\" border=\"0\" nosave style=\"display:none\">",
@@ -1098,7 +1099,7 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"이미지 & 내용 패턴 변경 시작..." + Environment.NewLine);
                 List<string> result_ImgList = await ImagesAsyncList(); // selectedFolder 안의 이미지들을 <img src=\"{createdMedia.SourceUrl}\"> 형식으로 List
                 string content = AddImagesToContent(result_GPT, result_ImgList); //resultText 사이에 resultImgList의 string값을 잘 넣어주면됨
-                string head_2 = $"<h2>{hotelName + " " + addTitleBox1.Text + " 여행 베스트 숙소 추천 숙박 후기"}</h2>";
+                string head_2 = $"<h2>{hotelName + " " + addTitleBox1.Text + " 베스트 숙소 추천 숙박 후기"}</h2>";
                 LogBox1.AppendText($"이미지 & 내용 패턴 변경 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
@@ -1137,7 +1138,7 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"워드프레스 업로드 시작" + Environment.NewLine);
                 var post = new Post()
                 {
-                    Title = new Title(hotelName + " " + addTitleBox1.Text + " 여행 베스트 숙소 추천 숙박 후기"), // TitleBox1.Text
+                    Title = new Title(hotelName + " " + addTitleBox1.Text + " 베스트 숙소추천 숙박후기"), // TitleBox1.Text
                     Content = new Content(head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
                     FeaturedMedia = result_thumbNail, // 썸네일
                     Categories = new List<int> { result_Categories }, // ComboBox에서 선택한 카테고리 ID 설정

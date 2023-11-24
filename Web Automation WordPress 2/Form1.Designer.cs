@@ -414,11 +414,11 @@
             // 
             label4.AutoSize = true;
             label4.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            label4.Location = new Point(18, 66);
+            label4.Location = new Point(24, 66);
             label4.Name = "label4";
-            label4.Size = new Size(39, 15);
+            label4.Size = new Size(49, 15);
             label4.TabIndex = 1013;
-            label4.Text = "계절*:";
+            label4.Text = "**여행*:";
             // 
             // addTitleBox1
             // 
