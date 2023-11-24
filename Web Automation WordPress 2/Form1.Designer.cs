@@ -404,31 +404,31 @@
             // 
             label6.AutoSize = true;
             label6.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            label6.Location = new Point(181, 66);
+            label6.Location = new Point(305, 66);
             label6.Name = "label6";
-            label6.Size = new Size(195, 15);
+            label6.Size = new Size(71, 15);
             label6.TabIndex = 1014;
-            label6.Text = "+ 여행 베스트 숙소 추천 숙박 후기";
+            label6.Text = "+ 숙박 후기";
             // 
             // label4
             // 
             label4.AutoSize = true;
             label4.Font = new Font("맑은 고딕", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            label4.Location = new Point(24, 66);
+            label4.Location = new Point(9, 66);
             label4.Name = "label4";
-            label4.Size = new Size(49, 15);
+            label4.Size = new Size(83, 15);
             label4.TabIndex = 1013;
-            label4.Text = "**여행*:";
+            label4.Text = "지역+키워드*:";
             // 
             // addTitleBox1
             // 
             addTitleBox1.BackColor = Color.FromArgb(224, 224, 224);
             addTitleBox1.BorderStyle = BorderStyle.FixedSingle;
             addTitleBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            addTitleBox1.Location = new Point(91, 62);
+            addTitleBox1.Location = new Point(97, 64);
             addTitleBox1.Margin = new Padding(2);
             addTitleBox1.Name = "addTitleBox1";
-            addTitleBox1.Size = new Size(62, 21);
+            addTitleBox1.Size = new Size(203, 21);
             addTitleBox1.TabIndex = 1012;
             // 
             // label1

@@ -790,7 +790,7 @@ namespace Web_Automation_WordPress_2
 
         private string GPT_Prompt(string prompt)
         {
-            string prompt1 = $"'{prompt}'에 관련된 블로그 글을 작성할거야. 이 템플릿에 맞춰서 아주 길고 자세하게 써줄래? 1.{addTitleBox1.Text} 숙소로 추천하는 이유: , 2.호텔 내부: , 3.룸 타입: , 4.어메니티: , 5.조식: , 6.부대시설: , 7.외관: , 8.인테리어: , 9.숙박 경험:";
+            string prompt1 = $"'{prompt}'에 관련된 블로그 글을 작성할거야. 이 템플릿에 맞춰서 아주 길고 자세하게 써줄래? 1.숙소를 추천하는 이유: , 2.호텔 내부: , 3.룸 타입: , 4.어메니티: , 5.조식: , 6.부대시설: , 7.외관: , 8.인테리어: , 9.숙박 경험:";
             return prompt1;
         }
 
@@ -881,7 +881,7 @@ namespace Web_Automation_WordPress_2
         {
             var client = new WordPressClient(WP_URL);
             client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
-            string tags = "'" + hotelName + " 숙박 후기" + "'" + "을 포함한 인기 검색어 7개를 ','로 구분해서 알려줘";
+            string tags = "'" + hotelName + " 숙박 후기" + "'" + "을 포함한 인기 검색어 5개를 ','로 구분해서 알려줘";
             string tagResult = "";
             try
             {
@@ -1099,7 +1099,7 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"이미지 & 내용 패턴 변경 시작..." + Environment.NewLine);
                 List<string> result_ImgList = await ImagesAsyncList(); // selectedFolder 안의 이미지들을 <img src=\"{createdMedia.SourceUrl}\"> 형식으로 List
                 string content = AddImagesToContent(result_GPT, result_ImgList); //resultText 사이에 resultImgList의 string값을 잘 넣어주면됨
-                string head_2 = $"<h2>{hotelName + " " + addTitleBox1.Text + " 베스트 숙소 추천 숙박 후기"}</h2>";
+                string head_2 = $"<h2>{hotelName + " " + addTitleBox1.Text + " 베스트 숙소추천 숙박후기"}</h2>";
                 LogBox1.AppendText($"이미지 & 내용 패턴 변경 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
@@ -1138,7 +1138,7 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"워드프레스 업로드 시작" + Environment.NewLine);
                 var post = new Post()
                 {
-                    Title = new Title(hotelName + " " + addTitleBox1.Text + " 베스트 숙소추천 숙박후기"), // TitleBox1.Text
+                    Title = new Title(hotelName + " " + addTitleBox1.Text + " 숙박후기"), // TitleBox1.Text
                     Content = new Content(head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
                     FeaturedMedia = result_thumbNail, // 썸네일
                     Categories = new List<int> { result_Categories }, // ComboBox에서 선택한 카테고리 ID 설정
