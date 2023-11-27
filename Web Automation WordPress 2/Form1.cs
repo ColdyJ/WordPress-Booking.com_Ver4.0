@@ -15,8 +15,10 @@ using HtmlAgilityPack;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 using System.Drawing.Text;
 using System.Drawing.Drawing2D;
-using System.Drawing;
 using OfficeOpenXml;
+using Google.Apis.Services;
+using Google.Apis.Translate.v2.Data;
+using Google.Apis.Translate.v2;
 
 namespace Web_Automation_WordPress_2
 {
@@ -99,10 +101,12 @@ namespace Web_Automation_WordPress_2
 
                         await WP_API_Auto();
                         Delay();
+
                         DeleteHotelList();  // 엑셀 첫번째 행 삭제
                         DeleteAllJpgFilesInFolder(selectedFolder); // 폴더 내 사진 삭제
-                        DelayHr();
                         LogBox1.AppendText($"{count}번 포스팅 완료" + Environment.NewLine);
+
+                        DelayHr();
                         count++;
                     }
                 }
@@ -585,32 +589,34 @@ namespace Web_Automation_WordPress_2
                 var reviewNodes = doc.DocumentNode.SelectNodes("//div[@class='a53cbfa6de b5726afd0b']"); // reviews를 여러 요소로 선택
                 if (reviewNodes != null)
                 {
-                    // reviewCount가 5 미만인 경우 reviewCount만큼 출력
+                    // reviewCount가 9 미만인 경우 reviewCount만큼 출력
                     int reviewCount = reviewNodes.Count;
-                    int maxReviewsToDisplay = Math.Min(5, reviewCount);
+                    int maxReviewsToDisplay = Math.Min(9, reviewCount);
 
-                    if (reviewCount < 5)
+                    if (reviewCount < 9)
                     {
                         for (int i = 0; i < maxReviewsToDisplay; i++)
                         {
                             // reviewNodes에서 리뷰 가져오기
                             var reviewNode = reviewNodes[i];
                             string additionalReview = reviewNode.InnerText.Trim();
+                            translation = Google_Trans(additionalReview); // $"#{i} " +
 
                             // 리뷰 목록에 저장
-                            additionalReviews.Add(additionalReview);
+                            additionalReviews.Add(translation);
                         }
                     }
                     else
                     {
-                        for (int i = 0; i < 5; i++)
+                        for (int i = 0; i < 9; i++)
                         {
                             // reviewNodes에서 리뷰 가져오기
                             var reviewNode = reviewNodes[i];
                             string additionalReview = reviewNode.InnerText.Trim();
+                            translation = Google_Trans(additionalReview);
 
                             // 리뷰 목록에 저장
-                            additionalReviews.Add(additionalReview);
+                            additionalReviews.Add(translation);
                         }
                     }
                 }
@@ -1207,45 +1213,87 @@ namespace Web_Automation_WordPress_2
         {
             string translatedText = "";
 
-            //요청 URL
-            string url = "https://openapi.naver.com/v1/papago/n2mt";
+            try
+            {
+                //요청 URL
+                string url = "https://openapi.naver.com/v1/papago/n2mt";
 
-            // 파라미터에 값넣기 (파파고 NMT API가이드에서 -d부분이 파라미터)
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                // 파라미터에 값넣기 (파파고 NMT API가이드에서 -d부분이 파라미터)
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
 
-            // 헤더 추가하기 + 서버에 요청
-            request.Headers.Add("X-Naver-Client-Id", "3nH6qrBF9E2Rxf17oim1");
-            request.Headers.Add("X-Naver-Client-Secret", "Da8uQylPSd");
-            request.Method = "POST";
-            request.ContentType = "application/x-www-form-urlencoded";
+                // 헤더 추가하기 + 서버에 요청
+                request.Headers.Add("X-Naver-Client-Id", "3nH6qrBF9E2Rxf17oim1");
+                request.Headers.Add("X-Naver-Client-Secret", "Da8uQylPSd");
+                request.Method = "POST";
+                request.ContentType = "application/x-www-form-urlencoded";
 
-            // 파라미터를 character Set에 맞게 변경
-            string query = prompt2;
-            byte[] byteDataParams = Encoding.UTF8.GetBytes("source=ko&target=en&text=" + query);
+                // 파라미터를 character Set에 맞게 변경
+                string query = prompt2;
+                byte[] byteDataParams = Encoding.UTF8.GetBytes("source=ko&target=en&text=" + query);
 
-            // 요청 데이터 길이
-            request.ContentLength = byteDataParams.Length;
-            Stream st = request.GetRequestStream();
-            st.Write(byteDataParams, 0, byteDataParams.Length);
-            st.Close();
+                // 요청 데이터 길이
+                request.ContentLength = byteDataParams.Length;
+                Stream st = request.GetRequestStream();
+                st.Write(byteDataParams, 0, byteDataParams.Length);
+                st.Close();
 
-            // 응답 데이터 가져오기 (출력포맷)
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            Stream stream = response.GetResponseStream();
-            StreamReader reader = new StreamReader(stream, Encoding.UTF8);
-            string text = reader.ReadToEnd();
-            stream.Close();
-            response.Close();
-            reader.Close();
-            Console.WriteLine(text);
+                // 응답 데이터 가져오기 (출력포맷) // 여기에 에러가 생기네
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                Stream stream = response.GetResponseStream();
+                StreamReader reader = new StreamReader(stream, Encoding.UTF8);
+                string text = reader.ReadToEnd();
+                stream.Close();
+                response.Close();
+                reader.Close();
+                Console.WriteLine(text);
 
-            // JSON 출력포맷에서 피요한 부분(번역된 문장)만 가져오기
-            JObject jObject = JObject.Parse(text);
-            translatedText = jObject["message"]["result"]["translatedText"].ToString();
-            return translatedText;
+                // JSON 출력포맷에서 피요한 부분(번역된 문장)만 가져오기
+                JObject jObject = JObject.Parse(text);
+                translatedText = jObject["message"]["result"]["translatedText"].ToString();
+                return translatedText;
+            }
+            catch (Exception ex)
+            {
+                LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+                return null;
+            }
         }
 
+        private string Google_Trans(string prompt2)
+        {
+            TranslateService service = new TranslateService(new BaseClientService.Initializer()
+            {
+                ApiKey = "AIzaSyAnHzeNRM0qu_meS7GRfjaTz3QUm8vhJG8", // 여기만 바꾸면 됨.
+                ApplicationName = " "
+            });
 
+            string Original_string = prompt2; // 해당 글 번역 요청
+            string translatedText = ""; //번역된 텍스트
+
+            try
+            {
+                try
+                {
+                    //번역 요청 , Original_string는 언어 자동 감지
+                    TranslationsListResponse response = service.Translations.List(Original_string, "ko").Execute();
+                    //번역 결과
+                    translatedText = response.Translations[0].TranslatedText;
+
+                    return translatedText;
+
+                }
+                catch (Exception ex)
+                {
+                    LogBox1.AppendText($"오류 발생 #1: {ex.Message}" + Environment.NewLine);
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogBox1.AppendText($"오류 발생 #2: {ex.Message}" + Environment.NewLine);
+                return null;
+            }
+        }
 
 
 

@@ -92,9 +92,9 @@
             // 
             groupBox1.Controls.Add(LogBox1);
             groupBox1.Font = new Font("맑은 고딕", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
-            groupBox1.Location = new Point(11, 433);
+            groupBox1.Location = new Point(11, 365);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(649, 151);
+            groupBox1.Size = new Size(649, 219);
             groupBox1.TabIndex = 999;
             groupBox1.TabStop = false;
             groupBox1.Text = "작업로그";
@@ -108,7 +108,7 @@
             LogBox1.Multiline = true;
             LogBox1.Name = "LogBox1";
             LogBox1.ReadOnly = true;
-            LogBox1.Size = new Size(633, 119);
+            LogBox1.Size = new Size(633, 187);
             LogBox1.TabIndex = 0;
             // 
             // HotelUrlBox1
