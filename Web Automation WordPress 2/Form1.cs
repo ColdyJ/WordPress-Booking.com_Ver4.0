@@ -105,7 +105,8 @@ namespace Web_Automation_WordPress_2
                         DeleteHotelList();  // 엑셀 첫번째 행 삭제
                         DeleteAllJpgFilesInFolder(selectedFolder); // 폴더 내 사진 삭제
                         LogBox1.AppendText($"{count}번 포스팅 완료" + Environment.NewLine);
-
+                        DateTime currentTime = DateTime.Now; // 현재 시간을 가져와서 출력
+                        LogBox1.AppendText("업로드 시간: " + currentTime + Environment.NewLine);
                         DelayHr();
                         count++;
                     }
@@ -600,7 +601,7 @@ namespace Web_Automation_WordPress_2
                             // reviewNodes에서 리뷰 가져오기
                             var reviewNode = reviewNodes[i];
                             string additionalReview = reviewNode.InnerText.Trim();
-                            translation = Google_Trans(additionalReview); // $"#{i} " +
+                            translation = Google_Trans(additionalReview,"ko"); // $"#{i} " +
 
                             // 리뷰 목록에 저장
                             additionalReviews.Add(translation);
@@ -613,7 +614,7 @@ namespace Web_Automation_WordPress_2
                             // reviewNodes에서 리뷰 가져오기
                             var reviewNode = reviewNodes[i];
                             string additionalReview = reviewNode.InnerText.Trim();
-                            translation = Google_Trans(additionalReview);
+                            translation = Google_Trans(additionalReview, "ko");
 
                             // 리뷰 목록에 저장
                             additionalReviews.Add(translation);
@@ -625,7 +626,7 @@ namespace Web_Automation_WordPress_2
                 try
                 {
                     hotelName = names[0].InnerText.Trim();
-                    string info = infos[0].InnerText.Trim();
+                    string info = Google_Trans(infos[0].InnerText.Trim(), "ko"); // 숙소 정보를 한글로 강제화
                     string checkinTime = checkinTimes[0].InnerText.Trim();
                     string checkoutTime = checkoutTimes[0].InnerText.Trim();
                     string point = "정보 없음";
@@ -641,7 +642,7 @@ namespace Web_Automation_WordPress_2
                     // 결과 출력
                     Console.WriteLine(combinedInfo);
 
-                    // 썸네일 추출, 편집
+                    // 썸네일 편집
                     HtmlNode imgNode = doc.DocumentNode.SelectSingleNode("//a[@class='bh-photo-grid-item bh-photo-grid-photo1 active-image ']/img");
                     if (imgNode != null)
                     {
@@ -696,7 +697,8 @@ namespace Web_Automation_WordPress_2
                         }
                         catch (Exception ex)
                         {
-                            LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+                            LogBox1.AppendText($"썸네일 편집 오류 발생: {ex.Message}" + Environment.NewLine);
+                            throw;
                         }
                     }
 
@@ -704,8 +706,8 @@ namespace Web_Automation_WordPress_2
                 }
                 catch (Exception ex)
                 {
-                    LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
-                    return combinedInfo;
+                    LogBox1.AppendText($"호텔 정보 추출 오류 발생: {ex.Message}" + Environment.NewLine);
+                    throw;
                 }
             }
         }
@@ -759,18 +761,25 @@ namespace Web_Automation_WordPress_2
             var client = new WordPressClient(WP_URL);
             client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
             string responseImg = "";
+            string shortenedName = hotelName;
             try
             {
-                //translation = Papago(hotelName + " 대표 사진");
+                if (shortenedName.Length > 15)
+                {
+                    shortenedName = hotelName.Substring(0, Math.Min(15, hotelName.Length)); // 호텔명이 너무 길때 최대 15자까지 자르도록 함
+                } 
+                translation = Google_Trans(shortenedName + " Thumnail", "en");
+
                 string localThumnailPath = Path.Combine(selectedFolder, $"EditedThum_1.jpg"); // 이미지 파일 경로 가져오기
-                var createdThumMedia = await client.Media.CreateAsync(localThumnailPath, $"{hotelName}.jpg"); // localImagePath로 media({translation}.jpg) 생성
+                var createdThumMedia = await client.Media.CreateAsync(localThumnailPath, $"{translation}.jpg"); // localImagePath로 media({translation}.jpg) 생성
                 responseImg = $"<img class=\"aligncenter\" src=\"{createdThumMedia.SourceUrl}\">"; // createdMedia에서 변환 시켰으니 img src로 변경
                 result_thumbNail = createdThumMedia.Id;
             }
             catch (Exception ex)
             {
                 // 오류 처리 - 예외가 발생한 경우 처리
-                LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+                LogBox1.AppendText($"썸네일 등록 오류 발생: {ex.Message}" + Environment.NewLine);
+                throw;
             }
             return responseImg; // 이미지 업로드 결과를 리스트로 반환
 
@@ -830,7 +839,6 @@ namespace Web_Automation_WordPress_2
         {
             var client = new WordPressClient(WP_URL);
             client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
-            //translation = Papago(hotelName + " 숙박 후기");
             int count = 0, i = 1;
             List<string> responseImgList = new List<string>(); // 이미지 업로드 결과를 저장할 리스트
 
@@ -840,7 +848,7 @@ namespace Web_Automation_WordPress_2
                 string localImagePath = Path.Combine(selectedFolder, $"{i}.jpg");
                 if (File.Exists(localImagePath))
                 {
-                    var createdMedia = await client.Media.CreateAsync(localImagePath, $"{hotelName + '_' + i}.jpg"); // localImagePath로 media({translation}.jpg) 생성
+                    var createdMedia = await client.Media.CreateAsync(localImagePath, $"{translation + '_' + i}.jpg"); // localImagePath로 media({translation}.jpg) 생성
                     string responseImg = $"<img class=\"aligncenter\" src=\"{createdMedia.SourceUrl}\">"; // createdMedia에서 변환 시켰으니 img src로 변경
                     responseImgList.Add(responseImg);
                     count++;
@@ -942,7 +950,7 @@ namespace Web_Automation_WordPress_2
                 postLinks.RemoveAt(index); // 중복 선택 방지를 위해 선택한 Link 값을 리스트에서 제거합니다.
             }
             // 선택된 Link 값을 oldposts 문자열에 추가합니다.
-            oldPostsLinks = string.Join("\r\n", selectedLinks); // 각 링크를 개행 문자로 구분
+            oldPostsLinks = string.Join("\r\n", "<p>"+selectedLinks); // 각 링크를 개행 문자로 구분
 
             return addOldPostLinks + "<p>&nbsp;</p>" + oldPostsLinks;
         }
@@ -1068,8 +1076,9 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
                 LogBox1.AppendText($"호텔 정보 추가..." + Environment.NewLine);
                 string result_Hotel = await GetHotelInfoAsync();
+                LogBox1.AppendText($"호텔 썸네일 등록..." + Environment.NewLine);
                 string result_ThumnailImg = await ThumnailAsync(); // 썸네일 등록id 및 img src
-                LogBox1.AppendText($"호텔 정보 추가 완료..." + Environment.NewLine);
+                LogBox1.AppendText($"호텔 추가 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
 
@@ -1208,7 +1217,7 @@ namespace Web_Automation_WordPress_2
             return result;
         }
 
-
+        // Source language의 자동 언어감지가 안되서 명확할때만 사용해야 할듯
         private string Papago(string prompt2)
         {
             string translatedText = "";
@@ -1259,7 +1268,7 @@ namespace Web_Automation_WordPress_2
             }
         }
 
-        private string Google_Trans(string prompt2)
+        private string Google_Trans(string prompt2,string targetlang)
         {
             TranslateService service = new TranslateService(new BaseClientService.Initializer()
             {
@@ -1275,7 +1284,7 @@ namespace Web_Automation_WordPress_2
                 try
                 {
                     //번역 요청 , Original_string는 언어 자동 감지
-                    TranslationsListResponse response = service.Translations.List(Original_string, "ko").Execute();
+                    TranslationsListResponse response = service.Translations.List(Original_string, targetlang).Execute();
                     //번역 결과
                     translatedText = response.Translations[0].TranslatedText;
 
