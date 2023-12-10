@@ -946,11 +946,11 @@ namespace Web_Automation_WordPress_2
             {
                 int index = random.Next(postLinks.Count); // 랜덤한 인덱스 선택
                 string selectedLink = postLinks[index]; // 선택된 Link 값
-                selectedLinks.Add(selectedLink);
+                selectedLinks.Add(selectedLink+ "<br>");
                 postLinks.RemoveAt(index); // 중복 선택 방지를 위해 선택한 Link 값을 리스트에서 제거합니다.
             }
             // 선택된 Link 값을 oldposts 문자열에 추가합니다.
-            oldPostsLinks = string.Join("\r\n", "<p>"+selectedLinks); // 각 링크를 개행 문자로 구분
+            oldPostsLinks = string.Join("\r\n", selectedLinks); // 각 링크를 개행 문자로 구분
 
             return addOldPostLinks + "<p>&nbsp;</p>" + oldPostsLinks;
         }
@@ -984,13 +984,13 @@ namespace Web_Automation_WordPress_2
                 string tripadvLink = $"▶트립어드바이저 최저가 검색◀"; // 
                 string yanoljaLink = $"▶야놀자 최저가 검색◀"; // 
 
-                string agodaHtml = $"<a title=\"{agodaLink}\" href=\"{urls[0]}\">&nbsp;{agodaLink}</a>";
-                string hotelscomHtml = $"<a title=\"{hotelscomLink}\" href=\"{urls[1]}\">&nbsp;{hotelscomLink}</a>";
-                string expediaHtml = $"<a title=\"{expediaLink}\" href=\"{urls[2]}\">&nbsp;{expediaLink}</a>";
-                string tripcomHtml = $"<a title=\"{tripcomLink}\" href=\"{urls[3]}\">&nbsp;{tripcomLink}</a>";
-                string hotelcombineHtml = $"<a title=\"{hotelcombineLink}\" href=\"{urls[4]}\">&nbsp;{hotelcombineLink}</a>";
-                string tripadvHtml = $"<a title=\"{tripadvLink}\" href=\"{urls[5]}\">&nbsp;{tripadvLink}</a>";
-                string yanoljaHtml = $"<a title=\"{yanoljaLink}\" href=\"{urls[6]}\">&nbsp;{yanoljaLink}</a>";
+                string agodaHtml = $"<a title=\"{agodaLink}\" href=\"{urls[0]}\">&nbsp;{agodaLink}</a><br>";
+                string hotelscomHtml = $"<a title=\"{hotelscomLink}\" href=\"{urls[1]}\">&nbsp;{hotelscomLink}</a><br>";
+                string expediaHtml = $"<a title=\"{expediaLink}\" href=\"{urls[2]}\">&nbsp;{expediaLink}</a><br>";
+                string tripcomHtml = $"<a title=\"{tripcomLink}\" href=\"{urls[3]}\">&nbsp;{tripcomLink}</a><br>";
+                string hotelcombineHtml = $"<a title=\"{hotelcombineLink}\" href=\"{urls[4]}\">&nbsp;{hotelcombineLink}</a><br>";
+                string tripadvHtml = $"<a title=\"{tripadvLink}\" href=\"{urls[5]}\">&nbsp;{tripadvLink}</a><br>";
+                string yanoljaHtml = $"<a title=\"{yanoljaLink}\" href=\"{urls[6]}\">&nbsp;{yanoljaLink}</a><br>";
 
                 // 선택된 URL을 outlinks 문자열에 추가
                 string[] selectedOutLinks = new string[] { agodaHtml, hotelscomHtml, expediaHtml, tripcomHtml, hotelcombineHtml, tripadvHtml, yanoljaHtml };
@@ -1050,7 +1050,7 @@ namespace Web_Automation_WordPress_2
         private async Task<string> AddGPTToExcerptAsync(string result_GPT)
         {
             string result = "";
-            string prompt1 = "아래 내용을 요약해줘 \n\r" + result_GPT; // GPT Prompt 전달
+            string prompt1 = "아래 내용을 한글로 요약해줘 \n\r" + result_GPT; // GPT Prompt 전달
             try
             {
                 result = await RequestGPT(prompt1); // GPT에 요청하고 결과를 얻습니다.
