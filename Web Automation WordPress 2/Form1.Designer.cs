@@ -64,6 +64,8 @@
             button1 = new Button();
             CategoryBox1 = new TextBox();
             label7 = new Label();
+            WP_checkBox = new CheckBox();
+            BS_checkBox = new CheckBox();
             groupBox1.SuspendLayout();
             groupBox7.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -373,6 +375,8 @@
             // 
             // groupBox10
             // 
+            groupBox10.Controls.Add(BS_checkBox);
+            groupBox10.Controls.Add(WP_checkBox);
             groupBox10.Controls.Add(label6);
             groupBox10.Controls.Add(label4);
             groupBox10.Controls.Add(addTitleBox1);
@@ -509,6 +513,26 @@
             label7.TabIndex = 1001;
             label7.Text = "카테고리*:";
             // 
+            // WP_checkBox
+            // 
+            WP_checkBox.AutoSize = true;
+            WP_checkBox.Location = new Point(9, 294);
+            WP_checkBox.Name = "WP_checkBox";
+            WP_checkBox.Size = new Size(89, 19);
+            WP_checkBox.TabIndex = 1015;
+            WP_checkBox.Text = "WordPress";
+            WP_checkBox.UseVisualStyleBackColor = true;
+            // 
+            // BS_checkBox
+            // 
+            BS_checkBox.AutoSize = true;
+            BS_checkBox.Location = new Point(9, 320);
+            BS_checkBox.Name = "BS_checkBox";
+            BS_checkBox.Size = new Size(79, 19);
+            BS_checkBox.TabIndex = 1016;
+            BS_checkBox.Text = "BlogSpot";
+            BS_checkBox.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -577,5 +601,7 @@
         private Label label6;
         private Label label4;
         private TextBox addTitleBox1;
+        private CheckBox BS_checkBox;
+        private CheckBox WP_checkBox;
     }
 }

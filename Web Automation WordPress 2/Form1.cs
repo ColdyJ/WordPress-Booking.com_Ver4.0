@@ -19,6 +19,9 @@ using OfficeOpenXml;
 using Google.Apis.Services;
 using Google.Apis.Translate.v2.Data;
 using Google.Apis.Translate.v2;
+using Google.Apis.Blogger.v3;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Blogger.v3.Data;
 
 namespace Web_Automation_WordPress_2
 {
@@ -601,7 +604,7 @@ namespace Web_Automation_WordPress_2
                             // reviewNodes에서 리뷰 가져오기
                             var reviewNode = reviewNodes[i];
                             string additionalReview = reviewNode.InnerText.Trim();
-                            translation = Google_Trans(additionalReview,"ko"); // $"#{i} " +
+                            translation = Google_Trans(additionalReview, "ko"); // $"#{i} " +
 
                             // 리뷰 목록에 저장
                             additionalReviews.Add(translation);
@@ -755,7 +758,7 @@ namespace Web_Automation_WordPress_2
             return maphtml;
         }
 
-        // 썸네일 등록
+        // 썸네일 등록 
         private async Task<string> ThumnailAsync()
         {
             var client = new WordPressClient(WP_URL);
@@ -767,7 +770,7 @@ namespace Web_Automation_WordPress_2
                 if (shortenedName.Length > 15)
                 {
                     shortenedName = hotelName.Substring(0, Math.Min(15, hotelName.Length)); // 호텔명이 너무 길때 최대 15자까지 자르도록 함
-                } 
+                }
                 translation = Google_Trans(shortenedName + " Thumnail", "en");
 
                 string localThumnailPath = Path.Combine(selectedFolder, $"EditedThum_1.jpg"); // 이미지 파일 경로 가져오기
@@ -946,7 +949,7 @@ namespace Web_Automation_WordPress_2
             {
                 int index = random.Next(postLinks.Count); // 랜덤한 인덱스 선택
                 string selectedLink = postLinks[index]; // 선택된 Link 값
-                selectedLinks.Add(selectedLink+ "<br>");
+                selectedLinks.Add(selectedLink + "<br>");
                 postLinks.RemoveAt(index); // 중복 선택 방지를 위해 선택한 Link 값을 리스트에서 제거합니다.
             }
             // 선택된 Link 값을 oldposts 문자열에 추가합니다.
@@ -1151,7 +1154,7 @@ namespace Web_Automation_WordPress_2
                 //WP 업로드 
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
                 LogBox1.AppendText($"워드프레스 업로드 시작" + Environment.NewLine);
-                var post = new Post()
+                var post = new WordPressPCL.Models.Post()
                 {
                     Title = new Title(hotelName + " " + addTitleBox1.Text + " 숙박후기"), // TitleBox1.Text
                     Content = new Content(head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
@@ -1173,6 +1176,161 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
             }
         }
+
+
+
+
+
+
+
+
+
+
+        public async Task BS_API_Auto()
+        {
+            // 서비스 계정 키를 설정합니다.
+            GoogleCredential credential;
+            using (var stream = new FileStream("service_account_key.json", FileMode.Open, FileAccess.Read))
+            {
+                credential = GoogleCredential.FromStream(stream)
+                    .CreateScoped(BloggerService.Scope.Blogger);
+            }
+
+            // Blogger API 개체를 만듭니다.
+            var service = new BloggerService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential
+            });
+
+            // 블로그를 가져옵니다.
+            var blog = service.Blogs.Get("my-blog-id").Execute();
+
+
+
+            try
+            {
+                // 호텔 정보
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+                LogBox1.AppendText($"호텔 정보 추가..." + Environment.NewLine);
+                string result_Hotel = await GetHotelInfoAsync();
+                LogBox1.AppendText($"호텔 썸네일 등록..." + Environment.NewLine);
+                string result_ThumnailImg = await ThumnailAsync(); // 썸네일 등록id 및 img src
+                LogBox1.AppendText($"호텔 추가 완료..." + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+                // 이미지 크롤링
+                LogBox1.AppendText($"이미지 크롤링 시작..." + Environment.NewLine);
+                Auto_Crawling();
+                LogBox1.AppendText($"이미지 크롤링 완료..." + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+                // 구글 지도
+                LogBox1.AppendText($"구글 지도 추가..." + Environment.NewLine);
+                string result_GoogleMap = await google_map();
+                LogBox1.AppendText($"구글 지도 추가 완료..." + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+                // 카테고리 출력
+                LogBox1.AppendText($"카테고리 분류 시작..." + Environment.NewLine);
+                int result_Categories = await AddCategoriesAsync(); // 완료
+                LogBox1.AppendText($"카테고리 분류 완료" + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+                // GPT 본문 출력
+                LogBox1.AppendText($"GPT 출력 시작..." + Environment.NewLine);
+                string result_GPT = await AddGPTToContentAsync(); // 완료
+                LogBox1.AppendText($"GPT 출력 완료..." + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+                // GPT 본문 + 이미지 가공
+                LogBox1.AppendText($"이미지 & 내용 패턴 변경 시작..." + Environment.NewLine);
+                List<string> result_ImgList = await ImagesAsyncList(); // selectedFolder 안의 이미지들을 <img src=\"{createdMedia.SourceUrl}\"> 형식으로 List
+                string content = AddImagesToContent(result_GPT, result_ImgList); //resultText 사이에 resultImgList의 string값을 잘 넣어주면됨
+                string head_2 = $"<h2>{hotelName + " " + addTitleBox1.Text + " 베스트 숙소추천 숙박후기"}</h2>";
+                LogBox1.AppendText($"이미지 & 내용 패턴 변경 완료..." + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+                // 지난 포스팅 링크 추출
+                LogBox1.AppendText($"지난 포스팅 링크 추출..." + Environment.NewLine);
+                string result_OldPostLinks = await AddOldPostAsync(); // 완료
+                LogBox1.AppendText($"지난 포스팅 링크 추출 완료" + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+                // 외부 링크 입력
+                LogBox1.AppendText($"외부 링크 추출..." + Environment.NewLine);
+                string result_OutLinks = AddOutLinksAsync(); // 완료
+                string result_OutBanners = AddOutBannersAsync(); // 완료
+                LogBox1.AppendText($"외부 링크 추출 완료" + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+                // 태그 생성 (GPT)
+                LogBox1.AppendText($"태그 생성중..." + Environment.NewLine + Environment.NewLine);
+                int result_TagId = await AddTagAsync(); // 완료
+                LogBox1.AppendText($"태그 생성 완료..." + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+                // 요약 요청 (GPT)
+                LogBox1.AppendText($"요약중..." + Environment.NewLine);
+                string result_Excerpt = await AddGPTToExcerptAsync(result_GPT); // 완료
+                LogBox1.AppendText($"요약 완료..." + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+                //WP 업로드 
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+                LogBox1.AppendText($"워드프레스 업로드 시작" + Environment.NewLine);
+                var post = new Google.Apis.Blogger.v3.Data.Post()
+                {
+                    Title = hotelName + " " + addTitleBox1.Text + " 숙박후기", // TitleBox1.Text
+                    Content = head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_OldPostLinks,
+                    ETag = "",
+                    Published = "",
+                    Status = "",
+                    
+                    //FeaturedMedia = result_thumbNail, // 썸네일
+                    //Categories = new List<int> { result_Categories }, // ComboBox에서 선택한 카테고리 ID 설정
+                    //CommentStatus = OpenStatus.Open, // 댓글 상태
+                    //Tags = new List<int> { result_TagId },
+                    //Status = Status.Publish, // 포스팅 상태 공개,임시
+                    //Excerpt = new Excerpt(result_Excerpt) // 발췌
+                    //Meta = new Description("테스트입니다"), // 메타 데이터
+                };
+                // 게시물을 게시합니다.
+                service.Posts.Insert(post, blog.Id).Execute();
+
+
+                LogBox1.AppendText($"글 본문 출력 완료" + Environment.NewLine);
+                LogBox1.AppendText($"워드프레스 업로드 완료" + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+            }
+            catch (Exception ex)
+            {
+                LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         private async Task<string> RequestGPT(string prompt1)
         {
@@ -1268,7 +1426,7 @@ namespace Web_Automation_WordPress_2
             }
         }
 
-        private string Google_Trans(string prompt2,string targetlang)
+        private string Google_Trans(string prompt2, string targetlang)
         {
             TranslateService service = new TranslateService(new BaseClientService.Initializer()
             {
