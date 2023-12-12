@@ -24,6 +24,7 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Blogger.v3.Data;
 using Google.Apis.Util.Store;
 using Google.Apis.Drive.v3;
+using WordPressPCL.Client;
 
 namespace Web_Automation_WordPress_2
 {
@@ -105,8 +106,7 @@ namespace Web_Automation_WordPress_2
                         if (HotelUrl == "") break; // 정지 조건
 
                         if (BS_checkBox.Checked) await BS_API_Auto();
-                        else if (WP_checkBox.Checked) await WP_API_Auto();
-                        else LogBox1.AppendText($"체크박스 확인" + Environment.NewLine);
+                        else await WP_API_Auto();
 
                         Delay();
 
@@ -358,8 +358,7 @@ namespace Web_Automation_WordPress_2
                 }
                 driver.Quit();
                 Rename(); // 사진 랜덤 재분배
-                LogBox1.AppendText($"이미지 크롤링 완료..." + Environment.NewLine);
-                LogBox1.AppendText($"===========================" + Environment.NewLine);
+                LogBox1.AppendText($"이미지 랜덤 재분배..." + Environment.NewLine);
             }
             catch (Exception ex)
             {
@@ -1197,14 +1196,14 @@ namespace Web_Automation_WordPress_2
             // 호텔명이 너무 길때 최대 15자까지 자르도록 함
             if (shortenedName.Length > 15)
             {
-                shortenedName = hotelName.Substring(0, Math.Min(15, hotelName.Length)); 
+                shortenedName = hotelName.Substring(0, Math.Min(15, hotelName.Length));
             }
             translation = Google_Trans(shortenedName + " Thumnail", "en");
 
             try
             {
                 //OAuth 2.0 인증 (첫 실행 시 인터넷창 켜짐)
-                string filePath = Path.Combine(selectedFolder, "client_secret_oauth.json");
+                string filePath = Path.Combine(selectedFolder, WP_PW);
                 UserCredential credential;
                 using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
                 {
@@ -1224,15 +1223,15 @@ namespace Web_Automation_WordPress_2
                 });
 
                 // Upload file photo.jpg on drive.
-                var fileMetadata = new Google.Apis.Drive.v3.Data.File() 
+                var fileMetadata = new Google.Apis.Drive.v3.Data.File()
                 {
                     Name = $"{translation}.jpg",
-                    Parents = new[] { "1_0E_EQ8Z-EIti_lzEtbvz61-XPwWqexe" } // 폴더 ID
+                    Parents = new[] { WP_ID } // 폴더 ID
                 };
 
                 // Create a new file on drive.
                 FilesResource.CreateMediaUpload request;
-                using (var stream = new FileStream(localThumnailPath, FileMode.Open)) 
+                using (var stream = new FileStream(localThumnailPath, FileMode.Open))
                 {
                     request = service.Files.Create(
                         fileMetadata, stream, "image/jpeg");
@@ -1240,10 +1239,11 @@ namespace Web_Automation_WordPress_2
                     request.UploadType = "media";
                     request.Upload();
                 }
-                var file = request.ResponseBody; 
+                var file = request.ResponseBody;
                 string fileid = file.Id;
                 //ThumbnailLink 미리보기 대화면 지원 , 본문에선 작게나옴
                 //WebContentLink 본문에서는 나옴, 미리보기 미지원 , 맨뒤 &export=download 삭제해도 미리보기 안나옴
+                //WebViewLink ?
                 string filelink = file.ThumbnailLink;
                 responseImg = $"<img class=\"aligncenter\" src=\"{filelink}\">"; // file로 변환 시켰으니 img src로 변경
             }
@@ -1254,17 +1254,14 @@ namespace Web_Automation_WordPress_2
                 throw;
             }
             return responseImg; // 이미지 업로드 결과를 리스트로 반환
-
         }
 
 
         // 이미지 업로드 결과저장 (BS)
         private async Task<List<string>> ImagesAsyncList_BS()
         {
-            // TODO : 구글 드라이브 API에 업로드 후 공유 URL을 긁어와서 IMG SRC로 변경 + 구글드라이브 사진은 업로드 후 삭제하도록
-
             //OAuth 2.0 인증 (첫 실행 시 인터넷창 켜짐)
-            string filePath = Path.Combine(selectedFolder, "client_secret_oauth.json");
+            string filePath = Path.Combine(selectedFolder, WP_PW);
             UserCredential credential;
             using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
             {
@@ -1294,7 +1291,7 @@ namespace Web_Automation_WordPress_2
                     var fileMetadata = new Google.Apis.Drive.v3.Data.File() // Upload file photo.jpg on drive.
                     {
                         Name = $"{translation + '_' + i}.jpg",
-                        Parents = new[] { "1_0E_EQ8Z-EIti_lzEtbvz61-XPwWqexe" } // 폴더 ID
+                        Parents = new[] { WP_ID } // 폴더 ID
                     };
 
                     FilesResource.CreateMediaUpload request;
@@ -1323,7 +1320,7 @@ namespace Web_Automation_WordPress_2
         // GPT로 Tag 출력 (BS)
         private async Task<string> AddTagAsync_BS()
         {
-            string tags = "'" + hotelName + " 숙박 후기" + "'" + "을 포함한 인기 검색어 5개를 ','로 구분해서 알려줘";
+            string tags = "'" + hotelName + " 숙박 후기" + "'" + "을 포함한 인기 검색어 3개를 ','로 구분해서 알려줘";
             string tagResult = "";
             try
             {
@@ -1344,22 +1341,38 @@ namespace Web_Automation_WordPress_2
         }
 
 
-        // 지난 포스팅 링크 추출 매서드
+        // 지난 포스팅 링크 추출 매서드 (BS)
         private async Task<string> AddOldPostAsync_BS()
         {
-            // TODO : Blogger API로 게시물 긁어오도록 변경
-            var client = new WordPressClient(WP_URL);
-            client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
-            var posts = await client.Posts.GetAllAsync();
+            //OAuth 2.0 인증 (첫 실행 시 인터넷창 켜짐)
+            string filePath = Path.Combine(selectedFolder, WP_PW);
+            UserCredential credential;
+            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
+                    GoogleClientSecrets.Load(stream).Secrets,
+                    new[] { "https://www.googleapis.com/auth/blogger" },
+                    "user",
+                    CancellationToken.None,
+                    new FileDataStore("Auth.Blogger")).Result;
+            }
+            // 구글 블로그 서비스 초기화
+            var service = new BloggerService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "Blog API",
+            });
+            var blog = service.Blogs.GetByUrl(UrlBox1.Text).Execute(); // 블로그 정보를 가져옵니다.
+            var posts = service.Posts.List(blog.Id).Execute();
 
             string addOldPostLinks = "<h3>다른 숙박 후기가 궁금하시다면 아래에 더 많은 내용이 있습니다 :) </h3>\r\n";
             string oldPostsLinks = ""; // 각 링크를 개행 문자로 구분
 
             List<string> postLinks = new List<string>(); // 포스트의 Link 값을 저장할 리스트를 만듭니다.
-            foreach (var postli in posts)
+            foreach (var postli in posts.Items)
             {
-                string postLink = postli.Link; // 포스트의 Link 값을 추출
-                string postTitle = postli.Title.Rendered; // 게시물의 제목을 가져옵니다.
+                string postLink = postli.Url; // 포스트의 Link 값을 추출
+                string postTitle = postli.Title; // 게시물의 제목을 가져옵니다.
                 string linkHtml = $"<a title=\"{postTitle}\" href=\"{postLink}\">&nbsp;▶{postTitle}</a>";
                 postLinks.Add(linkHtml);
             }
@@ -1379,14 +1392,12 @@ namespace Web_Automation_WordPress_2
             return addOldPostLinks + "<p>&nbsp;</p>" + oldPostsLinks;
         }
 
-
-
+        // 블로그스팟 API 사용 및 업로드
         public async Task BS_API_Auto()
         {
-            string filePath = Path.Combine(selectedFolder, "client_secret_oauth.json");
-            //OAuth 2.0 자격증명
-            UserCredential credential;
             //OAuth 2.0 인증 (첫 실행 시 인터넷창 켜짐)
+            string filePath = Path.Combine(selectedFolder, WP_PW);
+            UserCredential credential;
             using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
             {
                 credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
@@ -1428,6 +1439,7 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"구글 지도 추가 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
+
                 // GPT 본문 출력
                 LogBox1.AppendText($"GPT 출력 시작..." + Environment.NewLine);
                 string result_GPT = await AddGPTToContentAsync(); // 완료
@@ -1446,7 +1458,7 @@ namespace Web_Automation_WordPress_2
 
                 // 지난 포스팅 링크 추출
                 LogBox1.AppendText($"지난 포스팅 링크 추출..." + Environment.NewLine);
-                //string result_OldPostLinks = await AddOldPostAsync_BS(); // 완료
+                string result_OldPostLinks = await AddOldPostAsync_BS(); // 완료
                 LogBox1.AppendText($"지난 포스팅 링크 추출 완료" + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
@@ -1479,7 +1491,7 @@ namespace Web_Automation_WordPress_2
                 var post = new Google.Apis.Blogger.v3.Data.Post()
                 {
                     Title = hotelName + " " + addTitleBox1.Text + " 숙박후기", // TitleBox1.Text
-                    Content = head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" /* + result_OldPostLinks */,
+                    Content = head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_OldPostLinks,
                     Labels = new List<string>() { result_TagId }, // tag 기능
                 };
                 var blog = service.Blogs.GetByUrl(UrlBox1.Text).Execute(); // 블로그 정보를 가져옵니다.
@@ -1487,10 +1499,6 @@ namespace Web_Automation_WordPress_2
 
                 LogBox1.AppendText($"글 본문 출력 완료" + Environment.NewLine);
                 LogBox1.AppendText($"블로그스팟 업로드 완료" + Environment.NewLine);
-                LogBox1.AppendText($"===========================" + Environment.NewLine);
-
-                // TODO : 구글 드라이브 사진 전부 삭제 코드 , 지난 포스팅 긁어오는 코드
-                LogBox1.AppendText($"구글 드라이브 파일 정리" + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
             }
             catch (Exception ex)

@@ -54,6 +54,7 @@
             SystemBox1 = new TextBox();
             label5 = new Label();
             groupBox10 = new GroupBox();
+            BS_checkBox = new CheckBox();
             label6 = new Label();
             label4 = new Label();
             addTitleBox1 = new TextBox();
@@ -64,8 +65,6 @@
             button1 = new Button();
             CategoryBox1 = new TextBox();
             label7 = new Label();
-            WP_checkBox = new CheckBox();
-            BS_checkBox = new CheckBox();
             groupBox1.SuspendLayout();
             groupBox7.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -223,7 +222,7 @@
             groupBox2.Size = new Size(249, 48);
             groupBox2.TabIndex = 999;
             groupBox2.TabStop = false;
-            groupBox2.Text = "WP_URL(필수)";
+            groupBox2.Text = "WP_URL / BS_URL (필수)";
             // 
             // UrlBox1
             // 
@@ -271,7 +270,7 @@
             groupBox4.Size = new Size(249, 48);
             groupBox4.TabIndex = 999;
             groupBox4.TabStop = false;
-            groupBox4.Text = "WP_ID(필수)";
+            groupBox4.Text = "WP_ID / BS_FolderID (필수)";
             // 
             // IdBox1
             // 
@@ -295,7 +294,7 @@
             groupBox5.Size = new Size(249, 48);
             groupBox5.TabIndex = 999;
             groupBox5.TabStop = false;
-            groupBox5.Text = "WP_PW(필수)";
+            groupBox5.Text = "WP_PW / BS_OAuth Name (필수)";
             // 
             // PwBox1
             // 
@@ -376,7 +375,6 @@
             // groupBox10
             // 
             groupBox10.Controls.Add(BS_checkBox);
-            groupBox10.Controls.Add(WP_checkBox);
             groupBox10.Controls.Add(label6);
             groupBox10.Controls.Add(label4);
             groupBox10.Controls.Add(addTitleBox1);
@@ -403,6 +401,16 @@
             groupBox10.TabIndex = 1000;
             groupBox10.TabStop = false;
             groupBox10.Text = "포스팅 옵션_Ver 2.0";
+            // 
+            // BS_checkBox
+            // 
+            BS_checkBox.AutoSize = true;
+            BS_checkBox.Location = new Point(9, 320);
+            BS_checkBox.Name = "BS_checkBox";
+            BS_checkBox.Size = new Size(79, 19);
+            BS_checkBox.TabIndex = 1016;
+            BS_checkBox.Text = "BlogSpot";
+            BS_checkBox.UseVisualStyleBackColor = true;
             // 
             // label6
             // 
@@ -513,26 +521,6 @@
             label7.TabIndex = 1001;
             label7.Text = "카테고리*:";
             // 
-            // WP_checkBox
-            // 
-            WP_checkBox.AutoSize = true;
-            WP_checkBox.Location = new Point(9, 294);
-            WP_checkBox.Name = "WP_checkBox";
-            WP_checkBox.Size = new Size(89, 19);
-            WP_checkBox.TabIndex = 1015;
-            WP_checkBox.Text = "WordPress";
-            WP_checkBox.UseVisualStyleBackColor = true;
-            // 
-            // BS_checkBox
-            // 
-            BS_checkBox.AutoSize = true;
-            BS_checkBox.Location = new Point(9, 320);
-            BS_checkBox.Name = "BS_checkBox";
-            BS_checkBox.Size = new Size(79, 19);
-            BS_checkBox.TabIndex = 1016;
-            BS_checkBox.Text = "BlogSpot";
-            BS_checkBox.UseVisualStyleBackColor = true;
-            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -602,6 +590,5 @@
         private Label label4;
         private TextBox addTitleBox1;
         private CheckBox BS_checkBox;
-        private CheckBox WP_checkBox;
     }
 }
