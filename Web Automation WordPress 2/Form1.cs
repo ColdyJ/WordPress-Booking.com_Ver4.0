@@ -23,6 +23,7 @@ using Google.Apis.Blogger.v3;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Blogger.v3.Data;
 using Google.Apis.Util.Store;
+using Google.Apis.Drive.v3;
 
 namespace Web_Automation_WordPress_2
 {
@@ -811,8 +812,7 @@ namespace Web_Automation_WordPress_2
 
         private string GPT_Prompt(string prompt)
         {
-            string prompt1 = $"'{prompt}'에 관련된 블로그 글을 작성할거야. 이 템플릿에 맞춰서 아주 길고 자세하게 써줄래? 1.숙소를 추천하는 이유: , 2.호텔 내부: , 3.룸 타입: , 4.어메니티: , 5.조식: , 6.부대시설: , 7.외관: , 8.인테리어: , 9.숙박 경험:";
-            return prompt1;
+            string prompt1 = $"'{prompt}'에 관련된 블로그 글을 작성할거야. 아래 숫자로된 소제목에 맞춰서 아주 길고 자세하게 써줄래? 1.숙소를 추천하는 이유: , 2.호텔 내부: , 3.룸 타입: , 4.어메니티: , 5.조식: , 6.부대시설: , 7.외관: , 8.인테리어: , 9.숙박 경험:"; return prompt1;
         }
 
         // GPT 출력 내용 content로 가공
@@ -872,6 +872,7 @@ namespace Web_Automation_WordPress_2
         private string AddImagesToContent(string result_GPT, List<string> result_ImgList)
         {
             string pattern = @"\d+\.\s*[\p{L}\d\s]+(?::)?";  // 이미지를 넣을 자리 찾는 정규 표현식 패턴
+
             // result_GPT 문자열에서 정규 표현식 패턴과 일치하는 부분을 추출
             MatchCollection matches = Regex.Matches(result_GPT, pattern);
 
@@ -1182,30 +1183,69 @@ namespace Web_Automation_WordPress_2
         }
 
 
+        /*=============================================================================================================================================*/
 
 
-
-
+        static string[] Scopes = { DriveService.Scope.Drive };
         // 썸네일 등록 (BS)
         private async Task<string> ThumnailAsync_BS()
         {
-            // TODO : 따로 썸네일 등록하는 명령이 없으므로 구글 드라이브 API에 올릴때, 썸네일 파일 1개 지정해서 추가하도록 
-            var client = new WordPressClient(WP_URL);
-            client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
-            string responseImg = "";
+            string responseImg = null;
             string shortenedName = hotelName;
+            string localThumnailPath = Path.Combine(selectedFolder, $"EditedThum_1.jpg"); // 이미지 파일 경로 가져오기
+
+            // 호텔명이 너무 길때 최대 15자까지 자르도록 함
+            if (shortenedName.Length > 15)
+            {
+                shortenedName = hotelName.Substring(0, Math.Min(15, hotelName.Length)); 
+            }
+            translation = Google_Trans(shortenedName + " Thumnail", "en");
+
             try
             {
-                if (shortenedName.Length > 15)
+                //OAuth 2.0 인증 (첫 실행 시 인터넷창 켜짐)
+                string filePath = Path.Combine(selectedFolder, "client_secret_oauth.json");
+                UserCredential credential;
+                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
                 {
-                    shortenedName = hotelName.Substring(0, Math.Min(15, hotelName.Length)); // 호텔명이 너무 길때 최대 15자까지 자르도록 함
+                    credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
+                        GoogleClientSecrets.FromStream(stream).Secrets,
+                        Scopes,
+                        "user",
+                        CancellationToken.None,
+                        new FileDataStore("token_send.json", true)).Result;
                 }
-                translation = Google_Trans(shortenedName + " Thumnail", "en");
 
-                string localThumnailPath = Path.Combine(selectedFolder, $"EditedThum_1.jpg"); // 이미지 파일 경로 가져오기
-                var createdThumMedia = await client.Media.CreateAsync(localThumnailPath, $"{translation}.jpg"); // localImagePath로 media({translation}.jpg) 생성
-                responseImg = $"<img class=\"aligncenter\" src=\"{createdThumMedia.SourceUrl}\">"; // createdMedia에서 변환 시켰으니 img src로 변경
-                result_thumbNail = createdThumMedia.Id;
+                // Create Drive API service.
+                var service = new DriveService(new BaseClientService.Initializer()
+                {
+                    HttpClientInitializer = credential,
+                    ApplicationName = "Blog API"
+                });
+
+                // Upload file photo.jpg on drive.
+                var fileMetadata = new Google.Apis.Drive.v3.Data.File() 
+                {
+                    Name = $"{translation}.jpg",
+                    Parents = new[] { "1_0E_EQ8Z-EIti_lzEtbvz61-XPwWqexe" } // 폴더 ID
+                };
+
+                // Create a new file on drive.
+                FilesResource.CreateMediaUpload request;
+                using (var stream = new FileStream(localThumnailPath, FileMode.Open)) 
+                {
+                    request = service.Files.Create(
+                        fileMetadata, stream, "image/jpeg");
+                    request.Fields = "id, thumbnailLink";
+                    request.UploadType = "media";
+                    request.Upload();
+                }
+                var file = request.ResponseBody; 
+                string fileid = file.Id;
+                //ThumbnailLink 미리보기 대화면 지원 , 본문에선 작게나옴
+                //WebContentLink 본문에서는 나옴, 미리보기 미지원 , 맨뒤 &export=download 삭제해도 미리보기 안나옴
+                string filelink = file.ThumbnailLink;
+                responseImg = $"<img class=\"aligncenter\" src=\"{filelink}\">"; // file로 변환 시켰으니 img src로 변경
             }
             catch (Exception ex)
             {
@@ -1218,49 +1258,59 @@ namespace Web_Automation_WordPress_2
         }
 
 
-        // 이미지 업로드 결과저장 (WP)
+        // 이미지 업로드 결과저장 (BS)
         private async Task<List<string>> ImagesAsyncList_BS()
         {
             // TODO : 구글 드라이브 API에 업로드 후 공유 URL을 긁어와서 IMG SRC로 변경 + 구글드라이브 사진은 업로드 후 삭제하도록
-            string filePath = Path.Combine(selectedFolder, "client_secret_oauth.json");
-            //OAuth 2.0 자격증명
-            UserCredential credential;
+
             //OAuth 2.0 인증 (첫 실행 시 인터넷창 켜짐)
+            string filePath = Path.Combine(selectedFolder, "client_secret_oauth.json");
+            UserCredential credential;
             using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
             {
                 credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
-                    GoogleClientSecrets.Load(stream).Secrets,
-                    new[] { "https://www.googleapis.com/auth/blogger" },
+                    GoogleClientSecrets.FromStream(stream).Secrets,
+                    Scopes,
                     "user",
                     CancellationToken.None,
-                    new FileDataStore("Auth.Blogger")).Result;
+                    new FileDataStore("token_send.json", true)).Result;
             }
+
             // 구글 블로그 서비스 초기화
-            var service = new BloggerService(new BaseClientService.Initializer()
+            var service = new DriveService(new BaseClientService.Initializer()
             {
                 HttpClientInitializer = credential,
-                ApplicationName = "Blog API",
+                ApplicationName = "Blog API"
             });
 
             int count = 0, i = 1;
             List<string> responseImgList = new List<string>(); // 이미지 업로드 결과를 저장할 리스트
-
             while (count != 11) // 총 10장의 사진을 url로 리스트
             {
                 // 이미지 파일 경로 가져오기
                 string localImagePath = Path.Combine(selectedFolder, $"{i}.jpg");
                 if (File.Exists(localImagePath))
                 {
+                    var fileMetadata = new Google.Apis.Drive.v3.Data.File() // Upload file photo.jpg on drive.
+                    {
+                        Name = $"{translation + '_' + i}.jpg",
+                        Parents = new[] { "1_0E_EQ8Z-EIti_lzEtbvz61-XPwWqexe" } // 폴더 ID
+                    };
 
-
-
-                    /*
-                    var createdMedia = await client.Media.CreateAsync(localImagePath, $"{translation + '_' + i}.jpg"); // localImagePath로 media({translation}.jpg) 생성
-                    string responseImg = $"<img class=\"aligncenter\" src=\"{createdMedia.SourceUrl}\">"; // createdMedia에서 변환 시켰으니 img src로 변경
+                    FilesResource.CreateMediaUpload request;
+                    using (var stream = new FileStream(localImagePath, FileMode.Open)) // Create a new file, with metadata and stream.
+                    {
+                        request = service.Files.Create(
+                            fileMetadata, stream, "image/jpeg");
+                        request.Fields = "id, webContentLink";
+                        request.UploadType = "media";
+                        request.Upload();
+                    }
+                    var file = request.ResponseBody;
+                    string responseImg = $"<img class=\"aligncenter\" src=\"{file.WebContentLink}\">"; // file로 변환 시켰으니 img src로 변경
                     responseImgList.Add(responseImg);
                     count++;
                     i++;
-                    */
                 }
                 else
                 {
@@ -1270,7 +1320,7 @@ namespace Web_Automation_WordPress_2
             return responseImgList; // 이미지 업로드 결과를 리스트로 반환
         }
 
-        // GPT로 Tag 출력
+        // GPT로 Tag 출력 (BS)
         private async Task<string> AddTagAsync_BS()
         {
             string tags = "'" + hotelName + " 숙박 후기" + "'" + "을 포함한 인기 검색어 5개를 ','로 구분해서 알려줘";
@@ -1355,20 +1405,19 @@ namespace Web_Automation_WordPress_2
 
             try
             {
-
                 // 호텔 정보
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
                 LogBox1.AppendText($"호텔 정보 추가..." + Environment.NewLine);
                 string result_Hotel = await GetHotelInfoAsync();
                 LogBox1.AppendText($"호텔 썸네일 등록..." + Environment.NewLine);
-                //string result_ThumnailImg = await ThumnailAsync_BS(); // 썸네일 등록id 및 img src
+                string result_ThumnailImg = await ThumnailAsync_BS(); // 썸네일 등록id 및 img src
                 LogBox1.AppendText($"호텔 추가 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
 
                 // 이미지 크롤링
                 LogBox1.AppendText($"이미지 크롤링 시작..." + Environment.NewLine);
-                //Auto_Crawling();
+                Auto_Crawling();
                 LogBox1.AppendText($"이미지 크롤링 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
@@ -1388,8 +1437,8 @@ namespace Web_Automation_WordPress_2
 
                 // GPT 본문 + 이미지 가공
                 LogBox1.AppendText($"이미지 & 내용 패턴 변경 시작..." + Environment.NewLine);
-                //List<string> result_ImgList = await ImagesAsyncList_BS(); // selectedFolder 안의 이미지들을 <img src=\"{createdMedia.SourceUrl}\"> 형식으로 List
-                //string content = AddImagesToContent(result_GPT, result_ImgList); //resultText 사이에 resultImgList의 string값을 잘 넣어주면됨
+                List<string> result_ImgList = await ImagesAsyncList_BS(); // selectedFolder 안의 이미지들을 src=\"{file.WebContentLink}\" 형식으로 List
+                string content = AddImagesToContent(result_GPT, result_ImgList); //resultText 사이에 resultImgList의 string값을 잘 넣어주면됨
                 string head_2 = $"<h2>{hotelName + " " + addTitleBox1.Text + " 베스트 숙소추천 숙박후기"}</h2>";
                 LogBox1.AppendText($"이미지 & 내용 패턴 변경 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
@@ -1426,32 +1475,22 @@ namespace Web_Automation_WordPress_2
 
                 //BS 업로드 
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
-                LogBox1.AppendText($"블로그 스팟 업로드 시작" + Environment.NewLine);
+                LogBox1.AppendText($"블로그스팟 업로드 시작" + Environment.NewLine);
                 var post = new Google.Apis.Blogger.v3.Data.Post()
                 {
-                    Title = DateTime.Now.ToString() + " " + " - test", // TitleBox1.Text
-                    Content = head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" /* + result_ThumnailImg */ + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" /* + content */ + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" /* + result_OldPostLinks */,
+                    Title = hotelName + " " + addTitleBox1.Text + " 숙박후기", // TitleBox1.Text
+                    Content = head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" /* + result_OldPostLinks */,
                     Labels = new List<string>() { result_TagId }, // tag 기능
-                    
-                    //ETag = "Tag",
-                    //Published = "Publish",
-                    //Status = "live",
-                    
-                    /*
-                        Title = new Title(hotelName + " " + addTitleBox1.Text + " 숙박후기"), // TitleBox1.Text
-                        FeaturedMedia = result_thumbNail, // 썸네일
-                        CommentStatus = OpenStatus.Open, // 댓글 상태
-                        Status = Status.Publish, // 포스팅 상태 공개,임시
-                        //Meta = new Description("테스트입니다"), // 메타 데이터
-                    */
-
                 };
                 var blog = service.Blogs.GetByUrl(UrlBox1.Text).Execute(); // 블로그 정보를 가져옵니다.
                 service.Posts.Insert(post, blog.Id).Execute(); // 포스팅 요청 보내기
 
-
                 LogBox1.AppendText($"글 본문 출력 완료" + Environment.NewLine);
-                LogBox1.AppendText($"워드프레스 업로드 완료" + Environment.NewLine);
+                LogBox1.AppendText($"블로그스팟 업로드 완료" + Environment.NewLine);
+                LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+                // TODO : 구글 드라이브 사진 전부 삭제 코드 , 지난 포스팅 긁어오는 코드
+                LogBox1.AppendText($"구글 드라이브 파일 정리" + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
             }
             catch (Exception ex)
@@ -1581,21 +1620,12 @@ namespace Web_Automation_WordPress_2
 
             try
             {
-                try
-                {
-                    //번역 요청 , Original_string는 언어 자동 감지
-                    TranslationsListResponse response = service.Translations.List(Original_string, targetlang).Execute();
-                    //번역 결과
-                    translatedText = response.Translations[0].TranslatedText;
+                //번역 요청 , Original_string는 언어 자동 감지
+                TranslationsListResponse response = service.Translations.List(Original_string, targetlang).Execute();
+                //번역 결과
+                translatedText = response.Translations[0].TranslatedText;
 
-                    return translatedText;
-
-                }
-                catch (Exception ex)
-                {
-                    LogBox1.AppendText($"오류 발생 #1: {ex.Message}" + Environment.NewLine);
-                    return null;
-                }
+                return translatedText;
             }
             catch (Exception ex)
             {
