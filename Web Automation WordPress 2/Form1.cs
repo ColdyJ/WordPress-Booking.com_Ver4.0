@@ -21,10 +21,9 @@ using Google.Apis.Translate.v2.Data;
 using Google.Apis.Translate.v2;
 using Google.Apis.Blogger.v3;
 using Google.Apis.Auth.OAuth2;
-using Google.Apis.Blogger.v3.Data;
 using Google.Apis.Util.Store;
 using Google.Apis.Drive.v3;
-using WordPressPCL.Client;
+
 
 namespace Web_Automation_WordPress_2
 {
@@ -80,7 +79,7 @@ namespace Web_Automation_WordPress_2
                     }
                 }
             }
-            catch (Exception ex)
+            catch 
             {
                 return -1; // Error occurred
             }
@@ -460,7 +459,7 @@ namespace Web_Automation_WordPress_2
                         string script = "document.querySelector('button[aria-label=\"로그인 혜택 안내 창 닫기.\"]').click();";
                         ((IJavaScriptExecutor)driver).ExecuteScript(script);
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         LogBox1.AppendText($"현재 페이지: {currentpage}" + Environment.NewLine);
                     }
@@ -720,7 +719,7 @@ namespace Web_Automation_WordPress_2
         }
 
         // 구글맵
-        static async Task<string> google_map()
+        static Task<string> google_map()
         {
             // API 키 값을 설정합니다.
             string apiKey = "AIzaSyAnHzeNRM0qu_meS7GRfjaTz3QUm8vhJG8";
@@ -759,7 +758,7 @@ namespace Web_Automation_WordPress_2
 </body>
 ";
             maphtml = $"<!-- wp:html -->{maphtml}<!-- /wp:html -->";
-            return maphtml;
+            return Task.FromResult(maphtml);
         }
 
         // 썸네일 등록 (WP)
@@ -1235,15 +1234,15 @@ namespace Web_Automation_WordPress_2
                 {
                     request = service.Files.Create(
                         fileMetadata, stream, "image/jpeg");
-                    request.Fields = "id, thumbnailLink";
+                    request.Fields = "id, thumbnailLink, webContentLink, webViewLink, hasThumbnail";
                     request.UploadType = "media";
-                    request.Upload();
+                    await request.UploadAsync();
                 }
                 var file = request.ResponseBody;
                 string fileid = file.Id;
-                //ThumbnailLink 미리보기 대화면 지원 , 본문에선 작게나옴
+                //ThumbnailLink 미리보기 대화면 지원 , 본문에선 작게나옴 , 시간 지나면 안보임
                 //WebContentLink 본문에서는 나옴, 미리보기 미지원 , 맨뒤 &export=download 삭제해도 미리보기 안나옴
-                //WebViewLink ?
+                //WebViewLink 미리보기 , 본문 미지원
                 string filelink = file.ThumbnailLink;
                 responseImg = $"<img class=\"aligncenter\" src=\"{filelink}\">"; // file로 변환 시켰으니 img src로 변경
             }
@@ -1301,7 +1300,7 @@ namespace Web_Automation_WordPress_2
                             fileMetadata, stream, "image/jpeg");
                         request.Fields = "id, webContentLink";
                         request.UploadType = "media";
-                        request.Upload();
+                        await request.UploadAsync();
                     }
                     var file = request.ResponseBody;
                     string responseImg = $"<img class=\"aligncenter\" src=\"{file.WebContentLink}\">"; // file로 변환 시켰으니 img src로 변경
@@ -1350,7 +1349,7 @@ namespace Web_Automation_WordPress_2
             using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
             {
                 credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
-                    GoogleClientSecrets.Load(stream).Secrets,
+                    GoogleClientSecrets.FromStream(stream).Secrets,
                     new[] { "https://www.googleapis.com/auth/blogger" },
                     "user",
                     CancellationToken.None,
@@ -1401,7 +1400,7 @@ namespace Web_Automation_WordPress_2
             using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
             {
                 credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
-                    GoogleClientSecrets.Load(stream).Secrets,
+                    GoogleClientSecrets.FromStream(stream).Secrets,
                     new[] { "https://www.googleapis.com/auth/blogger" },
                     "user",
                     CancellationToken.None,
@@ -1565,7 +1564,7 @@ namespace Web_Automation_WordPress_2
         }
 
         // Source language의 자동 언어감지가 안되서 명확할때만 사용해야 할듯
-        private string Papago(string prompt2)
+        private string? Papago(string prompt2)
         {
             string translatedText = "";
 
@@ -1763,16 +1762,11 @@ namespace Web_Automation_WordPress_2
         {
             Crawling_Naver();
         }
+
         private void RenameBtn1_Click(object sender, EventArgs e)
         {
             Rename();
         }
-
-
-
-
-
-
 
         private void button1_Click(object sender, EventArgs e)
         {
