@@ -1241,9 +1241,9 @@ namespace Web_Automation_WordPress_2
                 var file = request.ResponseBody;
                 string fileid = file.Id;
                 //ThumbnailLink 미리보기 대화면 지원 , 본문에선 작게나옴 , 시간 지나면 안보임
-                //WebContentLink 본문에서는 나옴, 미리보기 미지원 , 맨뒤 &export=download 삭제해도 미리보기 안나옴
+                //WebContentLink 본문에서는 나옴, 미리보기 지원 , 맨뒤 &export=download 삭제해도 미리보기 안나옴
                 //WebViewLink 미리보기 , 본문 미지원
-                string filelink = file.ThumbnailLink;
+                string filelink = file.WebContentLink;
                 responseImg = $"<img class=\"aligncenter\" src=\"{filelink}\">"; // file로 변환 시켰으니 img src로 변경
             }
             catch (Exception ex)
@@ -1390,6 +1390,7 @@ namespace Web_Automation_WordPress_2
 
             return addOldPostLinks + "<p>&nbsp;</p>" + oldPostsLinks;
         }
+
 
         // 블로그스팟 API 사용 및 업로드
         public async Task BS_API_Auto()
@@ -1694,6 +1695,7 @@ namespace Web_Automation_WordPress_2
 
             doc.Save(configFile);
         }
+
         // Textbox 로드기능 (Start btn부분)
         private void LoadConfig()
         {
@@ -1713,7 +1715,6 @@ namespace Web_Automation_WordPress_2
 
             }
         }
-
 
         private void SaveBtn1_Click(object sender, EventArgs e)
         {
