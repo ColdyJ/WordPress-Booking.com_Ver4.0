@@ -1184,7 +1184,6 @@ namespace Web_Automation_WordPress_2
         /*=============================================================================================================================================*/
 
 
-        static string[] Scopes = { DriveService.Scope.Drive };
         // 썸네일 등록 (BS)
         private async Task<string> ThumnailAsync_BS()
         {
@@ -1208,10 +1207,10 @@ namespace Web_Automation_WordPress_2
                 {
                     credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
                         GoogleClientSecrets.FromStream(stream).Secrets,
-                        Scopes,
-                        "user",
+                        new[] { "https://www.googleapis.com/auth/blogger", "https://www.googleapis.com/auth/drive" },
+                       "user",
                         CancellationToken.None,
-                        new FileDataStore("token_send.json", true)).Result;
+                        new FileDataStore(WP_PW, true)).Result;
                 }
 
                 // Create Drive API service.
@@ -1262,18 +1261,18 @@ namespace Web_Automation_WordPress_2
             //OAuth 2.0 인증 (첫 실행 시 인터넷창 켜짐)
             string filePath = Path.Combine(selectedFolder, WP_PW);
             UserCredential credential;
-            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-            {
-                credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
-                    GoogleClientSecrets.FromStream(stream).Secrets,
-                    Scopes,
-                    "user",
-                    CancellationToken.None,
-                    new FileDataStore("token_send.json", true)).Result;
-            }
+			using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+			{
+				credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
+					GoogleClientSecrets.FromStream(stream).Secrets,
+					new[] { "https://www.googleapis.com/auth/blogger", "https://www.googleapis.com/auth/drive" },
+				   "user",
+					CancellationToken.None,
+					new FileDataStore(WP_PW, true)).Result;
+			}
 
-            // 구글 블로그 서비스 초기화
-            var service = new DriveService(new BaseClientService.Initializer()
+			// 구글 블로그 서비스 초기화
+			var service = new DriveService(new BaseClientService.Initializer()
             {
                 HttpClientInitializer = credential,
                 ApplicationName = "Blog API"
@@ -1343,52 +1342,60 @@ namespace Web_Automation_WordPress_2
         // 지난 포스팅 링크 추출 매서드 (BS)
         private async Task<string> AddOldPostAsync_BS()
         {
-            //OAuth 2.0 인증 (첫 실행 시 인터넷창 켜짐)
-            string filePath = Path.Combine(selectedFolder, WP_PW);
-            UserCredential credential;
-            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            try
             {
-                credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
-                    GoogleClientSecrets.FromStream(stream).Secrets,
-                    new[] { "https://www.googleapis.com/auth/blogger" },
-                    "user",
-                    CancellationToken.None,
-                    new FileDataStore("Auth.Blogger")).Result;
+                //OAuth 2.0 인증 (첫 실행 시 인터넷창 켜짐)
+                string filePath = Path.Combine(selectedFolder, WP_PW);
+                UserCredential credential;
+				using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+				{
+					credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
+						GoogleClientSecrets.FromStream(stream).Secrets,
+						new[] { "https://www.googleapis.com/auth/blogger", "https://www.googleapis.com/auth/drive" },
+					   "user",
+						CancellationToken.None,
+						new FileDataStore(WP_PW, true)).Result;
+				}
+				// 구글 블로그 서비스 초기화
+				var service = new BloggerService(new BaseClientService.Initializer()
+                {
+                    HttpClientInitializer = credential,
+                    ApplicationName = "Blog API",
+                });
+                var blog = service.Blogs.GetByUrl(WP_URL).Execute(); // 블로그 정보를 가져옵니다.
+                var posts = service.Posts.List(blog.Id).Execute();
+
+                string addOldPostLinks = "<h3>다른 숙박 후기가 궁금하시다면 아래에 더 많은 내용이 있습니다 :) </h3>\r\n";
+                string oldPostsLinks = ""; // 각 링크를 개행 문자로 구분
+
+                List<string> postLinks = new List<string>(); // 포스트의 Link 값을 저장할 리스트를 만듭니다.
+                foreach (var postli in posts.Items)
+                {
+                    string postLink = postli.Url; // 포스트의 Link 값을 추출
+                    string postTitle = postli.Title; // 게시물의 제목을 가져옵니다.
+                    string linkHtml = $"<a title=\"{postTitle}\" href=\"{postLink}\">&nbsp;▶{postTitle}</a>";
+                    postLinks.Add(linkHtml);
+                }
+
+                Random random = new Random(); // 랜덤하게 3개의 Link 값을 선택합니다.
+                List<string> selectedLinks = new List<string>();
+                for (int i = 0; i < 3; i++)
+                {
+                    int index = random.Next(postLinks.Count); // 랜덤한 인덱스 선택
+                    string selectedLink = postLinks[index]; // 선택된 Link 값
+                    selectedLinks.Add(selectedLink + "<br>");
+                    postLinks.RemoveAt(index); // 중복 선택 방지를 위해 선택한 Link 값을 리스트에서 제거합니다.
+                }
+                // 선택된 Link 값을 oldposts 문자열에 추가합니다.
+                oldPostsLinks = string.Join("\r\n", selectedLinks); // 각 링크를 개행 문자로 구분
+
+                return addOldPostLinks + "<p>&nbsp;</p>" + oldPostsLinks;
             }
-            // 구글 블로그 서비스 초기화
-            var service = new BloggerService(new BaseClientService.Initializer()
+            catch (Exception ex)
             {
-                HttpClientInitializer = credential,
-                ApplicationName = "Blog API",
-            });
-            var blog = service.Blogs.GetByUrl(UrlBox1.Text).Execute(); // 블로그 정보를 가져옵니다.
-            var posts = service.Posts.List(blog.Id).Execute();
-
-            string addOldPostLinks = "<h3>다른 숙박 후기가 궁금하시다면 아래에 더 많은 내용이 있습니다 :) </h3>\r\n";
-            string oldPostsLinks = ""; // 각 링크를 개행 문자로 구분
-
-            List<string> postLinks = new List<string>(); // 포스트의 Link 값을 저장할 리스트를 만듭니다.
-            foreach (var postli in posts.Items)
-            {
-                string postLink = postli.Url; // 포스트의 Link 값을 추출
-                string postTitle = postli.Title; // 게시물의 제목을 가져옵니다.
-                string linkHtml = $"<a title=\"{postTitle}\" href=\"{postLink}\">&nbsp;▶{postTitle}</a>";
-                postLinks.Add(linkHtml);
+				LogBox1.AppendText($"지난 포스팅 링크 추출 오류 발생: {ex.Message}" + Environment.NewLine);
+                throw;
             }
-
-            Random random = new Random(); // 랜덤하게 3개의 Link 값을 선택합니다.
-            List<string> selectedLinks = new List<string>();
-            for (int i = 0; i < 3; i++)
-            {
-                int index = random.Next(postLinks.Count); // 랜덤한 인덱스 선택
-                string selectedLink = postLinks[index]; // 선택된 Link 값
-                selectedLinks.Add(selectedLink + "<br>");
-                postLinks.RemoveAt(index); // 중복 선택 방지를 위해 선택한 Link 값을 리스트에서 제거합니다.
-            }
-            // 선택된 Link 값을 oldposts 문자열에 추가합니다.
-            oldPostsLinks = string.Join("\r\n", selectedLinks); // 각 링크를 개행 문자로 구분
-
-            return addOldPostLinks + "<p>&nbsp;</p>" + oldPostsLinks;
         }
 
 
@@ -1398,17 +1405,17 @@ namespace Web_Automation_WordPress_2
             //OAuth 2.0 인증 (첫 실행 시 인터넷창 켜짐)
             string filePath = Path.Combine(selectedFolder, WP_PW);
             UserCredential credential;
-            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-            {
-                credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
-                    GoogleClientSecrets.FromStream(stream).Secrets,
-                    new[] { "https://www.googleapis.com/auth/blogger" },
-                    "user",
-                    CancellationToken.None,
-                    new FileDataStore("Auth.Blogger")).Result;
-            }
-            // 구글 블로그 서비스 초기화
-            var service = new BloggerService(new BaseClientService.Initializer()
+			using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+			{
+				credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
+					GoogleClientSecrets.FromStream(stream).Secrets,
+					new[] { "https://www.googleapis.com/auth/blogger", "https://www.googleapis.com/auth/drive" },
+				   "user",
+					CancellationToken.None,
+					new FileDataStore(WP_PW, true)).Result;
+			}
+			// 구글 블로그 서비스 초기화
+			var service = new BloggerService(new BaseClientService.Initializer()
             {
                 HttpClientInitializer = credential,
                 ApplicationName = "Blog API",
@@ -1494,7 +1501,7 @@ namespace Web_Automation_WordPress_2
                     Content = head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_OldPostLinks,
                     Labels = new List<string>() { result_TagId }, // tag 기능
                 };
-                var blog = service.Blogs.GetByUrl(UrlBox1.Text).Execute(); // 블로그 정보를 가져옵니다.
+                var blog = service.Blogs.GetByUrl(WP_URL).Execute(); // 블로그 정보를 가져옵니다.
                 service.Posts.Insert(post, blog.Id).Execute(); // 포스팅 요청 보내기
 
                 LogBox1.AppendText($"글 본문 출력 완료" + Environment.NewLine);
