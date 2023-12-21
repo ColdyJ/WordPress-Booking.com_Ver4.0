@@ -958,14 +958,14 @@ namespace Web_Automation_WordPress_2
             // 선택된 Link 값을 oldposts 문자열에 추가합니다.
             oldPostsLinks = string.Join("\r\n", selectedLinks); // 각 링크를 개행 문자로 구분
 
-            return addOldPostLinks + "<p>&nbsp;</p>" + oldPostsLinks;
+            return addOldPostLinks + "<br>" + oldPostsLinks;
         }
 
 
         //외부 링크 추출
         private string AddOutLinksAsync()
         {
-            string addOutLinks = "<h3>▼▼▼ 예약 웹사이트 바로가기 ▼▼▼</h3>\r\n";
+            string addOutLinks = "<h3>▼▼▼ 할인 예약 웹사이트 바로가기 ▼▼▼</h3>\r\n";
             string outLinks = ""; // 각 링크를 개행 문자로 구분
 
             try
@@ -1006,13 +1006,13 @@ namespace Web_Automation_WordPress_2
             {
                 LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
             }
-            return addOutLinks + "<p>&nbsp;</p>" + outLinks;
+            return addOutLinks + "<br>" + outLinks;
         }
 
         //외부 배너 추출
         private string AddOutBannersAsync()
         {
-            string addOutBanners = "▼▼▼ 기간 한정 최저가 검색은 이미지 클릭 ▼▼▼\r\n";
+            string addOutBanners = "▼▼▼ 기간 한정 최저가 숙소 예약: 이미지 클릭시 이동 ▼▼▼\r\n";
             string outLinks = ""; // 각 링크를 개행 문자로 구분
 
             try
@@ -1048,7 +1048,11 @@ namespace Web_Automation_WordPress_2
             {
                 LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
             }
-            return addOutBanners + "<p>&nbsp;</p>" + outLinks;
+            string comment = "▼▼▼ eSIM 프로모션 할인 구매: 이미지 클릭시 이동 ▼▼▼\r\n";
+            string url = "<a target=\"_blank\" href=\"http://click.linkprice.com/click.php?m=airalo&a=A100688386&l=lnVz&u_id=\"><img src=\"https://img.linkprice.com/files/glink/airalo/20230406/e00xVgcWzw680_320_100.png\" border=\"0\" width=\"320\" height=\"100\"></a> <img src=\"http://track.linkprice.com/lpshow.php?m_id=airalo&a_id=A100688386&p_id=0000&l_id=lnVz&l_cd1=2&l_cd2=0\" width=\"1\" height=\"1\" border=\"0\" nosave style=\"display:none\">";
+            string link = $"<!-- wp:html -->{url}<!-- /wp:html -->";
+           
+            return addOutBanners + "<br>" + outLinks + "<p>&nbsp;</p>" + comment + "<br>" + link;
         }
 
 
