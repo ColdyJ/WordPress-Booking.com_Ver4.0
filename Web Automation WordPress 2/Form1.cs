@@ -39,13 +39,14 @@ namespace Web_Automation_WordPress_2
 			LogBox2.ScrollBars = ScrollBars.Vertical;
 			ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         }
-        private IWebDriver driver;
-        ChromeOptions options = new ChromeOptions();
-        private string selectedFolder; // 클래스 레벨 변수로 폴더 경로를 저장할 변수
-        private string translation;
+		ChromeOptions options = new ChromeOptions();
+		private IWebDriver driver;
+        private string selectedFolder, translation; // 클래스 레벨 변수로 폴더 경로를 저장할 변수
+		private string OPENAI_API_KEY, WP_ID, WP_PW, WP_URL, Folder_Path = "";
+		private string Topic, Category, WP_Title, Blog_Type = "";
 
 
-        private void FolderPath1Btn1_Click(object sender, EventArgs e)
+		private void FolderPath1Btn1_Click(object sender, EventArgs e)
         {
             using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
             {
@@ -167,89 +168,6 @@ namespace Web_Automation_WordPress_2
         }
 
         /*===============================================*/
-
-        // 이미지 크롤링 - 완료
-        private void Crawling_Naver()
-        {
-            LogBox1.AppendText($"===========================" + Environment.NewLine);
-            LogBox1.AppendText($"크롤링 시작" + Environment.NewLine);
-
-            // 크롬창 생성
-            var driverService = ChromeDriverService.CreateDefaultService();
-            driverService.HideCommandPromptWindow = true;
-            //options.AddArguments("--headless"); // 브라우저를 숨김
-            driver = new ChromeDriver(driverService, options);
-            Delay();
-
-            //이미지 검색 : CCL 상업적 이용가능 
-            LogBox1.AppendText($"===========================" + Environment.NewLine);
-            LogBox1.AppendText($"이미지 검색" + Environment.NewLine);
-            string baseUrl = $"https://search.naver.com/search.naver?where=image&section=image&query={crollBox1.Text}";
-            string endUrl = "&res_fr=0&res_to=0&sm=tab_opt&color=&ccl=2&nso=so%3Ar%2Ca%3Aall%2Cp%3Aall&recent=0&datetype=0&startdate=0&enddate=0&gif=0&optStr=&nso_open=1&pq=";
-            driver.Navigate().GoToUrl(baseUrl + endUrl);
-            Delay();
-            ScrollToBottom(driver);
-
-            try
-            {
-                // 이미지 요소를 찾아서 처리
-                var imgElements = driver.FindElements(By.ClassName("image_tile_bx"));
-                LogBox1.AppendText($"총 사진 수: {imgElements.Count}장");
-                LogBox1.AppendText(Environment.NewLine);
-
-                // "fe_image_tab_content_thumbnail_image" 클래스를 가진 모든 이미지 요소를 찾기 (첫번째 이미지 클릭)
-                var imageElements = driver.FindElements(By.CssSelector("img._fe_image_tab_content_thumbnail_image"));
-                if (imageElements.Count > 0) imageElements[0].Click();// 첫 번째 이미지를 클릭
-
-                for (int i = 0; i < imgElements.Count - 1; i++)
-                {
-                    // "다음 이미지" 버튼 요소를 찾기 + 버튼 누르기
-                    IWebElement nextButton = driver.FindElement(By.CssSelector("a.btn_next._fe_image_viewer_next_button"));
-                    nextButton.Click();
-
-                    // 이미지 요소를 찾기
-                    IWebElement imageElement = driver.FindElement(By.CssSelector("img._fe_image_viewer_image_fallback_target"));
-                    string imageUrl = imageElement.GetAttribute("src");
-                    if (!string.IsNullOrEmpty(imageUrl) && (imageUrl.StartsWith("http://") || imageUrl.StartsWith("https://")))
-                    {
-                        string basePath = Folder_Path; // 기본 저장 경로
-                        int fileCount = 1;
-                        string fileName = $"{fileCount}.jpg"; // 저장할 이미지 파일 이름
-                        while (File.Exists(Path.Combine(basePath, fileName)))
-                        {
-                            fileCount++;
-                            fileName = $"{fileCount}.jpg";
-                        }
-                        // 이미지 다운로드
-                        using (WebClient client = new WebClient())
-                        {
-                            // 로컬 폴더에 이미지 저장
-                            byte[] imageData = client.DownloadData(imageUrl);
-                            string filePath = Path.Combine(basePath, fileName);
-                            File.WriteAllBytes(filePath, imageData);
-                            Delay();
-                            LogBox1.AppendText($"다운로드 중: ({fileCount}/{imgElements.Count})" + Environment.NewLine);
-                        }
-                    }
-                }
-                LogBox1.AppendText($"이미지 크롤링 완료..." + Environment.NewLine);
-                LogBox1.AppendText($"===========================" + Environment.NewLine);
-            }
-            catch (Exception ex)
-            {
-                LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
-            }
-        }
-        private void ScrollToBottom(IWebDriver driver)
-        {
-            for (int i = 0; i < 12; i++)
-            {
-                // JavaScript를 실행하여 스크롤을 아래로 이동합니다.
-                IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
-                js.ExecuteScript("window.scrollTo(50, document.body.scrollHeight);");
-                Delay();
-            }
-        }
 
         // 파일명 정리 - 완료
         private int renameCounter = 1;
@@ -1696,15 +1614,6 @@ namespace Web_Automation_WordPress_2
 
 
 
-		private string OPENAI_API_KEY = "";
-		private string WP_ID = "";
-        private string WP_PW = "";
-        private string WP_URL = "";
-        private string Folder_Path = "";
-		private string Topic = "";
-		private string Category = "";
-		private string WP_Title = "";
-		private string Blog_Type = "";
 
 		private string hotelName = "";
         private string HotelUrl = "";
@@ -1717,13 +1626,7 @@ namespace Web_Automation_WordPress_2
             string configFile = Path.Combine(myDocumentsPath, "WP_Post_config.xml");
 
             XDocument doc = new XDocument(new XElement("Settings",
-                new XElement("InputValue1", IdBox1.Text),
-                new XElement("InputValue2", PwBox1.Text),
-                new XElement("InputValue3", UrlBox1.Text),
-                new XElement("InputValue4", APIKeybox1.Text),
-                new XElement("InputValue5", CategoryBox1.Text),
-                new XElement("InputValue6", SystemBox1.Text),
-                new XElement("InputValue7", addTitleBox1.Text)));
+                new XElement("InputValue7", UrlBox1.Text)));
 
             doc.Save(configFile);
         }
@@ -1737,63 +1640,8 @@ namespace Web_Automation_WordPress_2
             if (File.Exists(configFile))
             {
                 XDocument doc = XDocument.Load(configFile);
-                IdBox1.Text = doc.Root.Element("InputValue1")?.Value;
-                PwBox1.Text = doc.Root.Element("InputValue2")?.Value;
-                UrlBox1.Text = doc.Root.Element("InputValue3")?.Value;
-                APIKeybox1.Text = doc.Root.Element("InputValue4")?.Value;
-                CategoryBox1.Text = doc.Root.Element("InputValue5")?.Value;
-                SystemBox1.Text = doc.Root.Element("InputValue6")?.Value;
-                addTitleBox1.Text = doc.Root.Element("InputValue7")?.Value;
-
+                UrlBox1.Text = doc.Root.Element("InputValue7")?.Value;
             }
-        }
-
-        private void SaveBtn1_Click(object sender, EventArgs e)
-        {
-            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
-            {
-                saveFileDialog.Filter = "XML files (*.xml)|*.xml|All files (*.*)|*.*";
-                if (saveFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    XDocument doc = new XDocument(new XElement("Settings",
-                        new XElement("InputValue1", IdBox1.Text),
-                        new XElement("InputValue2", PwBox1.Text),
-                        new XElement("InputValue3", UrlBox1.Text),
-                        new XElement("InputValue4", APIKeybox1.Text),
-                        new XElement("InputValue5", CategoryBox1.Text),
-                        new XElement("InputValue6", SystemBox1.Text),
-                        new XElement("InputValue7", addTitleBox1.Text)));
-
-                    doc.Save(saveFileDialog.FileName);
-                    MessageBox.Show("Settings saved.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-            }
-        }
-
-        private void LoadBtn1_Click(object sender, EventArgs e)
-        {
-            using (OpenFileDialog openFileDialog = new OpenFileDialog())
-            {
-                openFileDialog.Filter = "XML files (*.xml)|*.xml|All files (*.*)|*.*";
-                if (openFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    XDocument doc = XDocument.Load(openFileDialog.FileName);
-                    IdBox1.Text = doc.Root.Element("InputValue1")?.Value;
-                    PwBox1.Text = doc.Root.Element("InputValue2")?.Value;
-                    UrlBox1.Text = doc.Root.Element("InputValue3")?.Value;
-                    APIKeybox1.Text = doc.Root.Element("InputValue4")?.Value;
-                    CategoryBox1.Text = doc.Root.Element("InputValue5")?.Value;
-                    SystemBox1.Text = doc.Root.Element("InputValue6")?.Value;
-                    addTitleBox1.Text = doc.Root.Element("InputValue7")?.Value;
-
-                    MessageBox.Show("Settings loaded.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-            }
-        }
-
-        private void CrollBtn1_Click(object sender, EventArgs e)
-        {
-            Crawling_Naver();
         }
 
         private void RenameBtn1_Click(object sender, EventArgs e)
@@ -1803,10 +1651,7 @@ namespace Web_Automation_WordPress_2
 
         private void button1_Click(object sender, EventArgs e)
         {
-
             GetHotelListAsync();
-
-
         }
     }
 
