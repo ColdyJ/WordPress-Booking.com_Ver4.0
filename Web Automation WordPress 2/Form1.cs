@@ -317,7 +317,7 @@ namespace Web_Automation_WordPress_2
 		private void GetHotelListAsync()
 		{
 			string url = HotelListBox1.Text; // url
-			string excelFilePath = Path.Combine(Folder_Path, "HotelList.xlsx");
+			string excelFilePath = Path.Combine(selectedFolder, "HotelList.xlsx");
 			var excelFile = new FileInfo(excelFilePath);
 			int currentpage = 1;
 
