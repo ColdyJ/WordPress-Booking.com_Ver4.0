@@ -43,6 +43,7 @@
 			groupBox12 = new GroupBox();
 			groupBox3 = new GroupBox();
 			LogBox2 = new TextBox();
+			AuthBtn1 = new Button();
 			groupBox1.SuspendLayout();
 			groupBox7.SuspendLayout();
 			groupBox4.SuspendLayout();
@@ -113,6 +114,7 @@
 			// 
 			// groupBox7
 			// 
+			groupBox7.Controls.Add(AuthBtn1);
 			groupBox7.Controls.Add(StartBtn1);
 			groupBox7.Controls.Add(button1);
 			groupBox7.Controls.Add(groupBox4);
@@ -235,6 +237,20 @@
 			LogBox2.Size = new Size(328, 141);
 			LogBox2.TabIndex = 0;
 			// 
+			// AuthBtn1
+			// 
+			AuthBtn1.BackColor = Color.Silver;
+			AuthBtn1.Cursor = Cursors.Hand;
+			AuthBtn1.Font = new Font("맑은 고딕", 12F, FontStyle.Bold, GraphicsUnit.Point);
+			AuthBtn1.ForeColor = Color.Black;
+			AuthBtn1.Location = new Point(6, 239);
+			AuthBtn1.Name = "AuthBtn1";
+			AuthBtn1.Size = new Size(99, 98);
+			AuthBtn1.TabIndex = 1012;
+			AuthBtn1.Text = "구글 수동 인증";
+			AuthBtn1.UseVisualStyleBackColor = false;
+			AuthBtn1.Click += AuthBtn1_Click;
+			// 
 			// Form1
 			// 
 			AutoScaleDimensions = new SizeF(7F, 15F);
@@ -277,5 +293,6 @@
 		private GroupBox groupBox2;
 		private TextBox UrlBox1;
 		private GroupBox groupBox4;
+		private Button AuthBtn1;
 	}
 }
