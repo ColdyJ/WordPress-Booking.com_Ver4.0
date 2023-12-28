@@ -36,7 +36,8 @@ namespace Web_Automation_WordPress_2
             InitializeComponent();
             LoadConfig(); // Textbox 저장값 프로그램 시작 시 설정 로드
             LogBox1.ScrollBars = ScrollBars.Vertical;
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+			LogBox2.ScrollBars = ScrollBars.Vertical;
+			ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         }
         private IWebDriver driver;
         ChromeOptions options = new ChromeOptions();
@@ -98,23 +99,27 @@ namespace Web_Automation_WordPress_2
                 {
                     while (true)
                     {
-                        LogBox1.AppendText($"===========================" + Environment.NewLine);
-                        LogBox1.AppendText($"{count}번 포스팅 시작" + Environment.NewLine);
+                        LogBox2.AppendText($"===========================" + Environment.NewLine);
+                        LogBox2.AppendText($"{count}번 포스팅 시작" + Environment.NewLine);
 
-                        GetHotelList();  // 엑셀 첫번째 아이템의 url을 HotelUrl 인풋, 없을때 ""
-                        if (HotelUrl == "") break; // 정지 조건
+                        for (int i = 2; i <= 7; i++)
+                        {
+                            GetIdList(i);
+							GetHotelList();  // 엑셀 첫번째 아이템의 url을 HotelUrl 인풋, 없을때 ""
+                            if (HotelUrl == "") break; // 정지 조건
+                            if (Blog_Type=="BS") await BS_API_Auto();
+                            else await WP_API_Auto();
+							Delay();
+							DeleteHotelList(Folder_Path);  // 엑셀 첫번째 행 삭제
+							DeleteAllJpgFilesInFolder(Folder_Path); // 폴더 내 사진 삭제
+							Delay();
+						}
+						LogBox2.AppendText($"{count}번 포스팅 완료" + Environment.NewLine);
+						DateTime currentTime = DateTime.Now; // 현재 시간을 가져와서 출력
+						LogBox2.AppendText("업로드 시간: " + currentTime + Environment.NewLine);
+						LogBox2.AppendText($"===========================" + Environment.NewLine);
 
-                        if (BS_checkBox.Checked) await BS_API_Auto();
-                        else await WP_API_Auto();
-
-                        Delay();
-
-                        DeleteHotelList();  // 엑셀 첫번째 행 삭제
-                        DeleteAllJpgFilesInFolder(selectedFolder); // 폴더 내 사진 삭제
-                        LogBox1.AppendText($"{count}번 포스팅 완료" + Environment.NewLine);
-                        DateTime currentTime = DateTime.Now; // 현재 시간을 가져와서 출력
-                        LogBox1.AppendText("업로드 시간: " + currentTime + Environment.NewLine);
-                        DelayHr();
+						DelayHr();
                         count++;
                     }
                 }
@@ -207,7 +212,7 @@ namespace Web_Automation_WordPress_2
                     string imageUrl = imageElement.GetAttribute("src");
                     if (!string.IsNullOrEmpty(imageUrl) && (imageUrl.StartsWith("http://") || imageUrl.StartsWith("https://")))
                     {
-                        string basePath = selectedFolder; // 기본 저장 경로
+                        string basePath = Folder_Path; // 기본 저장 경로
                         int fileCount = 1;
                         string fileName = $"{fileCount}.jpg"; // 저장할 이미지 파일 이름
                         while (File.Exists(Path.Combine(basePath, fileName)))
@@ -255,9 +260,9 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
                 LogBox1.AppendText($"파일명 변환 시작..." + Environment.NewLine);
 
-                if (!string.IsNullOrEmpty(selectedFolder) && Directory.Exists(selectedFolder))
+                if (!string.IsNullOrEmpty(Folder_Path) && Directory.Exists(Folder_Path))
                 {
-                    string[] files = Directory.GetFiles(selectedFolder);
+                    string[] files = Directory.GetFiles(Folder_Path);
                     foreach (string filePath in files)
                     {
                         string extension = Path.GetExtension(filePath);
@@ -265,13 +270,13 @@ namespace Web_Automation_WordPress_2
                         if (string.Equals(extension, ".jpg", StringComparison.OrdinalIgnoreCase))
                         {
                             string newFileName = $"{renameCounter}{extension}";
-                            string newFilePath = Path.Combine(selectedFolder, newFileName);
+                            string newFilePath = Path.Combine(Folder_Path, newFileName);
                             // 이미 존재하는 파일일 경우 renameCounter를 증가시키고 새로운 파일 경로 생성
                             while (File.Exists(newFilePath))
                             {
                                 renameCounter++;
                                 newFileName = $"{renameCounter}{extension}";
-                                newFilePath = Path.Combine(selectedFolder, newFileName);
+                                newFilePath = Path.Combine(Folder_Path, newFileName);
                             }
                             File.Move(filePath, newFilePath);
                             renameCounter = 1;
@@ -335,7 +340,7 @@ namespace Web_Automation_WordPress_2
                     string imageUrl = element.GetAttribute("href");
                     if (!string.IsNullOrEmpty(imageUrl) && (imageUrl.StartsWith("http://") || imageUrl.StartsWith("https://")))
                     {
-                        string basePath = selectedFolder; // 기본 저장 경로
+                        string basePath = Folder_Path; // 기본 저장 경로
                         int fileCount = 1;
                         string fileName = $"{fileCount}.jpg"; // 저장할 이미지 파일 이름
                         while (File.Exists(Path.Combine(basePath, fileName)))
@@ -394,7 +399,7 @@ namespace Web_Automation_WordPress_2
         private void GetHotelListAsync()
         {
             string url = HotelListBox1.Text; // url
-            string excelFilePath = Path.Combine(selectedFolder, "HotelList.xlsx");
+            string excelFilePath = Path.Combine(Folder_Path, "HotelList.xlsx");
             var excelFile = new FileInfo(excelFilePath);
             int currentpage = 1;
 
@@ -488,11 +493,45 @@ namespace Web_Automation_WordPress_2
             driver.Quit();
         }
 
-        // 엑셀 파일 내 첫번째 아이템 선택
-        private void GetHotelList()
+		// 엑셀 파일 내 ID 리스트 선택
+		private void GetIdList(int i)
+        {
+			string excelFilePath = Path.Combine(selectedFolder, "HOTEL_ID_LIST.xlsx");
+			try
+			{
+				// ExcelPackage를 사용하여 엑셀 파일 열기
+				using (ExcelPackage package = new ExcelPackage(new FileInfo(excelFilePath)))
+				{
+					// 워크시트 선택 (0은 첫 번째 워크시트를 의미)
+					ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+
+					// 2번 행의 데이터 읽기 [행,열]
+					OPENAI_API_KEY = worksheet.Cells[i, 1].Text;
+					WP_ID = worksheet.Cells[i, 2].Text;
+					WP_PW = worksheet.Cells[i, 3].Text;
+					WP_URL = worksheet.Cells[i, 4].Text;
+					Folder_Path = worksheet.Cells[i, 5].Text;
+					Topic = worksheet.Cells[i, 6].Text;
+					Category = worksheet.Cells[i, 7].Text;
+					WP_Title = worksheet.Cells[i, 8].Text;
+					Blog_Type = worksheet.Cells[i, 9].Text;
+
+					if (WP_URL != "" || WP_URL != null)
+					{
+						LogBox2.AppendText($"진행중: {WP_URL}" + Environment.NewLine);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+			}
+		}
+		// 엑셀 파일 내 호텔리스트 첫번째 아이템 선택
+		private void GetHotelList()
         {
             // 엑셀 파일 경로
-            string excelFilePath = Path.Combine(selectedFolder, "HotelList.xlsx");
+            string excelFilePath = Path.Combine(Folder_Path, "HotelList.xlsx");
             try
             {
                 // ExcelPackage를 사용하여 엑셀 파일 열기
@@ -517,11 +556,11 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
             }
         }
-        // 엑셀 파일 내 첫번째 아이템 삭제
-        private void DeleteHotelList()
+		// 엑셀 파일 내 호텔리스트 첫번째 아이템 삭제
+		private void DeleteHotelList(string folderpath)
         {
             // 엑셀 파일 경로
-            string excelFilePath = Path.Combine(selectedFolder, "HotelList.xlsx");
+            string excelFilePath = Path.Combine(folderpath, "HotelList.xlsx");
 
             try
             {
@@ -653,7 +692,7 @@ namespace Web_Automation_WordPress_2
                     if (imgNode != null)
                     {
                         string imageUrl = imgNode.GetAttributeValue("src", "");
-                        string basePath = selectedFolder; // 기본 저장 폴더 경로
+                        string basePath = Folder_Path; // 기본 저장 폴더 경로
                         string imagePath = Path.Combine(basePath, "Thum_1.jpg"); // 경로 조합
                         try
                         {
@@ -776,7 +815,7 @@ namespace Web_Automation_WordPress_2
                 }
                 translation = Google_Trans(shortenedName + " Thumnail", "en");
 
-                string localThumnailPath = Path.Combine(selectedFolder, $"EditedThum_1.jpg"); // 이미지 파일 경로 가져오기
+                string localThumnailPath = Path.Combine(Folder_Path, $"EditedThum_1.jpg"); // 이미지 파일 경로 가져오기
                 var createdThumMedia = await client.Media.CreateAsync(localThumnailPath, $"{translation}.jpg"); // localImagePath로 media({translation}.jpg) 생성
                 responseImg = $"<img class=\"aligncenter\" src=\"{createdThumMedia.SourceUrl}\">"; // createdMedia에서 변환 시켰으니 img src로 변경
                 result_thumbNail = createdThumMedia.Id;
@@ -801,9 +840,8 @@ namespace Web_Automation_WordPress_2
             {
                 string categoryName = category.Name; // 포스트의 Link 값을 추출
                 categoryId = category.Id; // 게시물의 제목을 가져옵니다.
-                if (CategoryBox1.Text == categoryName) return categoryId;
+                if (Category == categoryName) return categoryId;
             }
-
             //var categories = await client.Categories.GetByIDAsync(CategoryBox1.Text);
             return 1;
         }
@@ -849,7 +887,7 @@ namespace Web_Automation_WordPress_2
             while (count != 11) // 총 10장의 사진을 url로 리스트
             {
                 // 이미지 파일 경로 가져오기
-                string localImagePath = Path.Combine(selectedFolder, $"{i}.jpg");
+                string localImagePath = Path.Combine(Folder_Path, $"{i}.jpg");
                 if (File.Exists(localImagePath))
                 {
                     var createdMedia = await client.Media.CreateAsync(localImagePath, $"{translation + '_' + i}.jpg"); // localImagePath로 media({translation}.jpg) 생성
@@ -1122,9 +1160,9 @@ namespace Web_Automation_WordPress_2
 
                 // GPT 본문 + 이미지 가공
                 LogBox1.AppendText($"이미지 & 내용 패턴 변경 시작..." + Environment.NewLine);
-                List<string> result_ImgList = await ImagesAsyncList_WP(); // selectedFolder 안의 이미지들을 <img src=\"{createdMedia.SourceUrl}\"> 형식으로 List
+                List<string> result_ImgList = await ImagesAsyncList_WP(); // Folder_Path 안의 이미지들을 <img src=\"{createdMedia.SourceUrl}\"> 형식으로 List
                 string content = AddImagesToContent(result_GPT, result_ImgList); //resultText 사이에 resultImgList의 string값을 잘 넣어주면됨
-                string head_2 = $"<h2>{hotelName + " " + addTitleBox1.Text + " 베스트 숙소추천 숙박후기"}</h2>";
+                string head_2 = $"<h2>{hotelName + " " + WP_Title + " 베스트 숙소추천 숙박후기"}</h2>";
                 LogBox1.AppendText($"이미지 & 내용 패턴 변경 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
@@ -1163,7 +1201,7 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"워드프레스 업로드 시작" + Environment.NewLine);
                 var post = new WordPressPCL.Models.Post()
                 {
-                    Title = new Title(hotelName + " " + addTitleBox1.Text + " 숙박후기"), // TitleBox1.Text
+                    Title = new Title(hotelName + " " + WP_Title + " 숙박후기"), // TitleBox1.Text
                     Content = new Content(head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
                     FeaturedMedia = result_thumbNail, // 썸네일
                     Categories = new List<int> { result_Categories }, // ComboBox에서 선택한 카테고리 ID 설정
@@ -1193,7 +1231,7 @@ namespace Web_Automation_WordPress_2
         {
             string responseImg = null;
             string shortenedName = hotelName;
-            string localThumnailPath = Path.Combine(selectedFolder, $"EditedThum_1.jpg"); // 이미지 파일 경로 가져오기
+            string localThumnailPath = Path.Combine(Folder_Path, $"EditedThum_1.jpg"); // 이미지 파일 경로 가져오기
 
             // 호텔명이 너무 길때 최대 15자까지 자르도록 함
             if (shortenedName.Length > 15)
@@ -1205,7 +1243,7 @@ namespace Web_Automation_WordPress_2
             try
             {
                 //OAuth 2.0 인증 (첫 실행 시 인터넷창 켜짐)
-                string filePath = Path.Combine(selectedFolder, WP_PW);
+                string filePath = Path.Combine(Folder_Path, WP_PW);
                 UserCredential credential;
                 using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
                 {
@@ -1263,7 +1301,7 @@ namespace Web_Automation_WordPress_2
         private async Task<List<string>> ImagesAsyncList_BS()
         {
             //OAuth 2.0 인증 (첫 실행 시 인터넷창 켜짐)
-            string filePath = Path.Combine(selectedFolder, WP_PW);
+            string filePath = Path.Combine(Folder_Path, WP_PW);
             UserCredential credential;
 			using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
 			{
@@ -1287,7 +1325,7 @@ namespace Web_Automation_WordPress_2
             while (count != 11) // 총 10장의 사진을 url로 리스트
             {
                 // 이미지 파일 경로 가져오기
-                string localImagePath = Path.Combine(selectedFolder, $"{i}.jpg");
+                string localImagePath = Path.Combine(Folder_Path, $"{i}.jpg");
                 if (File.Exists(localImagePath))
                 {
                     var fileMetadata = new Google.Apis.Drive.v3.Data.File() // Upload file photo.jpg on drive.
@@ -1349,7 +1387,7 @@ namespace Web_Automation_WordPress_2
             try
             {
                 //OAuth 2.0 인증 (첫 실행 시 인터넷창 켜짐)
-                string filePath = Path.Combine(selectedFolder, WP_PW);
+                string filePath = Path.Combine(Folder_Path, WP_PW);
                 UserCredential credential;
 				using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
 				{
@@ -1407,7 +1445,7 @@ namespace Web_Automation_WordPress_2
         public async Task BS_API_Auto()
         {
             //OAuth 2.0 인증 (첫 실행 시 인터넷창 켜짐)
-            string filePath = Path.Combine(selectedFolder, WP_PW);
+            string filePath = Path.Combine(Folder_Path, WP_PW);
             UserCredential credential;
 			using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
 			{
@@ -1460,9 +1498,9 @@ namespace Web_Automation_WordPress_2
 
                 // GPT 본문 + 이미지 가공
                 LogBox1.AppendText($"이미지 & 내용 패턴 변경 시작..." + Environment.NewLine);
-                List<string> result_ImgList = await ImagesAsyncList_BS(); // selectedFolder 안의 이미지들을 src=\"{file.WebContentLink}\" 형식으로 List
+                List<string> result_ImgList = await ImagesAsyncList_BS(); // Folder_Path 안의 이미지들을 src=\"{file.WebContentLink}\" 형식으로 List
                 string content = AddImagesToContent(result_GPT, result_ImgList); //resultText 사이에 resultImgList의 string값을 잘 넣어주면됨
-                string head_2 = $"<h2>{hotelName + " " + addTitleBox1.Text + " 베스트 숙소추천 숙박후기"}</h2>";
+                string head_2 = $"<h2>{hotelName + " " + WP_Title + " 베스트 숙소추천 숙박후기"}</h2>";
                 LogBox1.AppendText($"이미지 & 내용 패턴 변경 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
@@ -1501,7 +1539,7 @@ namespace Web_Automation_WordPress_2
                 LogBox1.AppendText($"블로그스팟 업로드 시작" + Environment.NewLine);
                 var post = new Google.Apis.Blogger.v3.Data.Post()
                 {
-                    Title = hotelName + " " + addTitleBox1.Text + " 숙박후기", // TitleBox1.Text
+                    Title = hotelName + " " + WP_Title + " 숙박후기", // TitleBox1.Text
                     Content = head_2 + "<p>&nbsp;</p>" + result_Excerpt + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_Hotel + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_OldPostLinks,
                     Labels = new List<string>() { result_TagId }, // tag 기능
                 };
@@ -1548,7 +1586,7 @@ namespace Web_Automation_WordPress_2
             {
                 Messages = new List<ChatMessage>
                 {
-                    ChatMessage.FromSystem(SystemBox1.Text),
+                    ChatMessage.FromSystem(Topic),
                     ChatMessage.FromUser(prompt1),
                 },
                 Model = Models.Gpt_3_5_Turbo_16k, //모델명.
@@ -1658,37 +1696,20 @@ namespace Web_Automation_WordPress_2
 
 
 
-
-
-
-        private string WP_ID = "";
+		private string OPENAI_API_KEY = "";
+		private string WP_ID = "";
         private string WP_PW = "";
         private string WP_URL = "";
-        private string OPENAI_API_KEY = "";
-        private string hotelName = "";
-        private static string lat = "";
-        private static string lng = "";
+        private string Folder_Path = "";
+		private string Topic = "";
+		private string Category = "";
+		private string WP_Title = "";
+		private string Blog_Type = "";
+
+		private string hotelName = "";
         private string HotelUrl = "";
-
-
-
-        private void APIKeybox1_TextChanged(object sender, EventArgs e)
-        {
-            OPENAI_API_KEY = APIKeybox1.Text;
-        }
-        private void IdBox1_TextChanged(object sender, EventArgs e)
-        {
-            WP_ID = IdBox1.Text;
-        }
-        private void PwBox1_TextChanged(object sender, EventArgs e)
-        {
-            WP_PW = PwBox1.Text;
-        }
-        private void UrlBox1_TextChanged(object sender, EventArgs e)
-        {
-            WP_URL = UrlBox1.Text;
-        }
-
+		private static string lat = "";
+		private static string lng = "";
 
         private void SaveConfig()
         {
