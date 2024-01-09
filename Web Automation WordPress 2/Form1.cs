@@ -46,7 +46,7 @@ namespace Web_Automation_WordPress_2
         private string Topic, Category, WP_Title, Blog_Type = "";
 
 
-        private void FolderPath1Btn1_Click(object sender, EventArgs e)
+		private void FolderPath1Btn1_Click(object sender, EventArgs e)
         {
             using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
             {
@@ -676,10 +676,10 @@ namespace Web_Automation_WordPress_2
         }
 
         // 구글맵
-        static Task<string> google_map()
+        static Task<string> google_map(string apiKey)
         {
             // API 키 값을 설정합니다.
-            string apiKey = "AIzaSyAnHzeNRM0qu_meS7GRfjaTz3QUm8vhJG8";
+            
 
             // HTML 문자열을 생성합니다.
             string maphtml = $@"
@@ -1057,7 +1057,7 @@ namespace Web_Automation_WordPress_2
 
                 // 구글 지도
                 LogBox1.AppendText($"구글 지도 추가..." + Environment.NewLine);
-                string result_GoogleMap = await google_map();
+                string result_GoogleMap = await google_map(googleApiBox1.Text);
                 LogBox1.AppendText($"구글 지도 추가 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
@@ -1402,7 +1402,7 @@ namespace Web_Automation_WordPress_2
 
                 // 구글 지도
                 LogBox1.AppendText($"구글 지도 추가..." + Environment.NewLine);
-                string result_GoogleMap = await google_map();
+                string result_GoogleMap = await google_map(googleApiBox1.Text);
                 LogBox1.AppendText($"구글 지도 추가 완료..." + Environment.NewLine);
                 LogBox1.AppendText($"===========================" + Environment.NewLine);
 
@@ -1586,7 +1586,7 @@ namespace Web_Automation_WordPress_2
         {
             TranslateService service = new TranslateService(new BaseClientService.Initializer()
             {
-                ApiKey = "AIzaSyAnHzeNRM0qu_meS7GRfjaTz3QUm8vhJG8", // 여기만 바꾸면 됨.
+                ApiKey = $"{googleApiBox1.Text}", // 여기만 바꾸면 됨.
                 ApplicationName = " "
             });
 
@@ -1633,8 +1633,8 @@ namespace Web_Automation_WordPress_2
             string configFile = Path.Combine(myDocumentsPath, "WP_Post_config.xml");
 
             XDocument doc = new XDocument(new XElement("Settings",
+                new XElement("InputValue6", googleApiBox1.Text),
                 new XElement("InputValue7", UrlBox1.Text)));
-
             doc.Save(configFile);
         }
 
@@ -1647,7 +1647,8 @@ namespace Web_Automation_WordPress_2
             if (File.Exists(configFile))
             {
                 XDocument doc = XDocument.Load(configFile);
-                UrlBox1.Text = doc.Root.Element("InputValue7")?.Value;
+                googleApiBox1.Text = doc.Root.Element("InputValue6")?.Value;
+				UrlBox1.Text = doc.Root.Element("InputValue7")?.Value;
             }
         }
 
@@ -1684,9 +1685,13 @@ namespace Web_Automation_WordPress_2
                                 new FileDataStore(WP_PW, true)).Result;
                         }
                     }
-                    catch { }
+                    catch(Exception ex)
+                    {
+                        LogBox1.AppendText($"오류 발생 #2: {ex.Message}" + Environment.NewLine);
+                    }
                 }
             }
+            LogBox1.AppendText($"인증 시도 완료" + Environment.NewLine);
         }
     }
 

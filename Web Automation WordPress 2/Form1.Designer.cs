@@ -34,6 +34,7 @@
 			FolderPath1Btn1 = new Button();
 			FolderPath1 = new TextBox();
 			groupBox7 = new GroupBox();
+			AuthBtn1 = new Button();
 			button1 = new Button();
 			groupBox4 = new GroupBox();
 			HotelListBox1 = new TextBox();
@@ -43,13 +44,15 @@
 			groupBox12 = new GroupBox();
 			groupBox3 = new GroupBox();
 			LogBox2 = new TextBox();
-			AuthBtn1 = new Button();
+			groupBox5 = new GroupBox();
+			googleApiBox1 = new TextBox();
 			groupBox1.SuspendLayout();
 			groupBox7.SuspendLayout();
 			groupBox4.SuspendLayout();
 			groupBox2.SuspendLayout();
 			groupBox12.SuspendLayout();
 			groupBox3.SuspendLayout();
+			groupBox5.SuspendLayout();
 			SuspendLayout();
 			// 
 			// StartBtn1
@@ -58,7 +61,7 @@
 			StartBtn1.Cursor = Cursors.Hand;
 			StartBtn1.Font = new Font("맑은 고딕", 12F, FontStyle.Bold, GraphicsUnit.Point);
 			StartBtn1.ForeColor = Color.Black;
-			StartBtn1.Location = new Point(111, 275);
+			StartBtn1.Location = new Point(111, 296);
 			StartBtn1.Name = "StartBtn1";
 			StartBtn1.Size = new Size(140, 63);
 			StartBtn1.TabIndex = 9;
@@ -114,6 +117,7 @@
 			// 
 			// groupBox7
 			// 
+			groupBox7.Controls.Add(groupBox5);
 			groupBox7.Controls.Add(AuthBtn1);
 			groupBox7.Controls.Add(StartBtn1);
 			groupBox7.Controls.Add(button1);
@@ -126,16 +130,30 @@
 			groupBox7.Margin = new Padding(2);
 			groupBox7.Name = "groupBox7";
 			groupBox7.Padding = new Padding(2);
-			groupBox7.Size = new Size(259, 347);
+			groupBox7.Size = new Size(259, 363);
 			groupBox7.TabIndex = 999;
 			groupBox7.TabStop = false;
 			groupBox7.Text = "포스팅 옵션_Ver 3.0";
 			// 
+			// AuthBtn1
+			// 
+			AuthBtn1.BackColor = Color.Silver;
+			AuthBtn1.Cursor = Cursors.Hand;
+			AuthBtn1.Font = new Font("맑은 고딕", 12F, FontStyle.Bold, GraphicsUnit.Point);
+			AuthBtn1.ForeColor = Color.Black;
+			AuthBtn1.Location = new Point(6, 260);
+			AuthBtn1.Name = "AuthBtn1";
+			AuthBtn1.Size = new Size(99, 98);
+			AuthBtn1.TabIndex = 1012;
+			AuthBtn1.Text = "구글 수동 인증";
+			AuthBtn1.UseVisualStyleBackColor = false;
+			AuthBtn1.Click += AuthBtn1_Click;
+			// 
 			// button1
 			// 
-			button1.Location = new Point(111, 237);
+			button1.Location = new Point(111, 258);
 			button1.Name = "button1";
-			button1.Size = new Size(144, 23);
+			button1.Size = new Size(144, 32);
 			button1.TabIndex = 1006;
 			button1.Text = "호텔 목록화";
 			button1.UseVisualStyleBackColor = true;
@@ -145,11 +163,11 @@
 			// 
 			groupBox4.Controls.Add(HotelListBox1);
 			groupBox4.Font = new Font("맑은 고딕", 9F, FontStyle.Bold, GraphicsUnit.Point);
-			groupBox4.Location = new Point(6, 153);
+			groupBox4.Location = new Point(6, 191);
 			groupBox4.Margin = new Padding(2);
 			groupBox4.Name = "groupBox4";
 			groupBox4.Padding = new Padding(2);
-			groupBox4.Size = new Size(249, 81);
+			groupBox4.Size = new Size(249, 64);
 			groupBox4.TabIndex = 1011;
 			groupBox4.TabStop = false;
 			groupBox4.Text = "호텔 목록화";
@@ -161,15 +179,15 @@
 			HotelListBox1.Cursor = Cursors.IBeam;
 			HotelListBox1.Font = new Font("굴림", 9F, FontStyle.Regular, GraphicsUnit.Point);
 			HotelListBox1.ForeColor = Color.Black;
-			HotelListBox1.Location = new Point(5, 24);
+			HotelListBox1.Location = new Point(5, 20);
 			HotelListBox1.Multiline = true;
 			HotelListBox1.Name = "HotelListBox1";
-			HotelListBox1.Size = new Size(235, 47);
+			HotelListBox1.Size = new Size(235, 38);
 			HotelListBox1.TabIndex = 1010;
 			// 
 			// RenameBtn1
 			// 
-			RenameBtn1.Location = new Point(180, 95);
+			RenameBtn1.Location = new Point(180, 78);
 			RenameBtn1.Name = "RenameBtn1";
 			RenameBtn1.Size = new Size(75, 43);
 			RenameBtn1.TabIndex = 1008;
@@ -181,7 +199,7 @@
 			// 
 			groupBox2.Controls.Add(UrlBox1);
 			groupBox2.Font = new Font("맑은 고딕", 9F, FontStyle.Bold, GraphicsUnit.Point);
-			groupBox2.Location = new Point(6, 23);
+			groupBox2.Location = new Point(6, 20);
 			groupBox2.Margin = new Padding(2);
 			groupBox2.Name = "groupBox2";
 			groupBox2.Padding = new Padding(2);
@@ -205,7 +223,7 @@
 			groupBox12.Controls.Add(FolderPath1Btn1);
 			groupBox12.Controls.Add(FolderPath1);
 			groupBox12.Font = new Font("맑은 고딕", 9F, FontStyle.Bold, GraphicsUnit.Point);
-			groupBox12.Location = new Point(6, 89);
+			groupBox12.Location = new Point(6, 72);
 			groupBox12.Margin = new Padding(2);
 			groupBox12.Name = "groupBox12";
 			groupBox12.Padding = new Padding(2);
@@ -220,7 +238,7 @@
 			groupBox3.Font = new Font("맑은 고딕", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
 			groupBox3.Location = new Point(275, 181);
 			groupBox3.Name = "groupBox3";
-			groupBox3.Size = new Size(344, 177);
+			groupBox3.Size = new Size(344, 193);
 			groupBox3.TabIndex = 1001;
 			groupBox3.TabStop = false;
 			groupBox3.Text = "작업 로그";
@@ -234,29 +252,39 @@
 			LogBox2.Multiline = true;
 			LogBox2.Name = "LogBox2";
 			LogBox2.ReadOnly = true;
-			LogBox2.Size = new Size(328, 141);
+			LogBox2.Size = new Size(328, 161);
 			LogBox2.TabIndex = 0;
 			// 
-			// AuthBtn1
+			// groupBox5
 			// 
-			AuthBtn1.BackColor = Color.Silver;
-			AuthBtn1.Cursor = Cursors.Hand;
-			AuthBtn1.Font = new Font("맑은 고딕", 12F, FontStyle.Bold, GraphicsUnit.Point);
-			AuthBtn1.ForeColor = Color.Black;
-			AuthBtn1.Location = new Point(6, 239);
-			AuthBtn1.Name = "AuthBtn1";
-			AuthBtn1.Size = new Size(99, 98);
-			AuthBtn1.TabIndex = 1012;
-			AuthBtn1.Text = "구글 수동 인증";
-			AuthBtn1.UseVisualStyleBackColor = false;
-			AuthBtn1.Click += AuthBtn1_Click;
+			groupBox5.Controls.Add(googleApiBox1);
+			groupBox5.Font = new Font("맑은 고딕", 9F, FontStyle.Bold, GraphicsUnit.Point);
+			groupBox5.Location = new Point(6, 127);
+			groupBox5.Margin = new Padding(2);
+			groupBox5.Name = "groupBox5";
+			groupBox5.Padding = new Padding(2);
+			groupBox5.Size = new Size(249, 54);
+			groupBox5.TabIndex = 1013;
+			groupBox5.TabStop = false;
+			groupBox5.Text = "구글API*";
+			// 
+			// googleApiBox1
+			// 
+			googleApiBox1.BackColor = Color.LightGray;
+			googleApiBox1.BorderStyle = BorderStyle.FixedSingle;
+			googleApiBox1.ForeColor = Color.Black;
+			googleApiBox1.Location = new Point(5, 21);
+			googleApiBox1.Name = "googleApiBox1";
+			googleApiBox1.ReadOnly = true;
+			googleApiBox1.Size = new Size(240, 23);
+			googleApiBox1.TabIndex = 8;
 			// 
 			// Form1
 			// 
 			AutoScaleDimensions = new SizeF(7F, 15F);
 			AutoScaleMode = AutoScaleMode.Font;
 			BackColor = Color.White;
-			ClientSize = new Size(627, 364);
+			ClientSize = new Size(627, 383);
 			Controls.Add(groupBox3);
 			Controls.Add(groupBox7);
 			Controls.Add(groupBox1);
@@ -273,6 +301,8 @@
 			groupBox12.PerformLayout();
 			groupBox3.ResumeLayout(false);
 			groupBox3.PerformLayout();
+			groupBox5.ResumeLayout(false);
+			groupBox5.PerformLayout();
 			ResumeLayout(false);
 		}
 
@@ -294,5 +324,7 @@
 		private TextBox UrlBox1;
 		private GroupBox groupBox4;
 		private Button AuthBtn1;
+		private GroupBox groupBox5;
+		private TextBox googleApiBox1;
 	}
 }
