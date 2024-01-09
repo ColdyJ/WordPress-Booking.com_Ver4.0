@@ -1197,8 +1197,10 @@ namespace Web_Automation_WordPress_2
                     request.UploadType = "media";
                     await request.UploadAsync();
                 }
+                Delay();
                 var file = request.ResponseBody;
-                string fileid = file.Id;
+				Delay();
+				string fileid = file.Id;
                 //ThumbnailLink 미리보기 대화면 지원 , 본문에선 작게나옴 , 시간 지나면 안보임
                 //WebContentLink 본문에서는 나옴, 미리보기 지원 , 맨뒤 &export=download 삭제해도 미리보기 안나옴
                 //WebViewLink 미리보기 , 본문 미지원
