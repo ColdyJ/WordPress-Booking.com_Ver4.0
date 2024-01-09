@@ -34,6 +34,8 @@
 			FolderPath1Btn1 = new Button();
 			FolderPath1 = new TextBox();
 			groupBox7 = new GroupBox();
+			groupBox5 = new GroupBox();
+			googleApiBox1 = new TextBox();
 			AuthBtn1 = new Button();
 			button1 = new Button();
 			groupBox4 = new GroupBox();
@@ -44,15 +46,13 @@
 			groupBox12 = new GroupBox();
 			groupBox3 = new GroupBox();
 			LogBox2 = new TextBox();
-			groupBox5 = new GroupBox();
-			googleApiBox1 = new TextBox();
 			groupBox1.SuspendLayout();
 			groupBox7.SuspendLayout();
+			groupBox5.SuspendLayout();
 			groupBox4.SuspendLayout();
 			groupBox2.SuspendLayout();
 			groupBox12.SuspendLayout();
 			groupBox3.SuspendLayout();
-			groupBox5.SuspendLayout();
 			SuspendLayout();
 			// 
 			// StartBtn1
@@ -134,6 +134,29 @@
 			groupBox7.TabIndex = 999;
 			groupBox7.TabStop = false;
 			groupBox7.Text = "포스팅 옵션_Ver 3.0";
+			// 
+			// groupBox5
+			// 
+			groupBox5.Controls.Add(googleApiBox1);
+			groupBox5.Font = new Font("맑은 고딕", 9F, FontStyle.Bold, GraphicsUnit.Point);
+			groupBox5.Location = new Point(6, 127);
+			groupBox5.Margin = new Padding(2);
+			groupBox5.Name = "groupBox5";
+			groupBox5.Padding = new Padding(2);
+			groupBox5.Size = new Size(249, 54);
+			groupBox5.TabIndex = 1013;
+			groupBox5.TabStop = false;
+			groupBox5.Text = "구글API*";
+			// 
+			// googleApiBox1
+			// 
+			googleApiBox1.BackColor = Color.LightGray;
+			googleApiBox1.BorderStyle = BorderStyle.FixedSingle;
+			googleApiBox1.ForeColor = Color.Black;
+			googleApiBox1.Location = new Point(5, 21);
+			googleApiBox1.Name = "googleApiBox1";
+			googleApiBox1.Size = new Size(240, 23);
+			googleApiBox1.TabIndex = 8;
 			// 
 			// AuthBtn1
 			// 
@@ -255,30 +278,6 @@
 			LogBox2.Size = new Size(328, 161);
 			LogBox2.TabIndex = 0;
 			// 
-			// groupBox5
-			// 
-			groupBox5.Controls.Add(googleApiBox1);
-			groupBox5.Font = new Font("맑은 고딕", 9F, FontStyle.Bold, GraphicsUnit.Point);
-			groupBox5.Location = new Point(6, 127);
-			groupBox5.Margin = new Padding(2);
-			groupBox5.Name = "groupBox5";
-			groupBox5.Padding = new Padding(2);
-			groupBox5.Size = new Size(249, 54);
-			groupBox5.TabIndex = 1013;
-			groupBox5.TabStop = false;
-			groupBox5.Text = "구글API*";
-			// 
-			// googleApiBox1
-			// 
-			googleApiBox1.BackColor = Color.LightGray;
-			googleApiBox1.BorderStyle = BorderStyle.FixedSingle;
-			googleApiBox1.ForeColor = Color.Black;
-			googleApiBox1.Location = new Point(5, 21);
-			googleApiBox1.Name = "googleApiBox1";
-			googleApiBox1.ReadOnly = true;
-			googleApiBox1.Size = new Size(240, 23);
-			googleApiBox1.TabIndex = 8;
-			// 
 			// Form1
 			// 
 			AutoScaleDimensions = new SizeF(7F, 15F);
@@ -293,6 +292,8 @@
 			groupBox1.ResumeLayout(false);
 			groupBox1.PerformLayout();
 			groupBox7.ResumeLayout(false);
+			groupBox5.ResumeLayout(false);
+			groupBox5.PerformLayout();
 			groupBox4.ResumeLayout(false);
 			groupBox4.PerformLayout();
 			groupBox2.ResumeLayout(false);
@@ -301,8 +302,6 @@
 			groupBox12.PerformLayout();
 			groupBox3.ResumeLayout(false);
 			groupBox3.PerformLayout();
-			groupBox5.ResumeLayout(false);
-			groupBox5.PerformLayout();
 			ResumeLayout(false);
 		}
 
