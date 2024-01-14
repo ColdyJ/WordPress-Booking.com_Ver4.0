@@ -518,7 +518,6 @@ namespace Web_Automation_WordPress_2
                 // 정규 표현식을 사용하여 ".html" 앞에 "ko"가 없는 경우 "ko.html"를 추가
                 url = Regex.Replace(url, @"(?<!ko)\.html", ".ko.html");
             }
-            string combinedInfo = "";
             using (HttpClient client = new HttpClient())
             {
 
@@ -534,9 +533,10 @@ namespace Web_Automation_WordPress_2
                 var points = doc.DocumentNode.SelectNodes("//div[@class='a3b8729ab1 d86cee9b25']"); // 평점
                 var checkinTimes = doc.DocumentNode.SelectNodes("//div[@id='checkin_policy']//p[2]");
                 var checkoutTimes = doc.DocumentNode.SelectNodes("//div[@id='checkout_policy']//p[2]");
+                var Amenities = doc.DocumentNode.SelectNodes("//ul[@class ='c807d72881 d1a624a1cc e10711a42e']"); // TODO: 편의시설인데.. 어떻게 추가 해야할지?
 
-                //지도 정보 추출
-                var hotel_address = doc.DocumentNode.SelectNodes("//a[@id='hotel_address']");
+				//지도 정보 추출
+				var hotel_address = doc.DocumentNode.SelectNodes("//a[@id='hotel_address']");
                 foreach (var element in hotel_address)
                 {
                     string latLngAttribute = element.GetAttributeValue("data-atlas-latlng", ""); // data-atlas-latlng 속성 값을 가져옵니다.
@@ -588,16 +588,17 @@ namespace Web_Automation_WordPress_2
                 // 추출된 정보 출력
                 try
                 {
-                    hotelName = names[0].InnerText.Trim();
-                    string info = Google_Trans(infos[0].InnerText.Trim(), "ko"); // 숙소 정보를 한글로 강제화
+					hotelName = names[0].InnerText.Trim();
+					string combinedInfo = $"<h2>{hotelName}: {WP_Title} 가성비 5성급 럭셔리 호텔 추천<h2><p>&nbsp;</p>\n";
+					string info = Google_Trans(infos[0].InnerText.Trim(), "ko"); // 숙소 정보를 한글로 강제화
                     string checkinTime = checkinTimes[0].InnerText.Trim();
                     string checkoutTime = checkoutTimes[0].InnerText.Trim();
                     string point = "정보 없음";
                     if (points != null) { point = points[0].InnerText.Trim(); }
 
                     // containers에 있는 정보를 문자열로 결합
-                    combinedInfo = $"숙소 명: {hotelName}<p>&nbsp;</p>\n숙소 정보: {info}<p>&nbsp;</p>\n숙소 평점: {point}<p>&nbsp;</p>\nCheck-in Time: {checkinTime}\nCheck-out Time: {checkoutTime}<p>&nbsp;</p>\n숙소 리뷰:\n- {string.Join("<p>&nbsp;</p>- ", additionalReviews)}";
-                    string[] keywords = { "숙소 명:", "숙소 정보:", "숙소 평점:", "Check-in Time:", "Check-out Time:", "숙소 리뷰:" };
+                    combinedInfo += $"호텔을 선택한 이유: {info}<p>&nbsp;</p>\n숙소 평점: {point}<p>&nbsp;</p>\n입실 / 퇴실 시간: {checkinTime + " / " + checkoutTime}<p>&nbsp;</p>\n숙소 리뷰:\n- {string.Join("<p>&nbsp;</p>- ", additionalReviews)}";
+                    string[] keywords = { "호텔을 선택한 이유:", "숙소 평점:", "입실 / 퇴실 시간:", "숙소 리뷰:" };
                     foreach (var keyword in keywords)
                     {
                         combinedInfo = Regex.Replace(combinedInfo, keyword, $"<h3><span style='color: #FF8C00; font-weight: bold;'>{keyword}</span></h3>");
@@ -622,8 +623,8 @@ namespace Web_Automation_WordPress_2
 
                                 using (Graphics graphics = Graphics.FromImage(image))
                                 {
-                                    string text = hotelName + "\n" + "숙박 솔직 후기\n★할인 예약 링크";
-                                    Font font = new Font("NPSfont_regular", 35, FontStyle.Bold);
+                                    string text = WP_Title + "\n" + "베스트 호텔 추천" + "\n" + "TOP 5";
+                                    Font font = new Font("NPSfont_regular", 55, FontStyle.Bold);
 
                                     Brush grayBrush = Brushes.LightGray;
                                     Brush whitebrush = Brushes.White;
@@ -799,31 +800,62 @@ namespace Web_Automation_WordPress_2
         {
             var client = new WordPressClient(WP_URL);
             client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
-            int count = 0, i = 1;
-            List<string> responseImgList = new List<string>(); // 이미지 업로드 결과를 저장할 리스트
 
-            while (count != 11) // 총 10장의 사진을 url로 리스트
-            {
-                // 이미지 파일 경로 가져오기
-                string localImagePath = Path.Combine(Folder_Path, $"{i}.jpg");
-                if (File.Exists(localImagePath))
-                {
-                    var createdMedia = await client.Media.CreateAsync(localImagePath, $"{translation + '_' + i}.jpg"); // localImagePath로 media({translation}.jpg) 생성
-                    string responseImg = $"<img class=\"aligncenter\" src=\"{createdMedia.SourceUrl}\">"; // createdMedia에서 변환 시켰으니 img src로 변경
-                    responseImgList.Add(responseImg);
-                    count++;
-                    i++;
-                }
-                else
-                {
-                    i++;
-                }
-            }
-            return responseImgList; // 이미지 업로드 결과를 리스트로 반환
+			List<string> responseImgList = new List<string>(); // 이미지 업로드 결과를 저장할 리스트
+			string basePath = Folder_Path; // 기본 저장 폴더 경로
+			string[] imagePaths =
+			{
+			Path.Combine(basePath, "1.jpg"),
+			Path.Combine(basePath, "2.jpg"),
+			Path.Combine(basePath, "3.jpg"),
+			Path.Combine(basePath, "4.jpg")
+		    }; 
+            int width = 0, height = 0;
+
+			// 각 이미지의 크기를 확인하고 전체 이미지의 크기를 결정합니다.
+			foreach (var path in imagePaths)
+			{
+				using (var image = Image.FromFile(path))
+				{
+					width = Math.Max(width, image.Width);
+					height = Math.Max(height, image.Height);
+				}
+			}
+			// 새 이미지를 만들고 각 이미지를 이에 병합합니다.
+			using (var newImage = new Bitmap(width * 2, height * 2))
+			using (var graphics = Graphics.FromImage(newImage))
+			{
+				graphics.Clear(Color.White); // 배경색 설정
+
+				for (int i = 0; i < imagePaths.Length; i++)
+				{
+					using (var image = Image.FromFile(imagePaths[i]))
+					{
+						int x = (i % 2) * width;
+						int y = (i / 2) * height;
+						graphics.DrawImage(image, new Rectangle(x, y, width, height));
+					}
+				}
+				string outputPath = Path.Combine(basePath, $"{translation + '_' + 1}.jpg");
+				newImage.Save(outputPath);
+				newImage.Dispose();
+			}
+            //WP 미디어 업로드 작업
+			var createdMedia = await client.Media.CreateAsync(basePath, $"{translation + '_' + 1}.jpg"); // localImagePath로 media({translation}.jpg) 생성
+			string responseImg = $"<img class=\"aligncenter\" src=\"{createdMedia.SourceUrl}\">"; // createdMedia에서 변환 시켰으니 img src로 변경
+			responseImgList.Add(responseImg);
+
+			Console.WriteLine("이미지가 성공적으로 병합되었습니다.");
+			return responseImgList; // 이미지 업로드 결과를 리스트로 반환
+
+
+
+
+
         }
 
-        // GPT 출력 내용 사이에 이미지 추가
-        private string AddImagesToContent(string result_GPT, List<string> result_ImgList)
+		// GPT 출력 내용 사이에 이미지 추가 (TODO: <h2>{hotelName}: {WP_Title} 가성비 5성급 럭셔리 호텔 추천<h2> 아래에 사진 추가)
+		private string AddImagesToContent(string result_GPT, List<string> result_ImgList)
         {
             string pattern = @"\d+\.\s*[\p{L}\d\s]+(?::)?";  // 이미지를 넣을 자리 찾는 정규 표현식 패턴
 
