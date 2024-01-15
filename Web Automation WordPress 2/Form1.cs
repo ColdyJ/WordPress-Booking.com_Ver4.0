@@ -23,6 +23,7 @@ using Google.Apis.Blogger.v3;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Util.Store;
 using Google.Apis.Drive.v3;
+using System.Net.Http;
 
 
 namespace Web_Automation_WordPress_2
@@ -107,7 +108,11 @@ namespace Web_Automation_WordPress_2
 						for (int i = 2; i <= 7; i++)
 						{
 							GetIdList(i); // 포스팅 할 블로그 선택
-							GetHotelList();  // 블로그에 포스팅 할 호텔 선택 / 조건: 엑셀 첫번째 아이템의 url을 HotelUrl 인풋, 없을때 ""
+							await WP_API_Auto_2();
+							global_i = 1;
+
+							/*
+							GetHotelList(Folder_Path);  // 블로그에 포스팅 할 호텔 선택 / 조건: 엑셀 첫번째 아이템의 url을 HotelUrl 인풋, 없을때 ""
 							if (HotelUrl == "") break; // 정지 조건
 							if (Blog_Type == "BS") await BS_API_Auto();
 							else await WP_API_Auto();
@@ -115,6 +120,7 @@ namespace Web_Automation_WordPress_2
 							DeleteHotelList(Folder_Path);  // 엑셀 첫번째 행 삭제
 							DeleteAllJpgFilesInFolder(Folder_Path); // 폴더 내 사진 삭제
 							Delay();
+							*/
 						}
 						LogBox2.AppendText($"{count}번 포스팅 완료" + Environment.NewLine);
 						DateTime currentTime = DateTime.Now; // 현재 시간을 가져와서 출력
@@ -182,6 +188,8 @@ namespace Web_Automation_WordPress_2
 				if (!string.IsNullOrEmpty(Folder_Path) && Directory.Exists(Folder_Path))
 				{
 					string[] files = Directory.GetFiles(Folder_Path);
+					Random rng = new Random();
+					files = files.OrderBy(x => rng.Next()).ToArray(); // 파일 배열 랜덤화
 					foreach (string filePath in files)
 					{
 						string extension = Path.GetExtension(filePath);
@@ -448,10 +456,10 @@ namespace Web_Automation_WordPress_2
 		}
 
 		// 블로그에서 포스팅 할 첫번째 아이템 선택
-		private void GetHotelList()
+		private void GetHotelList(string folderpath)
 		{
 			// 엑셀 파일 경로
-			string excelFilePath = Path.Combine(Folder_Path, "HotelList.xlsx");
+			string excelFilePath = Path.Combine(folderpath, "HotelList.xlsx");
 			try
 			{
 				// ExcelPackage를 사용하여 엑셀 파일 열기
@@ -555,11 +563,11 @@ namespace Web_Automation_WordPress_2
 				var reviewNodes = doc.DocumentNode.SelectNodes("//div[@class='a53cbfa6de b5726afd0b']"); // reviews를 여러 요소로 선택
 				if (reviewNodes != null)
 				{
-					// reviewCount가 9 미만인 경우 reviewCount만큼 출력
+					// reviewCount가 6 미만인 경우 reviewCount만큼 출력
 					int reviewCount = reviewNodes.Count;
-					int maxReviewsToDisplay = Math.Min(9, reviewCount);
+					int maxReviewsToDisplay = Math.Min(7, reviewCount);
 
-					if (reviewCount < 9)
+					if (reviewCount < 7)
 					{
 						for (int i = 0; i < maxReviewsToDisplay; i++)
 						{
@@ -574,7 +582,7 @@ namespace Web_Automation_WordPress_2
 					}
 					else
 					{
-						for (int i = 0; i < 9; i++)
+						for (int i = 0; i < 7; i++)
 						{
 							// reviewNodes에서 리뷰 가져오기
 							var reviewNode = reviewNodes[i];
@@ -591,7 +599,7 @@ namespace Web_Automation_WordPress_2
 				try
 				{
 					hotelName = names[0].InnerText.Trim();
-					string combinedInfo = $"<h2>{hotelName}: {WP_Title} 가성비 5성급 럭셔리 호텔 추천<h2><p>&nbsp;</p>\n";
+					string combinedInfo = $"<h2>{hotelName}: {WP_Title} 가성비 5성급 럭셔리 호텔 추천</h2><p>&nbsp;</p>\n";
 					string info = Google_Trans(infos[0].InnerText.Trim(), "ko"); // 숙소 정보를 한글로 강제화
 					string checkinTime = checkinTimes[0].InnerText.Trim();
 					string checkoutTime = checkoutTimes[0].InnerText.Trim();
@@ -603,8 +611,17 @@ namespace Web_Automation_WordPress_2
 					string[] keywords = { "호텔을 선택한 이유:", "숙소 평점:", "입실 / 퇴실 시간:", "숙소 리뷰:" };
 					foreach (var keyword in keywords)
 					{
-						combinedInfo = Regex.Replace(combinedInfo, keyword, $"<h3><span style='color: #FF8C00; font-weight: bold;'>{keyword}</span></h3>");
+						combinedInfo = Regex.Replace(combinedInfo, keyword, $"<h3><span font-weight: bold;'>{keyword}</span></h3>");
 					}
+
+					// 리뷰로 바뀐 translation을 호텔명으로 수정
+					string shortenedName = hotelName;
+					if (shortenedName.Length > 15)
+					{
+						shortenedName = hotelName.Substring(0, Math.Min(15, hotelName.Length)); // 호텔명이 너무 길때 최대 15자까지 자르도록 함
+					}
+					translation = Google_Trans(shortenedName + " Thumnail", "en");
+
 					// 결과 출력
 					Console.WriteLine(combinedInfo);
 
@@ -656,7 +673,7 @@ namespace Web_Automation_WordPress_2
 									graphics.DrawString(text, font, whitebrush, new PointF(x, y));
 								}
 
-								string outputPath = Path.Combine(basePath, "EditedThum_1.jpg");
+								string outputPath = Path.Combine(basePath, "EditedThum_1.png");
 								image.Save(outputPath);
 								image.Dispose();
 							}
@@ -684,17 +701,10 @@ namespace Web_Automation_WordPress_2
 			var client = new WordPressClient(WP_URL);
 			client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
 			string responseImg = "";
-			string shortenedName = hotelName;
 			try
 			{
-				if (shortenedName.Length > 15)
-				{
-					shortenedName = hotelName.Substring(0, Math.Min(15, hotelName.Length)); // 호텔명이 너무 길때 최대 15자까지 자르도록 함
-				}
-				translation = Google_Trans(shortenedName + " Thumnail", "en");
-
-				string localThumnailPath = Path.Combine(Folder_Path, $"EditedThum_1.jpg"); // 이미지 파일 경로 가져오기
-				var createdThumMedia = await client.Media.CreateAsync(localThumnailPath, $"{translation}.jpg"); // localImagePath로 media({translation}.jpg) 생성
+				string localThumnailPath = Path.Combine(Folder_Path, $"EditedThum_1.png"); // 이미지 파일 경로 가져오기
+				var createdThumMedia = await client.Media.CreateAsync(localThumnailPath, $"{translation}.png"); // localImagePath로 media({translation}.jpg) 생성
 				responseImg = $"<img class=\"aligncenter\" src=\"{createdThumMedia.SourceUrl}\">"; // createdMedia에서 변환 시켰으니 img src로 변경
 				result_thumbNail = createdThumMedia.Id;
 			}
@@ -746,7 +756,7 @@ namespace Web_Automation_WordPress_2
     </script>
 </body>
 ";
-			maphtml = $"<!-- wp:html -->{maphtml}<!-- /wp:html -->";
+			maphtml = $"<h3>숙소 위치</h3><br><!-- wp:html -->{maphtml}<!-- /wp:html -->";
 			return Task.FromResult(maphtml);
 		}
 
@@ -758,16 +768,23 @@ namespace Web_Automation_WordPress_2
 			client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
 
 			List<string> responseImgList = new List<string>(); // 이미지 업로드 결과를 저장할 리스트
+			int startNumber = 1; // 이미지 파일 이름에 사용할 시작 숫자
+			int maxImages = 4; // 총 이미지 파일 개수
+			string[] imagePaths = new string[maxImages];
 			string basePath = Folder_Path; // 기본 저장 폴더 경로
-			string[] imagePaths =
+			for (int i = 0; i < maxImages; i++)
 			{
-			Path.Combine(basePath, "1.jpg"),
-			Path.Combine(basePath, "2.jpg"),
-			Path.Combine(basePath, "3.jpg"),
-			Path.Combine(basePath, "4.jpg")
-			};
-			int width = 0, height = 0, gap = 10;
+				string imagePath;
+				do
+				{
+					imagePath = Path.Combine(basePath, $"{startNumber}.jpg");
+					startNumber++;
+				} while (!File.Exists(imagePath));
 
+				imagePaths[i] = imagePath;
+			}
+			int width = 0, height = 0;
+			string outputPath = "";
 			// 각 이미지의 크기를 확인하고 전체 이미지의 크기를 결정합니다.
 			foreach (var path in imagePaths)
 			{
@@ -778,7 +795,7 @@ namespace Web_Automation_WordPress_2
 				}
 			}
 			// 새 이미지를 만들고 각 이미지를 이에 병합합니다.
-			using (var newImage = new Bitmap(width * 2 + gap, height * 2 + gap))
+			using (var newImage = new Bitmap(width * 2, height * 2))
 			using (var graphics = Graphics.FromImage(newImage))
 			{
 				graphics.Clear(Color.White); // 배경색 설정
@@ -787,17 +804,25 @@ namespace Web_Automation_WordPress_2
 				{
 					using (var image = Image.FromFile(imagePaths[i]))
 					{
-						int x = (i % 2) * width + gap;
-						int y = (i / 2) * height + gap;
+						int x = (i % 2) * width;
+						int y = (i / 2) * height;
 						graphics.DrawImage(image, new Rectangle(x, y, width, height));
 					}
 				}
-				string outputPath = Path.Combine(basePath, $"{translation + '_' + 1}.jpg");
+				// 하얀색 십자선 그리기
+				Pen whitePen = new Pen(Color.White, 10); // 펜 설정 (하얀색, 두께 10)
+
+				// 수직선
+				graphics.DrawLine(whitePen, width, 0, width, newImage.Height);
+				// 수평선
+				graphics.DrawLine(whitePen, 0, height, newImage.Width, height);
+
+				outputPath = Path.Combine(basePath, $"{translation + '_' + global_i}.jpg");
 				newImage.Save(outputPath);
 				newImage.Dispose();
 			}
 			//WP 미디어 업로드 작업
-			var createdMedia = await client.Media.CreateAsync(basePath, $"{translation + '_' + global_i}.jpg"); // localImagePath로 media({translation}.jpg) 생성
+			var createdMedia = await client.Media.CreateAsync(outputPath, $"{translation + '_' + global_i}.jpg"); // localImagePath로 media({translation}.jpg) 생성
 			string responseImg = $"<img class=\"aligncenter\" src=\"{createdMedia.SourceUrl}\">"; // createdMedia에서 변환 시켰으니 img src로 변경
 			responseImgList.Add(responseImg);
 			global_i++;
@@ -806,12 +831,12 @@ namespace Web_Automation_WordPress_2
 		}
 
 
-		// {hotelName}: {WP_Title} 가성비 5성급 럭셔리 호텔 추천 아래에 사진 추가
+		// {hotelName}: {WP_Title} 가성비 5성급 럭셔리 호텔 추천 아래에 사진 추가 (<h2>와<h3>사이)
 		private string AddImagesToContent(string result_Text, List<string> result_ImgList)
 		{
-			string pattern = "가성비 5성급 럭셔리 호텔 추천";  // 이미지를 넣을 자리 찾는 정규 표현식 패턴
+			string pattern = @"<h3>.*?</h3>";
 
-			// result_GPT 문자열에서 정규 표현식 패턴과 일치하는 부분을 추출
+			// result_Text 문자열에서 정규 표현식 패턴과 일치하는 부분을 추출
 			MatchCollection matches = Regex.Matches(result_Text, pattern);
 
 			// result_ImgList의 img src를 저장된 MatchCollection 위치에 삽입
@@ -827,7 +852,7 @@ namespace Web_Automation_WordPress_2
 					string imageSrc = result_ImgList.FirstOrDefault(); // 이미지 URL을 가져옴
 					if (!string.IsNullOrEmpty(imageSrc))
 					{
-						result_Text = result_Text.Replace(imageInfo, $"\r<p>&nbsp;</p><br>{imageSrc}\r<br><br><h3><span style='color: #FF8C00; font-weight: bold;'>{imageInfo}</span></h3>");
+						result_Text = result_Text.Replace(imageInfo, $"\r<br>{imageSrc}\r<br><h3><span font-weight: bold;'>{imageInfo}</span></h3>");
 						result_ImgList.RemoveAt(0); // 사용한 이미지 URL을 리스트에서 제거
 					}
 				}
@@ -1001,7 +1026,7 @@ namespace Web_Automation_WordPress_2
 		{
 			var client = new WordPressClient(WP_URL);
 			client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
-			string tags = "'" + WP_Title + "호텔" + "'" + "을 포함한 인기 검색어 5개를 ','로 구분해서 알려줘";
+			string tags = "'" + WP_Title + "호텔 추천" + "'" + "을 포함한 인기 검색어 5개를 ','로 구분해서 알려줘";
 			string tagResult = "";
 			try
 			{
@@ -1075,8 +1100,6 @@ namespace Web_Automation_WordPress_2
 				LogBox1.AppendText($"===========================" + Environment.NewLine);
 				LogBox1.AppendText($"호텔 정보 추가..." + Environment.NewLine);
 				string result_Hotel = await GetHotelInfoAsync();
-				LogBox1.AppendText($"호텔 썸네일 등록..." + Environment.NewLine);
-				string result_ThumnailImg = await ThumnailAsync_WP(); // 썸네일 등록id 및 img src
 				LogBox1.AppendText($"호텔 추가 완료..." + Environment.NewLine);
 				LogBox1.AppendText($"===========================" + Environment.NewLine);
 
@@ -1103,6 +1126,8 @@ namespace Web_Automation_WordPress_2
 				LogBox1.AppendText($"이미지 & 내용 패턴 변경 완료..." + Environment.NewLine);
 				LogBox1.AppendText($"===========================" + Environment.NewLine);
 
+				LogBox1.AppendText($"호텔 썸네일 등록..." + Environment.NewLine);
+				string result_ThumnailImg = await ThumnailAsync_WP(); // 썸네일 등록id 및 img src
 
 				// GPT 본문 출력
 				LogBox1.AppendText($"GPT 출력 시작..." + Environment.NewLine);
@@ -1152,11 +1177,11 @@ namespace Web_Automation_WordPress_2
 				//WP 업로드 
 				LogBox1.AppendText($"===========================" + Environment.NewLine);
 				LogBox1.AppendText($"워드프레스 업로드 시작" + Environment.NewLine);
-				var post = new WordPressPCL.Models.Post()
+				var post = new Post()
 				{
 					Title = new Title(hotelName + " " + WP_Title + " 숙박후기"), // TitleBox1.Text
 					Content = new Content(head_2 + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_GPT + separator
-										  + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>"  + separator// todo : 이부분 5회 반복해야함
+										  + "<p>&nbsp;</p>" + content + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" + separator// todo : 이부분 5회 반복해야함
 										  + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
 					FeaturedMedia = result_thumbNail, // 썸네일
 					Categories = new List<int> { result_Categories }, // ComboBox에서 선택한 카테고리 ID 설정
@@ -1176,6 +1201,152 @@ namespace Web_Automation_WordPress_2
 				LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
 			}
 		}
+
+
+
+
+
+
+
+		public async Task WP_API_Auto_2()
+		{
+			var client = new WordPressClient(WP_URL);
+			client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
+
+
+			try
+			{
+				string separator = "<hr class=\"wp-block-separator has-alpha-channel-opacity\">";
+				string head_2 = $"<h2>{WP_Title + " 베스트 숙소추천 숙박후기"}</h2>";
+				string mergeContent = ""; // 각 호텔별 게시글 저장(5회)
+
+				for (int i = 0; i < 5; i++)
+				{
+					// 블로그에 포스팅 할 호텔 선택
+					LogBox1.AppendText($"===========================" + Environment.NewLine);
+					LogBox1.AppendText($"호텔 선택..." + Environment.NewLine);
+					GetHotelList(Folder_Path);
+					if (HotelUrl == "") break; // 정지 조건
+					LogBox1.AppendText($"호텔 선택 완료..." + Environment.NewLine);
+					LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+					// 호텔 정보
+					LogBox1.AppendText($"호텔 정보 추가..." + Environment.NewLine);
+					string result_Hotel = await GetHotelInfoAsync();
+					LogBox1.AppendText($"호텔 추가 완료..." + Environment.NewLine);
+					LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+					// 이미지 크롤링
+					LogBox1.AppendText($"이미지 크롤링 시작..." + Environment.NewLine);
+					Auto_Crawling();
+					LogBox1.AppendText($"이미지 크롤링 완료..." + Environment.NewLine);
+					LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+					// 구글 지도
+					LogBox1.AppendText($"구글 지도 추가..." + Environment.NewLine);
+					string result_GoogleMap = await google_map(googleApiBox1.Text);
+					LogBox1.AppendText($"구글 지도 추가 완료..." + Environment.NewLine);
+					LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+					// 본문 가공 : 호텔명 + 편집사진 + 호텔정보
+					LogBox1.AppendText($"이미지 & 내용 패턴 변경 시작..." + Environment.NewLine);
+					List<string> result_ImgList = await ImagesAsyncList_WP(); // Folder_Path 안의 이미지들을 <img src=\"{createdMedia.SourceUrl}\"> 형식으로 List
+					string content = AddImagesToContent(result_Hotel, result_ImgList); //resultText 사이에 resultImgList의 string값을 잘 넣어주면됨
+					LogBox1.AppendText($"이미지 & 내용 패턴 변경 완료..." + Environment.NewLine);
+					LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+					LogBox1.AppendText($"선택된 호텔 & 사진 삭제..." + Environment.NewLine);
+					DeleteHotelList(Folder_Path);  // 엑셀 첫번째 행 삭제
+					DeleteAllJpgFilesInFolder(Folder_Path); // 폴더 내 사진 삭제 (.jpg)
+					LogBox1.AppendText($"선택된 호텔 & 사진 삭제 완료..." + Environment.NewLine);
+					LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+					mergeContent += content + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" + separator+ "<p>&nbsp;</p>";
+				}
+
+				LogBox1.AppendText($"호텔 썸네일 등록..." + Environment.NewLine);
+				string result_ThumnailImg = await ThumnailAsync_WP(); // 썸네일 등록id 및 img src (.png)
+
+				// GPT 본문 출력
+				LogBox1.AppendText($"GPT 출력 시작..." + Environment.NewLine);
+				string result_GPT = await AddGPTToContentAsync(); // 완료
+				LogBox1.AppendText($"GPT 출력 완료..." + Environment.NewLine);
+				LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+				// 지난 포스팅 링크 추출
+				LogBox1.AppendText($"지난 포스팅 링크 추출..." + Environment.NewLine);
+				string result_OldPostLinks = await AddOldPostAsync_WP(); // 완료
+				LogBox1.AppendText($"지난 포스팅 링크 추출 완료" + Environment.NewLine);
+				LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+				// 외부 링크&배너 입력
+				LogBox1.AppendText($"외부 링크 추출..." + Environment.NewLine);
+				string result_OutLinks = AddOutLinksAsync(); // 완료
+				string result_OutBanners = AddOutBannersAsync(); // 완료
+				LogBox1.AppendText($"외부 링크 추출 완료" + Environment.NewLine);
+				LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+				// 태그 생성 (GPT)
+				LogBox1.AppendText($"태그 생성중..." + Environment.NewLine + Environment.NewLine);
+				int result_TagId = await AddTagAsync_WP(); // 완료
+				LogBox1.AppendText($"태그 생성 완료..." + Environment.NewLine);
+				LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+
+				// 카테고리 출력
+				LogBox1.AppendText($"카테고리 분류 시작..." + Environment.NewLine);
+				int result_Categories = await AddCategoriesAsync(); // 완료
+				LogBox1.AppendText($"카테고리 분류 완료" + Environment.NewLine);
+				LogBox1.AppendText($"===========================" + Environment.NewLine);
+
+				//WP 업로드 
+				LogBox1.AppendText($"===========================" + Environment.NewLine);
+				LogBox1.AppendText($"워드프레스 업로드 시작" + Environment.NewLine);
+				var post = new Post()
+				{
+					Title = new Title(hotelName + " " + WP_Title + " 숙박후기"), // TitleBox1.Text
+					Content = new Content(head_2 + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_GPT + separator
+										  + "<p>&nbsp;</p>" + mergeContent + "<p>&nbsp;</p>" + separator// todo : 이부분 5회 반복해야함
+										  + result_OutLinks + "<p>&nbsp;</p>" + result_OutBanners + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
+					FeaturedMedia = result_thumbNail, // 썸네일
+					Categories = new List<int> { result_Categories }, // ComboBox에서 선택한 카테고리 ID 설정
+					CommentStatus = OpenStatus.Open, // 댓글 상태
+					Tags = new List<int> { result_TagId },
+					Status = Status.Publish, // 포스팅 상태 공개,임시
+					Excerpt = new Excerpt(result_GPT) // 발췌
+													  //Meta = new Description("테스트입니다"), // 메타 데이터
+				};
+				var createdPost = await client.Posts.CreateAsync(post); // 포스팅 요청 보내기
+				LogBox1.AppendText($"글 본문 출력 완료" + Environment.NewLine);
+				LogBox1.AppendText($"워드프레스 업로드 완료" + Environment.NewLine);
+				LogBox1.AppendText($"===========================" + Environment.NewLine);
+			}
+			catch (Exception ex)
+			{
+				LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+			}
+
+
+
+		}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 		/*=============================================================================================================================================*/
