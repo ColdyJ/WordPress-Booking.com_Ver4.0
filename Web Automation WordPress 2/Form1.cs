@@ -1113,12 +1113,12 @@ namespace Web_Automation_WordPress_2
 					LogBox1.AppendText($"호텔 썸네일 등록..." + Environment.NewLine);
 					string result_ThumnailImg = await ThumnailAsync_WP(); // 썸네일 등록id 및 img src (.png)
 
-					// GPT 본문 출력
-					LogBox1.AppendText($"GPT 출력 시작..." + Environment.NewLine);
-					string result_GPT = await AddGPTToContentAsync(); // 완료
-					LogBox1.AppendText($"GPT 출력 완료..." + Environment.NewLine);
+					// GPT 본문 + 최종 의견 출력
+					LogBox1.AppendText($"GPT 본문 + 최종 의견 출력 시작..." + Environment.NewLine);
+					string result_GPT = await AddGPTToContentAsync(); 
+					string result_Comment = await AddGPTToCommentAsync();
+					LogBox1.AppendText($"GPT 본문 + 최종 의견 출력 완료..." + Environment.NewLine);
 					LogBox1.AppendText($"===========================" + Environment.NewLine);
-
 
 					// 지난 포스팅 링크 추출
 					LogBox1.AppendText($"지난 포스팅 링크 추출..." + Environment.NewLine);
@@ -1140,7 +1140,8 @@ namespace Web_Automation_WordPress_2
 					{
 						Title = new Title(hotelName + " " + WP_Title + " 숙박후기"), // TitleBox1.Text
 						Content = new Content(head_2 + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_GPT + separator
-											  + "<p>&nbsp;</p>" + mergeContent + "<p>&nbsp;</p>" + result_OldPostLinks), // GPT
+											  + "<p>&nbsp;</p>" + mergeContent + "<p>&nbsp;</p>" 
+											  + result_OldPostLinks + "<p>&nbsp;</p>" + result_Comment), // GPT
 						FeaturedMedia = result_thumbNail, // 썸네일
 						Categories = new List<int> { result_Categories }, // ComboBox에서 선택한 카테고리 ID 설정
 						CommentStatus = OpenStatus.Open, // 댓글 상태
