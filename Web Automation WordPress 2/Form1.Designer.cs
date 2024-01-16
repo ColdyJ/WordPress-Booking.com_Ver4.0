@@ -36,7 +36,6 @@
 			groupBox7 = new GroupBox();
 			groupBox5 = new GroupBox();
 			googleApiBox1 = new TextBox();
-			AuthBtn1 = new Button();
 			button1 = new Button();
 			groupBox4 = new GroupBox();
 			HotelListBox1 = new TextBox();
@@ -118,7 +117,6 @@
 			// groupBox7
 			// 
 			groupBox7.Controls.Add(groupBox5);
-			groupBox7.Controls.Add(AuthBtn1);
 			groupBox7.Controls.Add(StartBtn1);
 			groupBox7.Controls.Add(button1);
 			groupBox7.Controls.Add(groupBox4);
@@ -157,20 +155,6 @@
 			googleApiBox1.Name = "googleApiBox1";
 			googleApiBox1.Size = new Size(240, 23);
 			googleApiBox1.TabIndex = 8;
-			// 
-			// AuthBtn1
-			// 
-			AuthBtn1.BackColor = Color.Silver;
-			AuthBtn1.Cursor = Cursors.Hand;
-			AuthBtn1.Font = new Font("맑은 고딕", 12F, FontStyle.Bold, GraphicsUnit.Point);
-			AuthBtn1.ForeColor = Color.Black;
-			AuthBtn1.Location = new Point(6, 260);
-			AuthBtn1.Name = "AuthBtn1";
-			AuthBtn1.Size = new Size(99, 98);
-			AuthBtn1.TabIndex = 1012;
-			AuthBtn1.Text = "구글 수동 인증";
-			AuthBtn1.UseVisualStyleBackColor = false;
-			AuthBtn1.Click += AuthBtn1_Click;
 			// 
 			// button1
 			// 
@@ -322,7 +306,6 @@
 		private GroupBox groupBox2;
 		private TextBox UrlBox1;
 		private GroupBox groupBox4;
-		private Button AuthBtn1;
 		private GroupBox groupBox5;
 		private TextBox googleApiBox1;
 	}
