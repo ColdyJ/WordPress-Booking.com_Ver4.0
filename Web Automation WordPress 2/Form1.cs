@@ -1024,7 +1024,7 @@ namespace Web_Automation_WordPress_2
 			try
 			{
 				string separator = "<hr class=\"wp-block-separator has-alpha-channel-opacity\">";
-				string head_2 = $"<h2>{WP_Title + " 베스트 리조트 숙소 TOP 5"}</h2>";
+				string head_2 = $"<h2>{WP_Title + " 베스트 리조트 숙소 TOP 5 | 할인코드"}</h2>";
 				string mergeContent = ""; // 각 호텔별 게시글 저장(5회)
 				int count = 0;
 				while (count < 5)
@@ -1138,7 +1138,7 @@ namespace Web_Automation_WordPress_2
 					LogBox1.AppendText($"워드프레스 업로드 시작" + Environment.NewLine);
 					var post = new Post()
 					{
-						Title = new Title(hotelName + " " + WP_Title + " 숙박후기"), // TitleBox1.Text
+						Title = new Title(WP_Title + " 숙소 추천 베스트 5 |" + WP_Title+"호텔 순위 |" + WP_Title +"가성비 호텔"), // TitleBox1.Text
 						Content = new Content(head_2 + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_GPT + separator
 											  + "<p>&nbsp;</p>" + mergeContent + "<p>&nbsp;</p>" 
 											  + result_OldPostLinks + "<p>&nbsp;</p>" + result_Comment), // GPT
