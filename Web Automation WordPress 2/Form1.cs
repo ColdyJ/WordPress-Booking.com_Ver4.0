@@ -591,7 +591,7 @@ namespace Web_Automation_WordPress_2
 					if (points != null) { point = points[0].InnerText.Trim(); }
 
 					// containers에 있는 정보를 문자열로 결합
-					combinedInfo += $"호텔을 선택한 이유: {info}<p>&nbsp;</p>\n숙소 평점: {point}<p>&nbsp;</p>\n입실 / 퇴실 시간: {checkinTime + " / " + checkoutTime}<p>&nbsp;</p>\n숙소 리뷰:\n- {string.Join("<p>&nbsp;</p>- ", additionalReviews)}";
+					combinedInfo += $"호텔을 선택한 이유: {info}<br>\n숙소 평점: {point}<br>\n입실 / 퇴실 시간: {checkinTime + " / " + checkoutTime}<br>\n숙소 리뷰:\n- {string.Join("<p>&nbsp;</p>- ", additionalReviews)}";
 					string[] keywords = { "호텔을 선택한 이유:", "숙소 평점:", "입실 / 퇴실 시간:", "숙소 리뷰:" };
 					foreach (var keyword in keywords)
 					{
@@ -822,47 +822,12 @@ namespace Web_Automation_WordPress_2
 					string imageSrc = result_ImgList.FirstOrDefault(); // 이미지 URL을 가져옴
 					if (!string.IsNullOrEmpty(imageSrc))
 					{
-						result_Text = result_Text.Replace(imageInfo, $"\r<br>{imageSrc}\r<br><h3><span font-weight: bold;'>{imageInfo}</span></h3>");
+						result_Text = result_Text.Replace(imageInfo, $"{imageSrc}\r<br><h3><span font-weight: bold;'>{imageInfo}</span></h3>");
 						result_ImgList.RemoveAt(0); // 사용한 이미지 URL을 리스트에서 제거
 					}
 				}
 			}
 			return result_Text;
-		}
-
-
-		// 지난 포스팅 링크 추출 매서드 (WP)
-		private async Task<string> AddOldPostAsync_WP()
-		{
-			var client = new WordPressClient(WP_URL);
-			client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
-			var posts = await client.Posts.GetAllAsync();
-
-			string addOldPostLinks = "<h3>다른 숙박 후기가 궁금하시다면 아래에 더 많은 내용이 있습니다 :) </h3>\r\n";
-			string oldPostsLinks = ""; // 각 링크를 개행 문자로 구분
-
-			List<string> postLinks = new List<string>(); // 포스트의 Link 값을 저장할 리스트를 만듭니다.
-			foreach (var postli in posts)
-			{
-				string postLink = postli.Link; // 포스트의 Link 값을 추출
-				string postTitle = postli.Title.Rendered; // 게시물의 제목을 가져옵니다.
-				string linkHtml = $"<a title=\"{postTitle}\" href=\"{postLink}\">&nbsp;▶{postTitle}</a>";
-				postLinks.Add(linkHtml);
-			}
-
-			Random random = new Random(); // 랜덤하게 3개의 Link 값을 선택합니다.
-			List<string> selectedLinks = new List<string>();
-			for (int i = 0; i < 3; i++)
-			{
-				int index = random.Next(postLinks.Count); // 랜덤한 인덱스 선택
-				string selectedLink = postLinks[index]; // 선택된 Link 값
-				selectedLinks.Add(selectedLink + "<br>");
-				postLinks.RemoveAt(index); // 중복 선택 방지를 위해 선택한 Link 값을 리스트에서 제거합니다.
-			}
-			// 선택된 Link 값을 oldposts 문자열에 추가합니다.
-			oldPostsLinks = string.Join("\r\n", selectedLinks); // 각 링크를 개행 문자로 구분
-
-			return addOldPostLinks + "<br>" + oldPostsLinks;
 		}
 
 
@@ -909,7 +874,7 @@ namespace Web_Automation_WordPress_2
 			string url = "<a target=\"_blank\" href=\"http://click.linkprice.com/click.php?m=airalo&a=A100688386&l=lnVz&u_id=\"><img src=\"https://img.linkprice.com/files/glink/airalo/20230406/e00xVgcWzw680_320_100.png\" border=\"0\" width=\"320\" height=\"100\"></a> <img src=\"http://track.linkprice.com/lpshow.php?m_id=airalo&a_id=A100688386&p_id=0000&l_id=lnVz&l_cd1=2&l_cd2=0\" width=\"1\" height=\"1\" border=\"0\" nosave style=\"display:none\">";
 			string link = $"<!-- wp:html -->{url}<!-- /wp:html -->";
 
-			return "<div style='text-align: center;'>" + addOutLinks + "<br>" + addOutLinks_2+"<br>"+outLinks + "<p>&nbsp;</p>" + comment + "<br>" + link+ "</div>";
+			return "<div style='text-align: center;'>" + addOutLinks + "<br>" + addOutLinks_2 + "<p>&nbsp;</p>" + outLinks + comment + "<br>" + link + "</div>";
 		}
 
 
@@ -969,7 +934,7 @@ namespace Web_Automation_WordPress_2
 			// 찾은 소제목 패턴을 강조하고 크게 표시합니다.
 			string result_GPT = regex.Replace(content, match =>
 			{
-				return $"{match.Value}"; // 사실 이미지 + GPT 가공부분에서 H3 설정을 해주므로 필요 없을 것 같지만 일단 냅둠
+				return $"<br>{match.Value}";
 			});
 			return result_GPT;
 		}
@@ -979,7 +944,7 @@ namespace Web_Automation_WordPress_2
 		private async Task<string> AddGPTToCommentAsync()
 		{
 			string result = "";
-			string prompt1 = WP_Title + " 숙소에 대한 의견을 짧게 알려줘"; // GPT Prompt 전달
+			string prompt1 = WP_Title + " 에 있는 숙소를 이용했을때 장점을 짧게 알려줘"; // GPT Prompt 전달
 			try
 			{
 				result = await RequestGPT(prompt1); // GPT에 요청하고 결과를 얻습니다.
@@ -991,6 +956,41 @@ namespace Web_Automation_WordPress_2
 			}
 			string content = result.Replace("\n", "\n\r"); // \n을 \n\r로 변경 , HTML로 줄바꿈 
 			return $"<h2>{WP_Title} 숙소에 대한 개인적인 생각</h2>" + "<p>&nbsp;</p>" + content;
+		}
+
+
+		// 지난 포스팅 링크 추출 매서드 (WP)
+		private async Task<string> AddOldPostAsync_WP()
+		{
+			var client = new WordPressClient(WP_URL);
+			client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
+			var posts = await client.Posts.GetAllAsync();
+
+			string addOldPostLinks = "<h3>다른 숙박 후기가 궁금하시다면 아래에 더 많은 내용이 있습니다 :) </h3>\r\n";
+			string oldPostsLinks = ""; // 각 링크를 개행 문자로 구분
+
+			List<string> postLinks = new List<string>(); // 포스트의 Link 값을 저장할 리스트를 만듭니다.
+			foreach (var postli in posts)
+			{
+				string postLink = postli.Link; // 포스트의 Link 값을 추출
+				string postTitle = postli.Title.Rendered; // 게시물의 제목을 가져옵니다.
+				string linkHtml = $"<a title=\"{postTitle}\" href=\"{postLink}\">&nbsp;▶{postTitle}</a>";
+				postLinks.Add(linkHtml);
+			}
+
+			Random random = new Random(); // 랜덤하게 3개의 Link 값을 선택합니다.
+			List<string> selectedLinks = new List<string>();
+			for (int i = 0; i < 3; i++)
+			{
+				int index = random.Next(postLinks.Count); // 랜덤한 인덱스 선택
+				string selectedLink = postLinks[index]; // 선택된 Link 값
+				selectedLinks.Add(selectedLink + "<br>");
+				postLinks.RemoveAt(index); // 중복 선택 방지를 위해 선택한 Link 값을 리스트에서 제거합니다.
+			}
+			// 선택된 Link 값을 oldposts 문자열에 추가합니다.
+			oldPostsLinks = string.Join("\r\n", selectedLinks); // 각 링크를 개행 문자로 구분
+
+			return addOldPostLinks + "<br>" + oldPostsLinks;
 		}
 
 
@@ -1070,7 +1070,7 @@ namespace Web_Automation_WordPress_2
 						LogBox1.AppendText($"외부 링크 추출 완료" + Environment.NewLine);
 						LogBox1.AppendText($"===========================" + Environment.NewLine);
 
-						mergeContent += content + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>" 
+						mergeContent += content + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>"
 										+ result_OutLinks + "<p>&nbsp;</p>" + separator + "<p>&nbsp;</p>";
 
 						count++;// while문 5회 반복
@@ -1111,7 +1111,7 @@ namespace Web_Automation_WordPress_2
 
 					// GPT 본문 + 최종 의견 출력
 					LogBox1.AppendText($"GPT 본문 + 최종 의견 출력 시작..." + Environment.NewLine);
-					string result_GPT = await AddGPTToContentAsync(); 
+					string result_GPT = await AddGPTToContentAsync();
 					string result_Comment = await AddGPTToCommentAsync();
 					LogBox1.AppendText($"GPT 본문 + 최종 의견 출력 완료..." + Environment.NewLine);
 					LogBox1.AppendText($"===========================" + Environment.NewLine);
@@ -1121,7 +1121,6 @@ namespace Web_Automation_WordPress_2
 					string result_OldPostLinks = await AddOldPostAsync_WP(); // 완료
 					LogBox1.AppendText($"지난 포스팅 링크 추출 완료" + Environment.NewLine);
 					LogBox1.AppendText($"===========================" + Environment.NewLine);
-
 
 					// 카테고리 출력
 					LogBox1.AppendText($"카테고리 분류 시작..." + Environment.NewLine);
@@ -1134,9 +1133,9 @@ namespace Web_Automation_WordPress_2
 					LogBox1.AppendText($"워드프레스 업로드 시작" + Environment.NewLine);
 					var post = new Post()
 					{
-						Title = new Title(WP_Title + " 숙소 추천 베스트 5 |" + WP_Title+"호텔 순위 |" + WP_Title +"가성비 호텔"), // TitleBox1.Text
+						Title = new Title(WP_Title + " 숙소 추천 베스트 5 |" + WP_Title + "호텔 순위 |" + WP_Title + "가성비 호텔"), // TitleBox1.Text
 						Content = new Content(head_2 + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_GPT + separator
-											  + "<p>&nbsp;</p>" + mergeContent + "<p>&nbsp;</p>" 
+											  + "<p>&nbsp;</p>" + mergeContent + "<p>&nbsp;</p>"
 											  + result_OldPostLinks + "<p>&nbsp;</p>" + result_Comment), // GPT
 						FeaturedMedia = result_thumbNail, // 썸네일
 						Categories = new List<int> { result_Categories }, // ComboBox에서 선택한 카테고리 ID 설정
