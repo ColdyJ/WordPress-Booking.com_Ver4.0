@@ -100,7 +100,7 @@ namespace Web_Automation_WordPress_2
 						LogBox2.AppendText($"===========================" + Environment.NewLine);
 						LogBox2.AppendText($"{count}번 포스팅 시작" + Environment.NewLine);
 
-						for (int i = 2; i <= 7; i++)
+						for (int i = 2; i <= 4; i++)
 						{
 							GetIdList(i); // 포스팅 할 블로그 선택
 							await WP_API_Auto_2();
