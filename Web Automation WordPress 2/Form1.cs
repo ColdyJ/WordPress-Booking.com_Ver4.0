@@ -19,12 +19,6 @@ using OfficeOpenXml;
 using Google.Apis.Services;
 using Google.Apis.Translate.v2.Data;
 using Google.Apis.Translate.v2;
-using Google.Apis.Blogger.v3;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Util.Store;
-using Google.Apis.Drive.v3;
-using System.Net.Http;
-using static OpenAI.ObjectModels.StaticValues.ImageStatics;
 
 
 namespace Web_Automation_WordPress_2
@@ -837,37 +831,6 @@ namespace Web_Automation_WordPress_2
 		}
 
 
-		// GPT 출력 내용 content로 가공
-		private string GPT_Prompt(string prompt)
-		{
-			string prompt1 = $"'{prompt}'에 관련된 블로그 글을 작성할거야. {WP_Title}가 어떤 곳인지 짧게 3가지를 1. 2. 3. 이렇게 숫자로 분류해서 알려줘";
-			return prompt1;
-		}
-		private async Task<string> AddGPTToContentAsync()
-		{
-			string result = "";
-			string prompt1 = GPT_Prompt(WP_Title + " 호텔 추천"); // GPT Prompt 전달
-			try
-			{
-				result = await RequestGPT(prompt1); // GPT에 요청하고 결과를 얻습니다.
-			}
-			catch (Exception ex)
-			{
-				// 오류 처리 - 예외가 발생한 경우 처리
-				LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
-			}
-			string content = result.Replace("\n", "\n\r"); // \n을 \n\r로 변경 , HTML로 줄바꿈 
-			string pattern = @"\d+\.\s*[\p{L}\d\s]+(?::)?"; // 정규표현식 = 1. 2. 3. 등 숫자로 분류된 소제목 글꼴변경을 위한 패턴
-			Regex regex = new Regex(pattern);
-			// 찾은 소제목 패턴을 강조하고 크게 표시합니다.
-			string result_GPT = regex.Replace(content, match =>
-			{
-				return $"{match.Value}"; // 사실 이미지 + GPT 가공부분에서 H3 설정을 해주므로 필요 없을 것 같지만 일단 냅둠
-			});
-			return result_GPT;
-		}
-
-
 		// 지난 포스팅 링크 추출 매서드 (WP)
 		private async Task<string> AddOldPostAsync_WP()
 		{
@@ -906,7 +869,8 @@ namespace Web_Automation_WordPress_2
 		//외부 링크 추출
 		private string AddOutLinksAsync()
 		{
-			string addOutLinks = "<h3>▼▼▼ 할인 예약 웹사이트 바로가기 ▼▼▼</h3>\r\n";
+			string addOutLinks = "<h3>▼▼▼ 자세히 보러가기 ▼▼▼</h3>\r\n";
+			string addOutLinks_2 = "전액 환불 가능 숙소 !";
 			string outLinks = ""; // 각 링크를 개행 문자로 구분
 
 			try
@@ -921,17 +885,17 @@ namespace Web_Automation_WordPress_2
                     "https://linkmoa.kr/click.php?m=tripadviso&a=A100688386&l=0000", // 트립어드바이저
                 };
 				// 선택된 URL을 linkHtml 형식으로 만듭니다.
-				string agodaLink = $"▶아고다에서 보러가기◀"; // 예약 사이트
-				string hotelscomLink = $"▶호텔스닷컴에서 보러가기◀"; // 에약 사이트
-				string expediaLink = $"▶익스피디아에서 보러가기◀"; // 예약사이트
+				string agodaLink = $"▶아고다◀"; // 예약 사이트
+				string hotelscomLink = $"▶호텔스닷컴◀"; // 에약 사이트
+				string expediaLink = $"▶익스피디아◀"; // 예약사이트
 				string hotelcombineLink = $"▶호텔스컴바인에서 최저가 비교◀"; // 가격 비교
 				string tripadvLink = $"▶트립어드바이저에서 최저가 비교◀"; // 가격 비교
 
-				string agodaHtml = $"<a href='{urls[0]}' style='text-decoration: none; padding: 10px 15px; background: linear-gradient(to right, #9b51e0, #ff6f61); color: white; border-radius: 25px; font-size: 15px; font-weight: bold;'>{agodaLink}</a>&nbsp;&nbsp;&nbsp;";
-				string hotelscomHtml = $"<a href='{urls[1]}' style='text-decoration: none; padding: 10px 15px; background: linear-gradient(to right, #9b51e0, #ff6f61); color: white; border-radius: 25px; font-size: 15px; font-weight: bold;'>{hotelscomLink}</a>&nbsp;&nbsp;&nbsp;";
-				string expediaHtml = $"<a href='{urls[2]}' style='text-decoration: none; padding: 10px 15px; background: linear-gradient(to right, #9b51e0, #ff6f61); color: white; border-radius: 25px; font-size: 15px; font-weight: bold;'>{expediaLink}</a>&nbsp;&nbsp;&nbsp;<p>&nbsp;</p>";
-				string hotelcombineHtml = $"<a href='{urls[3]}' style='text-decoration: none; padding: 10px 15px; background: linear-gradient(to right, #0693e3, #9b51e0); color: white; border-radius: 25px; font-size: 15px; font-weight: bold;'>{hotelcombineLink}</a>&nbsp;&nbsp;&nbsp;";
-				string tripadvHtml = $"<a href='{urls[4]}' style='text-decoration: none; padding: 10px 15px; background: linear-gradient(to right, #0693e3, #9b51e0); color: white; border-radius: 25px; font-size: 15px; font-weight: bold;'>{tripadvLink}</a>&nbsp;&nbsp;&nbsp;<p>&nbsp;</p>";
+				string agodaHtml = $"<a href='{urls[0]}' class='custom-up-button'>{agodaLink}</a>&nbsp;&nbsp;&nbsp;";
+				string hotelscomHtml = $"<a href='{urls[1]}' class='custom-up-button'>{hotelscomLink}</a>&nbsp;&nbsp;&nbsp;";
+				string expediaHtml = $"<a href='{urls[2]}' class='custom-up-button'>{expediaLink}</a>&nbsp;&nbsp;&nbsp;<p>&nbsp;</p>";
+				string hotelcombineHtml = $"<a href='{urls[3]}' class='custom-down-button'>{hotelcombineLink}</a><p>&nbsp;&nbsp;&nbsp;</p>";
+				string tripadvHtml = $"<a href='{urls[4]}' class='custom-down-button'>{tripadvLink}</a>&nbsp;&nbsp;&nbsp;<p>&nbsp;</p>";
 
 				// 선택된 URL을 outlinks 문자열에 추가
 				string[] selectedOutLinks = new string[] { agodaHtml, hotelscomHtml, expediaHtml, hotelcombineHtml, tripadvHtml };
@@ -945,27 +909,9 @@ namespace Web_Automation_WordPress_2
 			string url = "<a target=\"_blank\" href=\"http://click.linkprice.com/click.php?m=airalo&a=A100688386&l=lnVz&u_id=\"><img src=\"https://img.linkprice.com/files/glink/airalo/20230406/e00xVgcWzw680_320_100.png\" border=\"0\" width=\"320\" height=\"100\"></a> <img src=\"http://track.linkprice.com/lpshow.php?m_id=airalo&a_id=A100688386&p_id=0000&l_id=lnVz&l_cd1=2&l_cd2=0\" width=\"1\" height=\"1\" border=\"0\" nosave style=\"display:none\">";
 			string link = $"<!-- wp:html -->{url}<!-- /wp:html -->";
 
-			return "<div style='text-align: center;'>" + addOutLinks + "<br>" + outLinks+ "<p>&nbsp;</p>" + comment + "<br>" + link+ "</div>";
+			return "<div style='text-align: center;'>" + addOutLinks + "<br>" + addOutLinks_2+"<br>"+outLinks + "<p>&nbsp;</p>" + comment + "<br>" + link+ "</div>";
 		}
 
-
-		// GPT로 호텔 평점 추출 
-		private async Task<string> AddGPTToCommentAsync()
-		{
-			string result = "";
-			string prompt1 = WP_Title + " 숙소에 대한 의견을 짧게 알려줘"; // GPT Prompt 전달
-			try
-			{
-				result = await RequestGPT(prompt1); // GPT에 요청하고 결과를 얻습니다.
-			}
-			catch (Exception ex)
-			{
-				// 오류 처리 - 예외가 발생한 경우 처리
-				LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
-			}
-			string content = result.Replace("\n", "\n\r"); // \n을 \n\r로 변경 , HTML로 줄바꿈 
-			return $"<h2>{WP_Title} 숙소에 대한 개인적인 생각</h2>" + "<p>&nbsp;</p>"+ content;
-		}
 
 		// GPT로 Tag 출력 (WP)
 		private async Task<int> AddTagAsync_WP()
@@ -995,6 +941,56 @@ namespace Web_Automation_WordPress_2
 			var createdtag = await client.Tags.CreateAsync(tag);
 			LogBox1.AppendText(tagResult + Environment.NewLine + Environment.NewLine); // 태그 출력
 			return createdtag.Id;
+		}
+
+
+		// GPT 출력 내용 content로 가공
+		private string GPT_Prompt(string prompt)
+		{
+			string prompt1 = $"'{prompt}'에 관련된 블로그 글을 작성할거야. {WP_Title}가 어떤 곳인지 짧게 3가지를 1. 2. 3. 이렇게 숫자로 분류해서 알려줘";
+			return prompt1;
+		}
+		private async Task<string> AddGPTToContentAsync()
+		{
+			string result = "";
+			string prompt1 = GPT_Prompt(WP_Title + " 호텔 추천"); // GPT Prompt 전달
+			try
+			{
+				result = await RequestGPT(prompt1); // GPT에 요청하고 결과를 얻습니다.
+			}
+			catch (Exception ex)
+			{
+				// 오류 처리 - 예외가 발생한 경우 처리
+				LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+			}
+			string content = result.Replace("\n", "\n\r"); // \n을 \n\r로 변경 , HTML로 줄바꿈 
+			string pattern = @"\d+\.\s*[\p{L}\d\s]+(?::)?"; // 정규표현식 = 1. 2. 3. 등 숫자로 분류된 소제목 글꼴변경을 위한 패턴
+			Regex regex = new Regex(pattern);
+			// 찾은 소제목 패턴을 강조하고 크게 표시합니다.
+			string result_GPT = regex.Replace(content, match =>
+			{
+				return $"{match.Value}"; // 사실 이미지 + GPT 가공부분에서 H3 설정을 해주므로 필요 없을 것 같지만 일단 냅둠
+			});
+			return result_GPT;
+		}
+
+
+		// GPT로 호텔 평점 추출 
+		private async Task<string> AddGPTToCommentAsync()
+		{
+			string result = "";
+			string prompt1 = WP_Title + " 숙소에 대한 의견을 짧게 알려줘"; // GPT Prompt 전달
+			try
+			{
+				result = await RequestGPT(prompt1); // GPT에 요청하고 결과를 얻습니다.
+			}
+			catch (Exception ex)
+			{
+				// 오류 처리 - 예외가 발생한 경우 처리
+				LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
+			}
+			string content = result.Replace("\n", "\n\r"); // \n을 \n\r로 변경 , HTML로 줄바꿈 
+			return $"<h2>{WP_Title} 숙소에 대한 개인적인 생각</h2>" + "<p>&nbsp;</p>" + content;
 		}
 
 
@@ -1160,9 +1156,6 @@ namespace Web_Automation_WordPress_2
 			{
 				LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
 			}
-
-
-
 		}
 
 
