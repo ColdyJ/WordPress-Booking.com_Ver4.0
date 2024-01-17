@@ -1027,6 +1027,8 @@ namespace Web_Automation_WordPress_2
 				{
 					try
 					{
+						LogBox2.AppendText($"({count+1}/5) 포스팅" + Environment.NewLine);
+
 						// 블로그에 포스팅 할 호텔 선택
 						LogBox1.AppendText($"===========================" + Environment.NewLine);
 						LogBox1.AppendText($"호텔 선택..." + Environment.NewLine);
