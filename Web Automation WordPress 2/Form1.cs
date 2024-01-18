@@ -1142,7 +1142,7 @@ namespace Web_Automation_WordPress_2
 					LogBox1.AppendText($"워드프레스 업로드 시작" + Environment.NewLine);
 					var post = new Post()
 					{
-						Title = new Title(WP_Title + " 숙소 추천 베스트 5 |" + WP_Title + "호텔 순위 |" + WP_Title + "가성비 호텔"), // TitleBox1.Text
+						Title = new Title(WP_Title + " 숙소 추천 베스트 5 |" + WP_Title + "호텔 순위 |" + WP_Title + "가성비 호텔 |" + hotelName), // TitleBox1.Text
 						Content = new Content(head_2 + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_GPT + separator
 											  + "<p>&nbsp;</p>" + mergeContent + "<p>&nbsp;</p>"
 											  + result_OldPostLinks + "<p>&nbsp;</p>" + result_Comment), // GPT
