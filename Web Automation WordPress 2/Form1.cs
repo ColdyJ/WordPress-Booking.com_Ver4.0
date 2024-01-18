@@ -595,7 +595,7 @@ namespace Web_Automation_WordPress_2
 					string[] keywords = { "호텔을 선택한 이유:", "숙소 평점:", "입실 / 퇴실 시간:", "숙소 리뷰:" };
 					foreach (var keyword in keywords)
 					{
-						combinedInfo = Regex.Replace(combinedInfo, keyword, $"<h3><span font-weight: bold;'>{keyword}</span></h3>");
+						combinedInfo = Regex.Replace(combinedInfo, keyword, $"<h3>{keyword}</h3>");
 					}
 
 					// 리뷰로 바뀐 translation을 호텔명으로 수정
@@ -604,7 +604,7 @@ namespace Web_Automation_WordPress_2
 					{
 						shortenedName = hotelName.Substring(0, Math.Min(15, hotelName.Length)); // 호텔명이 너무 길때 최대 15자까지 자르도록 함
 					}
-					translation = Google_Trans(shortenedName + " Thumnail", "en");
+					translation = Papago(shortenedName + " Thumnail");
 
 					// 결과 출력
 					Console.WriteLine(combinedInfo);
@@ -796,7 +796,7 @@ namespace Web_Automation_WordPress_2
 			string responseImg = $"<img class=\"aligncenter\" src=\"{createdMedia.SourceUrl}\">"; // createdMedia에서 변환 시켰으니 img src로 변경
 			responseImgList.Add(responseImg);
 			global_i++;
-			Console.WriteLine("이미지가 성공적으로 병합되었습니다.");
+			LogBox1.AppendText("이미지가 성공적으로 병합되었습니다.");
 			return responseImgList; // 이미지 업로드 결과를 리스트로 반환
 		}
 
@@ -822,7 +822,7 @@ namespace Web_Automation_WordPress_2
 					string imageSrc = result_ImgList.FirstOrDefault(); // 이미지 URL을 가져옴
 					if (!string.IsNullOrEmpty(imageSrc))
 					{
-						result_Text = result_Text.Replace(imageInfo, $"{imageSrc}\r<br><h3><span font-weight: bold;'>{imageInfo}</span></h3>");
+						result_Text = result_Text.Replace(imageInfo, $"{imageSrc}\r<br>{imageInfo}");
 						result_ImgList.RemoveAt(0); // 사용한 이미지 URL을 리스트에서 제거
 					}
 				}
@@ -835,7 +835,7 @@ namespace Web_Automation_WordPress_2
 		private string AddOutLinksAsync()
 		{
 			string addOutLinks = "<h3>▼▼▼ 자세히 보러가기 ▼▼▼</h3>\r\n";
-			string addOutLinks_2 = "전액 환불 가능 숙소 !";
+			string addOutLinks_2 = "<b>전액 환불 가능 숙소 !</b>";
 			string outLinks = ""; // 각 링크를 개행 문자로 구분
 
 			try
@@ -883,7 +883,7 @@ namespace Web_Automation_WordPress_2
 		{
 			var client = new WordPressClient(WP_URL);
 			client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
-			string tags = "'" + WP_Title + "호텔 추천" + "'" + "을 포함한 인기 검색어 5개를 ','로 구분해서 알려줘";
+			string tags = "'" + WP_Title + " 호텔 추천" + "'" + "을 포함한 인기 검색어 4개를 ','로 구분해서 알려줘";
 			string tagResult = "";
 			try
 			{
@@ -944,7 +944,7 @@ namespace Web_Automation_WordPress_2
 		private async Task<string> AddGPTToCommentAsync()
 		{
 			string result = "";
-			string prompt1 = WP_Title + " 에 있는 숙소를 이용했을때 장점을 짧게 알려줘"; // GPT Prompt 전달
+			string prompt1 = WP_Title + " 에 있는 숙소를 이용했을때 장점을 짧게 3가지로 1. 2. 3. 이렇게 숫자로 분류해서 알려줘"; // GPT Prompt 전달
 			try
 			{
 				result = await RequestGPT(prompt1); // GPT에 요청하고 결과를 얻습니다.
@@ -955,7 +955,14 @@ namespace Web_Automation_WordPress_2
 				LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
 			}
 			string content = result.Replace("\n", "\n\r"); // \n을 \n\r로 변경 , HTML로 줄바꿈 
-			return $"<h2>{WP_Title} 숙소에 대한 개인적인 생각</h2>" + "<p>&nbsp;</p>" + content;
+			string pattern = @"\d+\.\s*[\p{L}\d\s]+(?::)?"; // 정규표현식 = 1. 2. 3. 등 숫자로 분류된 소제목 글꼴변경을 위한 패턴
+			Regex regex = new Regex(pattern);
+			// 찾은 소제목 패턴을 강조하고 크게 표시합니다.
+			string result_GPT = regex.Replace(content, match =>
+			{
+				return $"<br>{match.Value}";
+			});
+			return $"<h2>{WP_Title} 숙소에 대한 개인적인 생각</h2>" + "<p>&nbsp;</p>" + result_GPT;
 		}
 
 
@@ -1093,7 +1100,7 @@ namespace Web_Automation_WordPress_2
 				}
 
 				// Tag는 오류가 잘 나서 따로 try-catch-finally로 분류
-				int result_TagId = 0; ;
+				int result_TagId = 0;
 				try
 				{
 					// 태그 생성 (GPT)
