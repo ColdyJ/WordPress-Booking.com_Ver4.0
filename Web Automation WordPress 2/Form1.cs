@@ -883,7 +883,7 @@ namespace Web_Automation_WordPress_2
 		{
 			var client = new WordPressClient(WP_URL);
 			client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
-			string tags = "'" + WP_Title + " 호텔 추천" + "'" + "을 포함한 인기 검색어 4개를 ','로 구분해서 알려줘";
+			string tags = "'" + hotelName + WP_Title +" 호텔 추천" + "'" + "을 포함한 인기 검색어 4개를 ','로 구분해서 알려줘";
 			string tagResult = "";
 			try
 			{
@@ -1100,7 +1100,7 @@ namespace Web_Automation_WordPress_2
 				}
 
 				// Tag는 오류가 잘 나서 따로 try-catch-finally로 분류
-				int result_TagId = 0;
+				int result_TagId=500;
 				try
 				{
 					// 태그 생성 (GPT)
