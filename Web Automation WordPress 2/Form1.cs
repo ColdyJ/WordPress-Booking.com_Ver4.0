@@ -743,17 +743,25 @@ namespace Web_Automation_WordPress_2
 			int maxImages = 4; // 총 이미지 파일 개수
 			string[] imagePaths = new string[maxImages];
 			string basePath = Folder_Path; // 기본 저장 폴더 경로
+			LogBox1.AppendText("이미지가 Debug#0-1" + Environment.NewLine);
+
 			for (int i = 0; i < maxImages; i++)
 			{
+				LogBox1.AppendText("이미지가 Debug#0-2" + Environment.NewLine);
+
 				string imagePath;
 				do
 				{
 					imagePath = Path.Combine(basePath, $"{startNumber}.jpg");
 					startNumber++;
+					if (startNumber > 100) break;
+					LogBox1.AppendText("이미지가 Debug#0-3" + Environment.NewLine);
 				} while (!File.Exists(imagePath));
-
+				LogBox1.AppendText("이미지가 Debug#0-4" + Environment.NewLine);
 				imagePaths[i] = imagePath;
+				LogBox1.AppendText("이미지가 Debug#0-5" + Environment.NewLine);
 			}
+			LogBox1.AppendText("이미지가 Debug#1" + Environment.NewLine);
 
 			// 각 이미지의 크기를 확인하고 전체 이미지의 크기를 결정합니다.
 			int width = 0, height = 0;
@@ -766,6 +774,7 @@ namespace Web_Automation_WordPress_2
 					height = Math.Max(height, image.Height);
 				}
 			}
+			LogBox1.AppendText("이미지가 Debug#2" + Environment.NewLine);
 			// 새 이미지를 만들고 각 이미지를 이에 병합합니다.
 			using (var newImage = new Bitmap(width * 2, height * 2))
 			using (var graphics = Graphics.FromImage(newImage))
@@ -781,22 +790,26 @@ namespace Web_Automation_WordPress_2
 						graphics.DrawImage(image, new Rectangle(x, y, width, height));
 					}
 				}
+				LogBox1.AppendText("이미지가 Debug#3" + Environment.NewLine);
 				// 하얀색 십자선 그리기
 				Pen whitePen = new Pen(Color.White, 10); // 펜 설정 (하얀색, 두께 10)
 
 				graphics.DrawLine(whitePen, width, 0, width, newImage.Height); // 수직선
 				graphics.DrawLine(whitePen, 0, height, newImage.Width, height); // 수평선
+				LogBox1.AppendText("이미지가 Debug#4" + Environment.NewLine);
 
 				outputPath = Path.Combine(basePath, $"{translation + '_' + global_i}.jpg");
 				newImage.Save(outputPath);
+				LogBox1.AppendText("이미지가 Debug#5" + Environment.NewLine);
 				newImage.Dispose();
+				LogBox1.AppendText("이미지가 Debug#6" + Environment.NewLine);
 			}
 			//WP 미디어 업로드 작업
 			var createdMedia = await client.Media.CreateAsync(outputPath, $"{translation + '_' + global_i}.jpg"); // localImagePath로 media({translation}.jpg) 생성
 			string responseImg = $"<img class=\"aligncenter\" src=\"{createdMedia.SourceUrl}\">"; // createdMedia에서 변환 시켰으니 img src로 변경
 			responseImgList.Add(responseImg);
 			global_i++;
-			LogBox1.AppendText("이미지가 성공적으로 병합되었습니다.");
+			LogBox1.AppendText("이미지가 성공적으로 병합되었습니다." + Environment.NewLine);
 			return responseImgList; // 이미지 업로드 결과를 리스트로 반환
 		}
 
