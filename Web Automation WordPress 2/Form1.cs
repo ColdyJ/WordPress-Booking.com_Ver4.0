@@ -604,7 +604,7 @@ namespace Web_Automation_WordPress_2
 					{
 						shortenedName = hotelName.Substring(0, Math.Min(15, hotelName.Length)); // 호텔명이 너무 길때 최대 15자까지 자르도록 함
 					}
-					translation = Papago(shortenedName + " Thumnail");
+                    translation = Google_Trans(shortenedName + " Thumnail", "ko"); // $"#{i} " +
 
 					// 결과 출력
 					Console.WriteLine(combinedInfo);
