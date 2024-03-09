@@ -870,7 +870,7 @@ namespace Web_Automation_WordPress_2
 		{
 			var client = new WordPressClient(WP_URL);
 			client.Auth.UseBasicAuth(WP_ID, WP_PW); // 아이디 비번
-			string tags = "'" + hotelName + WP_Title +" 호텔 추천" + "'" + "을 포함한 인기 검색어 4개를 ','로 구분해서 알려줘";
+			string tags = "'" + hotelName + " " + WP_Title +" 호텔 추천" + "'" + "을 포함한 인기 검색어 4개를 ','로 구분해서 알려줘";
 			string tagResult = "";
 			try
 			{
@@ -888,10 +888,13 @@ namespace Web_Automation_WordPress_2
 			}
 			var tag = new Tag()
 			{
-				Name = tagResult // 글의 TAG로 들어가버림
+				Name = $"{tagResult}", // 글의 TAG로 들어가버림
+				Description=$"{hotelName}",
 			};
+			Delay();
 			var createdtag = await client.Tags.CreateAsync(tag);
-			LogBox1.AppendText(tagResult + Environment.NewLine + Environment.NewLine); // 태그 출력
+            
+            LogBox1.AppendText(tagResult + Environment.NewLine + Environment.NewLine); // 태그 출력
 			return createdtag.Id;
 		}
 
@@ -1040,7 +1043,9 @@ namespace Web_Automation_WordPress_2
 				string head_2 = $"<h2>{WP_Title + " 베스트 리조트 숙소 TOP 5 | 할인코드"}</h2>";
 				string mergeContent = ""; // 각 호텔별 게시글 저장(5회)
 				int count = 0;
-				while (count < 5)
+                int result_TagId=500;
+
+                while (count < 5)
 				{
 					try
 					{
@@ -1062,8 +1067,8 @@ namespace Web_Automation_WordPress_2
 						LogBox1.AppendText($"===========================" + Environment.NewLine);
 
 
-						// 이미지 크롤링
-						LogBox1.AppendText($"이미지 크롤링 시작..." + Environment.NewLine);
+                        // 이미지 크롤링
+                        LogBox1.AppendText($"이미지 크롤링 시작..." + Environment.NewLine);
 						Auto_Crawling();
 						LogBox1.AppendText($"이미지 크롤링 완료..." + Environment.NewLine);
 						LogBox1.AppendText($"===========================" + Environment.NewLine);
@@ -1110,7 +1115,6 @@ namespace Web_Automation_WordPress_2
 				}
 
 				// Tag는 오류가 잘 나서 따로 try-catch-finally로 분류
-				int result_TagId=500;
 				try
 				{
 					// 태그 생성 (GPT)
@@ -1230,7 +1234,12 @@ namespace Web_Automation_WordPress_2
 				{
 					throw new Exception("Unknown Error");
 				}
-			}
+                else
+                {
+                    // 에러 메시지를 포함하여 예외를 던집니다.
+                    throw new Exception($"Error: {completionResult.Error.Message}");
+                }
+            }
 			return result;
 		}
 
