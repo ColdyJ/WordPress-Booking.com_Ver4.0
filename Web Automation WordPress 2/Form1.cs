@@ -1058,10 +1058,10 @@ namespace Web_Automation_WordPress_2
 						if (HotelUrl == "") break; // 정지 조건
 						LogBox1.AppendText($"호텔 선택 완료..." + Environment.NewLine);
 						LogBox1.AppendText($"===========================" + Environment.NewLine);
+                        Delay();
 
-
-						// 호텔 정보
-						LogBox1.AppendText($"호텔 정보 추가..." + Environment.NewLine);
+                        // 호텔 정보
+                        LogBox1.AppendText($"호텔 정보 추가..." + Environment.NewLine);
 						string result_Hotel = await GetHotelInfoAsync();
 						LogBox1.AppendText($"호텔 추가 완료..." + Environment.NewLine);
 						LogBox1.AppendText($"===========================" + Environment.NewLine);
@@ -1072,29 +1072,32 @@ namespace Web_Automation_WordPress_2
 						Auto_Crawling();
 						LogBox1.AppendText($"이미지 크롤링 완료..." + Environment.NewLine);
 						LogBox1.AppendText($"===========================" + Environment.NewLine);
+                        Delay();
 
-
-						// 구글 지도
-						LogBox1.AppendText($"구글 지도 추가..." + Environment.NewLine);
+                        // 구글 지도
+                        LogBox1.AppendText($"구글 지도 추가..." + Environment.NewLine);
 						string result_GoogleMap = await google_map(googleApiBox1.Text);
 						LogBox1.AppendText($"구글 지도 추가 완료..." + Environment.NewLine);
 						LogBox1.AppendText($"===========================" + Environment.NewLine);
+                        Delay();
 
-
-						// 본문 가공 : 호텔명 + 편집사진 + 호텔정보
-						LogBox1.AppendText($"이미지 & 내용 패턴 변경 시작..." + Environment.NewLine);
+                        // 본문 가공 : 호텔명 + 편집사진 + 호텔정보
+                        LogBox1.AppendText($"이미지 & 내용 패턴 변경 시작..." + Environment.NewLine);
 						List<string> result_ImgList = await ImagesAsyncList_WP(); // Folder_Path 안의 이미지들을 <img src=\"{createdMedia.SourceUrl}\"> 형식으로 List
 						string content = AddImagesToContent(result_Hotel, result_ImgList); //resultText 사이에 resultImgList의 string값을 잘 넣어주면됨
 						LogBox1.AppendText($"이미지 & 내용 패턴 변경 완료..." + Environment.NewLine);
 						LogBox1.AppendText($"===========================" + Environment.NewLine);
+                        Delay();
 
-						// 외부 링크 입력
-						LogBox1.AppendText($"외부 링크 추출..." + Environment.NewLine);
+                        // 외부 링크 입력
+                        LogBox1.AppendText($"외부 링크 추출..." + Environment.NewLine);
 						string result_OutLinks = AddOutLinksAsync(); // 완료
 						LogBox1.AppendText($"외부 링크 추출 완료" + Environment.NewLine);
 						LogBox1.AppendText($"===========================" + Environment.NewLine);
+                        Delay();
 
-						mergeContent += content + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>"
+						// 컨텐츠 조합
+                        mergeContent += content + "<p>&nbsp;</p>" + result_GoogleMap + "<p>&nbsp;</p>"
 										+ result_OutLinks + "<p>&nbsp;</p>" + separator + "<p>&nbsp;</p>";
 
 						count++;// while문 5회 반복
@@ -1103,6 +1106,7 @@ namespace Web_Automation_WordPress_2
 					{
 						LogBox1.AppendText($"오류 발생: {ex.Message}" + Environment.NewLine);
 						LogBox1.AppendText($"다음 호텔로 넘어갑니다" + Environment.NewLine);
+						Delay();
 					}
 					finally
 					{
@@ -1111,7 +1115,8 @@ namespace Web_Automation_WordPress_2
 						DeleteAllJpgFilesInFolder(Folder_Path); // 폴더 내 사진 삭제 (.jpg)
 						LogBox1.AppendText($"선택된 호텔 & 사진 삭제 완료..." + Environment.NewLine);
 						LogBox1.AppendText($"===========================" + Environment.NewLine);
-					}
+                        Delay();
+                    }
 				}
 
 				// Tag는 오류가 잘 나서 따로 try-catch-finally로 분류
@@ -1122,7 +1127,8 @@ namespace Web_Automation_WordPress_2
 					result_TagId = await AddTagAsync_WP(); // 완료
 					LogBox1.AppendText($"태그 생성 완료..." + Environment.NewLine);
 					LogBox1.AppendText($"===========================" + Environment.NewLine);
-				}
+                    Delay();
+                }
 				catch (Exception ex)
 				{
 					LogBox1.AppendText($"Tag 오류 발생: {ex.Message}" + Environment.NewLine);
@@ -1138,25 +1144,28 @@ namespace Web_Automation_WordPress_2
 					string result_Comment = await AddGPTToCommentAsync();
 					LogBox1.AppendText($"GPT 본문 + 최종 의견 출력 완료..." + Environment.NewLine);
 					LogBox1.AppendText($"===========================" + Environment.NewLine);
+                    Delay();
 
-					// 지난 포스팅 링크 추출
-					LogBox1.AppendText($"지난 포스팅 링크 추출..." + Environment.NewLine);
+                    // 지난 포스팅 링크 추출
+                    LogBox1.AppendText($"지난 포스팅 링크 추출..." + Environment.NewLine);
 					string result_OldPostLinks = await AddOldPostAsync_WP(); // 완료
 					LogBox1.AppendText($"지난 포스팅 링크 추출 완료" + Environment.NewLine);
 					LogBox1.AppendText($"===========================" + Environment.NewLine);
+                    Delay();
 
-					// 카테고리 출력
-					LogBox1.AppendText($"카테고리 분류 시작..." + Environment.NewLine);
+                    // 카테고리 출력
+                    LogBox1.AppendText($"카테고리 분류 시작..." + Environment.NewLine);
 					int result_Categories = await AddCategoriesAsync(); // 완료
 					LogBox1.AppendText($"카테고리 분류 완료" + Environment.NewLine);
 					LogBox1.AppendText($"===========================" + Environment.NewLine);
+                    Delay();
 
-					//WP 업로드 
-					LogBox1.AppendText($"===========================" + Environment.NewLine);
+                    //WP 업로드 
+                    LogBox1.AppendText($"===========================" + Environment.NewLine);
 					LogBox1.AppendText($"워드프레스 업로드 시작" + Environment.NewLine);
 					var post = new Post()
 					{
-						Title = new Title(WP_Title + " 숙소 추천 베스트 5 |" + WP_Title + "호텔 순위 |" + WP_Title + "가성비 호텔 |" + hotelName), // TitleBox1.Text
+						Title = new Title(WP_Title + " 숙소 추천 베스트 5 |" + WP_Title +" "+ "호텔 순위 |" + WP_Title + " " + "가성비 호텔 |" + hotelName), // TitleBox1.Text
 						Content = new Content(head_2 + "<p>&nbsp;</p>" + result_ThumnailImg + "<p>&nbsp;</p>" + result_GPT + separator
 											  + "<p>&nbsp;</p>" + mergeContent + "<p>&nbsp;</p>"
 											  + result_OldPostLinks + "<p>&nbsp;</p>" + result_Comment), // GPT
